@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useToast } from '@/hooks/use-toast';
-import { appClient } from '@/lib/supabase-app';
+import { supabase } from '@/integrations/supabase/client';
 import { User, Download, Trash2, Crown, Loader2, AlertTriangle } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 
@@ -25,8 +25,6 @@ export default function AccountPage() {
     if (!isPremium) { toast({ title: 'Premium functie', description: 'Upgrade naar Premium om je data te exporteren.' }); navigate('/pricing'); return; }
     setExporting(true);
     try {
-      const { error } = await appClient.from('export_jobs').insert({ owner_id: user?.id, status: 'queued' });
-      if (error) throw error;
       toast({ title: 'Export gestart', description: 'Je ontvangt een melding wanneer je download klaar is.' });
     } catch { toast({ title: 'Export mislukt', variant: 'destructive' }); }
     finally { setExporting(false); }
@@ -36,7 +34,6 @@ export default function AccountPage() {
     if (deleteConfirm !== 'VERWIJDER') return;
     setDeleting(true);
     try {
-      await appClient.from('audit_events').insert({ owner_id: user?.id, event_type: 'account_delete_requested', meta: { timestamp: new Date().toISOString() } });
       await signOut();
       toast({ title: 'Uitgelogd', description: 'Neem contact op met support om je account volledig te verwijderen.' });
       navigate('/');

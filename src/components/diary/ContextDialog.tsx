@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { appClient } from '@/lib/supabase-app';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -52,7 +52,7 @@ export function ContextDialog({ open, onOpenChange, dayId }: ContextDialogProps)
     queryKey: ['daily-context', dayId],
     queryFn: async () => {
       if (!user || !dayId) return null;
-      const { data, error } = await appClient
+      const { data, error } = await supabase
         .from('daily_context')
         .select('*')
         .eq('day_id', dayId)
@@ -92,13 +92,13 @@ export function ContextDialog({ open, onOpenChange, dayId }: ContextDialogProps)
       };
 
       if (existingContext?.id) {
-        const { error } = await appClient
+        const { error } = await supabase
           .from('daily_context')
           .update(contextData)
           .eq('id', existingContext.id);
         if (error) throw error;
       } else {
-        const { error } = await appClient
+        const { error } = await supabase
           .from('daily_context')
           .insert(contextData);
         if (error) throw error;

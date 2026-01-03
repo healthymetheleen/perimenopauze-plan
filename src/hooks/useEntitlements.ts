@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
-import { appClient } from '@/lib/supabase-app';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 
 export interface Entitlements {
@@ -20,13 +20,13 @@ export function useEntitlements() {
     queryKey: ['entitlements', user?.id],
     queryFn: async (): Promise<Entitlements> => {
       if (!user) return defaultEntitlements;
-      const { data: sub } = await appClient.from('subscriptions').select('plan, status').eq('owner_id', user.id).maybeSingle();
-      const { data: ent } = await appClient.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle();
+      const { data: sub } = await supabase.from('subscriptions').select('plan, status').eq('owner_id', user.id).maybeSingle();
+      const { data: ent } = await supabase.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle();
       return {
-        can_use_digest: ent?.can_use_digest ?? true,
+        can_use_digest: true,
         can_use_trends: ent?.can_use_trends ?? false,
         can_use_patterns: ent?.can_use_patterns ?? false,
-        max_days_history: ent?.max_days_history ?? 7,
+        max_days_history: 7,
         plan: sub?.plan ?? 'free',
         status: sub?.status ?? 'active',
       };

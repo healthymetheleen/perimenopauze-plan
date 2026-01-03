@@ -14,10 +14,398 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      daily_context: {
+        Row: {
+          created_at: string
+          cycle_day: number | null
+          cycle_phase: string | null
+          day_id: string
+          id: string
+          owner_id: string
+          sleep_duration_h: number | null
+          sleep_quality_0_10: number | null
+          steps: number | null
+          stress_0_10: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          cycle_day?: number | null
+          cycle_phase?: string | null
+          day_id: string
+          id?: string
+          owner_id: string
+          sleep_duration_h?: number | null
+          sleep_quality_0_10?: number | null
+          steps?: number | null
+          stress_0_10?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          cycle_day?: number | null
+          cycle_phase?: string | null
+          day_id?: string
+          id?: string
+          owner_id?: string
+          sleep_duration_h?: number | null
+          sleep_quality_0_10?: number | null
+          steps?: number | null
+          stress_0_10?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "daily_context_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "diary_days"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "daily_context_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_daily_scores"
+            referencedColumns: ["day_id", "owner_id"]
+          },
+        ]
+      }
+      diary_days: {
+        Row: {
+          created_at: string
+          data_quality: Json
+          day_date: string
+          id: string
+          owner_id: string
+          timezone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data_quality?: Json
+          day_date: string
+          id?: string
+          owner_id: string
+          timezone?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data_quality?: Json
+          day_date?: string
+          id?: string
+          owner_id?: string
+          timezone?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      entitlements: {
+        Row: {
+          can_export: boolean
+          can_use_patterns: boolean
+          can_use_trends: boolean
+          created_at: string
+          id: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          can_export?: boolean
+          can_use_patterns?: boolean
+          can_use_trends?: boolean
+          created_at?: string
+          id?: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          can_export?: boolean
+          can_use_patterns?: boolean
+          can_use_trends?: boolean
+          created_at?: string
+          id?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      meals: {
+        Row: {
+          carbs_g: number | null
+          created_at: string
+          day_id: string
+          fat_g: number | null
+          fiber_g: number | null
+          id: string
+          kcal: number | null
+          owner_id: string
+          protein_g: number | null
+          quality_flags: Json
+          source: string
+          time_local: string | null
+          ultra_processed_level: number | null
+          updated_at: string
+        }
+        Insert: {
+          carbs_g?: number | null
+          created_at?: string
+          day_id: string
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          kcal?: number | null
+          owner_id: string
+          protein_g?: number | null
+          quality_flags?: Json
+          source?: string
+          time_local?: string | null
+          ultra_processed_level?: number | null
+          updated_at?: string
+        }
+        Update: {
+          carbs_g?: number | null
+          created_at?: string
+          day_id?: string
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          kcal?: number | null
+          owner_id?: string
+          protein_g?: number | null
+          quality_flags?: Json
+          source?: string
+          time_local?: string | null
+          ultra_processed_level?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meals_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "diary_days"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "meals_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_daily_scores"
+            referencedColumns: ["day_id", "owner_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          plan: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          plan?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          plan?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      symptom_catalog: {
+        Row: {
+          code: string
+          description_nl: string | null
+          domain: string
+          is_active: boolean
+          label_nl: string
+        }
+        Insert: {
+          code: string
+          description_nl?: string | null
+          domain: string
+          is_active?: boolean
+          label_nl: string
+        }
+        Update: {
+          code?: string
+          description_nl?: string | null
+          domain?: string
+          is_active?: boolean
+          label_nl?: string
+        }
+        Relationships: []
+      }
+      symptoms: {
+        Row: {
+          created_at: string
+          day_id: string
+          id: string
+          owner_id: string
+          severity_0_10: number
+          symptom_code: string
+          tags: Json
+          timing: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_id: string
+          id?: string
+          owner_id: string
+          severity_0_10: number
+          symptom_code: string
+          tags?: Json
+          timing?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_id?: string
+          id?: string
+          owner_id?: string
+          severity_0_10?: number
+          symptom_code?: string
+          tags?: Json
+          timing?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "symptoms_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "diary_days"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "symptoms_day_id_owner_id_fkey"
+            columns: ["day_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "v_daily_scores"
+            referencedColumns: ["day_id", "owner_id"]
+          },
+          {
+            foreignKeyName: "symptoms_symptom_code_fkey"
+            columns: ["symptom_code"]
+            isOneToOne: false
+            referencedRelation: "symptom_catalog"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "symptoms_symptom_code_fkey"
+            columns: ["symptom_code"]
+            isOneToOne: false
+            referencedRelation: "v_symptom_catalog"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      user_consents: {
+        Row: {
+          accepted_at: string | null
+          accepted_disclaimer: boolean
+          accepted_health_data_processing: boolean
+          accepted_privacy: boolean
+          accepted_terms: boolean
+          created_at: string
+          id: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_disclaimer?: boolean
+          accepted_health_data_processing?: boolean
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          created_at?: string
+          id?: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_disclaimer?: boolean
+          accepted_health_data_processing?: boolean
+          accepted_privacy?: boolean
+          accepted_terms?: boolean
+          created_at?: string
+          id?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      v_daily_scores: {
+        Row: {
+          day_date: string | null
+          day_id: string | null
+          day_score: number | null
+          fiber_g: number | null
+          meals_count: number | null
+          owner_id: string | null
+          protein_g: number | null
+          score_reasons: string[] | null
+        }
+        Relationships: []
+      }
+      v_symptom_catalog: {
+        Row: {
+          code: string | null
+          description_nl: string | null
+          domain: string | null
+          label_nl: string | null
+        }
+        Insert: {
+          code?: string | null
+          description_nl?: string | null
+          domain?: string | null
+          label_nl?: string | null
+        }
+        Update: {
+          code?: string | null
+          description_nl?: string | null
+          domain?: string | null
+          label_nl?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
