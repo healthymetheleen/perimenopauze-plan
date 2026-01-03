@@ -14,6 +14,23 @@ import { ContextDialog } from '@/components/diary/ContextDialog';
 import { SymptomsDialog } from '@/components/diary/SymptomsDialog';
 import { MealCard } from '@/components/diary/MealCard';
 
+// Translate score reason codes to Dutch explanations
+const translateScoreReason = (reason: string): string => {
+  const translations: Record<string, string> = {
+    'low_protein': 'Weinig eiwit vandaag - probeer 20-30g per maaltijd',
+    'low_fiber': 'Weinig vezels - voeg groenten of peulvruchten toe',
+    'high_ultra_processed': 'Veel ultrabewerkte producten - kies voor onbewerkt',
+    'few_meals': 'Weinig maaltijden gelogd',
+    'no_breakfast': 'Geen ontbijt geregistreerd',
+    'late_eating': 'Laat gegeten - probeer 2-3 uur voor slapen te stoppen',
+    'skipped_meal': 'Maaltijd overgeslagen',
+    'good_protein': 'Goede eiwitinname 💪',
+    'good_fiber': 'Voldoende vezels 🥬',
+    'balanced_meals': 'Gebalanceerde maaltijden ✓',
+  };
+  return translations[reason] || reason;
+};
+
 export default function DiaryPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showAddMeal, setShowAddMeal] = useState(false);
@@ -86,18 +103,29 @@ export default function DiaryPage() {
         {todayScore && (
           <Card className="rounded-2xl">
             <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+              <div className="space-y-3">
                 <div className="flex items-center gap-4">
                   <ScoreBadge score={todayScore.day_score} size="lg" />
                   <div>
                     <p className="font-medium">Dagscore</p>
                     <p className="text-sm text-muted-foreground">
-                      {todayScore.score_reasons.length > 0 
-                        ? `${todayScore.score_reasons.length} signalen`
-                        : 'Geen signalen'}
+                      {todayScore.meals_count || 0} maaltijden • {Math.round(todayScore.protein_g || 0)}g eiwit • {Math.round(todayScore.fiber_g || 0)}g vezels
                     </p>
                   </div>
                 </div>
+                {todayScore.score_reasons && todayScore.score_reasons.length > 0 && (
+                  <div className="space-y-1 pt-2 border-t">
+                    <p className="text-xs font-medium text-muted-foreground">Signalen:</p>
+                    <ul className="space-y-1">
+                      {todayScore.score_reasons.map((reason, i) => (
+                        <li key={i} className="text-sm flex items-start gap-2">
+                          <span className="text-amber-500">•</span>
+                          <span>{translateScoreReason(reason)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -181,6 +209,8 @@ export default function DiaryPage() {
             open={showAddMeal} 
             onOpenChange={setShowAddMeal}
             dayId={diaryDay.id}
+            selectedDate={selectedDate}
+            onDateChange={setSelectedDate}
           />
           <ContextDialog
             open={showContext}

@@ -14,6 +14,8 @@ interface AddMealDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   dayId: string;
+  selectedDate: string;
+  onDateChange?: (date: string) => void;
 }
 
 interface MealAnalysis {
@@ -27,7 +29,7 @@ interface MealAnalysis {
   notes?: string;
 }
 
-export function AddMealDialog({ open, onOpenChange, dayId }: AddMealDialogProps) {
+export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateChange }: AddMealDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -39,6 +41,7 @@ export function AddMealDialog({ open, onOpenChange, dayId }: AddMealDialogProps)
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [mealDate, setMealDate] = useState(selectedDate);
 
   // Analysis result state
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null);
@@ -59,11 +62,17 @@ export function AddMealDialog({ open, onOpenChange, dayId }: AddMealDialogProps)
     setEditableAnalysis(null);
     setShowConfirmation(false);
     setTime(new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }));
+    setMealDate(selectedDate);
   };
 
   const handleClose = () => {
     resetForm();
     onOpenChange(false);
+  };
+
+  const handleDateChange = (newDate: string) => {
+    setMealDate(newDate);
+    onDateChange?.(newDate);
   };
 
   // Analyze meal with AI
@@ -342,15 +351,27 @@ export function AddMealDialog({ open, onOpenChange, dayId }: AddMealDialogProps)
                   )}
                 </div>
 
-                {/* Time */}
-                <div className="space-y-2">
-                  <Label htmlFor="time">Tijd</Label>
-                  <Input 
-                    id="time" 
-                    type="time" 
-                    value={time} 
-                    onChange={(e) => setTime(e.target.value)} 
-                  />
+                {/* Date and Time */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Datum</Label>
+                    <Input 
+                      id="date" 
+                      type="date" 
+                      value={mealDate} 
+                      onChange={(e) => handleDateChange(e.target.value)}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="time">Tijd</Label>
+                    <Input 
+                      id="time" 
+                      type="time" 
+                      value={time} 
+                      onChange={(e) => setTime(e.target.value)} 
+                    />
+                  </div>
                 </div>
 
                 {/* Editable nutrition values */}

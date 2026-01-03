@@ -28,6 +28,7 @@ interface CycleDayLogDialogProps {
 }
 
 const intensityOptions = [
+  { value: 'geen', label: 'Geen', color: 'bg-gray-100' },
   { value: 'spotting', label: 'Spotting', color: 'bg-pink-200' },
   { value: 'licht', label: 'Licht', color: 'bg-pink-300' },
   { value: 'normaal', label: 'Normaal', color: 'bg-red-300' },
@@ -133,8 +134,8 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
 
   const handleSave = async () => {
     try {
-      // Save bleeding log if intensity selected
-      if (intensity) {
+      // Save bleeding log if intensity selected (skip 'geen' as it means no bleeding)
+      if (intensity && intensity !== 'geen') {
         await logBleeding.mutateAsync({
           log_date: date,
           intensity,
@@ -192,30 +193,20 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
           <TabsContent value="bleeding" className="space-y-6 mt-4">
             {/* Intensity */}
             <div className="space-y-3">
-              <Label>Intensiteit</Label>
-              <div className="grid grid-cols-4 gap-2">
+              <Label>Bloedverlies</Label>
+              <div className="grid grid-cols-5 gap-2">
                 {intensityOptions.map((opt) => (
                   <Button
                     key={opt.value}
                     type="button"
                     variant={intensity === opt.value ? 'default' : 'outline'}
-                    className={intensity === opt.value ? '' : opt.color}
+                    className={`text-xs px-2 ${intensity === opt.value ? '' : opt.color}`}
                     onClick={() => setIntensity(opt.value)}
                   >
                     {opt.label}
                   </Button>
                 ))}
               </div>
-              {intensity && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setIntensity(null)}
-                  className="text-muted-foreground"
-                >
-                  Geen bloedverlies vandaag
-                </Button>
-              )}
             </div>
 
             {/* Pain score */}
