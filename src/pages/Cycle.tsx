@@ -48,36 +48,150 @@ const seasonIcons: Record<string, React.ReactNode> = {
   onbekend: <Calendar className="h-5 w-5" />,
 };
 
-const seasonTips: Record<string, { voeding: string; training: string; werk: string; herstel: string }> = {
+const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: string[]; herstel: string[] }> = {
   winter: {
-    voeding: 'Focus op ijzerrijk voedsel, warme maaltijden en stabiele bloedsuiker. Denk aan donker bladgroen, peulvruchten en rode biet.',
-    training: 'Rustig aan. Wandelen, yoga, stretching. Luister naar je lichaam en forceer niet.',
-    werk: 'Plannen, afronden, minder meetings. Ideaal voor reflectie en strategisch denken.',
-    herstel: 'Extra slaap, warmte, grenzen stellen. Dit is de tijd om te herstellen.',
+    voeding: [
+      'Focus op ijzerrijk voedsel: donker bladgroen (spinazie, boerenkool), peulvruchten, rode biet en biologisch rood vlees.',
+      'Warme maaltijden ondersteunen je spijsvertering en geven comfort. Denk aan stoofschotels, soepen en stamppotten.',
+      'Houd je bloedsuiker stabiel met regelmatige eiwitrijke maaltijden. Vermijd lange periodes zonder eten.',
+      'Voeg vitamine C-rijke groenten toe (paprika, broccoli) om ijzeropname te verbeteren.',
+      'Verminder cafeïne en alcohol, deze kunnen je ijzeropname remmen en klachten verergeren.',
+    ],
+    training: [
+      'Rustig aan is het devies. Je lichaam is bezig met herstellen en herbouwen.',
+      'Ideaal voor: wandelen, zachte yoga, stretching, mobility en ademwerk.',
+      'Vermijd high intensity training de eerste 2-3 dagen als je hevig bloedt.',
+      'Luister écht naar je lichaam - als je moe bent, rust dan.',
+      'Techniektraining zonder intensiteit kan wel: focus op vorm, niet op zwaarte.',
+    ],
+    werk: [
+      'Ideaal moment voor reflectie, evaluatie en strategisch denken.',
+      'Plan minder meetings en sociale verplichtingen waar mogelijk.',
+      'Afronding van lopende taken past beter dan nieuwe projecten starten.',
+      'Administratie, plannen en rustig bureauwerk voelen nu natuurlijker.',
+      'Stel grenzen: dit is niet het moment om ja te zeggen op alles.',
+    ],
+    herstel: [
+      'Prioriteer slaap: ga eerder naar bed en sta later op als het kan.',
+      'Warmte helpt: kruik, warme douche, warme dranken.',
+      'Zeg nee tegen niet-essentiële sociale verplichtingen.',
+      'Dit is de tijd voor solo-activiteiten: lezen, journaling, rust.',
+      'Magnesium en omega-3 kunnen krampen en stemmingsklachten verminderen.',
+    ],
   },
   lente: {
-    voeding: 'Veel verse groenten, voldoende eiwit, koolhydraten rondom training voor optimale energie.',
-    training: 'Opbouwen! Kracht training, intervallen als je je goed voelt. Je insulinegevoeligheid is nu optimaal.',
-    werk: 'Start nieuwe projecten, brainstormen, presentaties. Creativiteit piekt.',
-    herstel: 'Socialer, meer energie voor activiteiten. Maar blijf slaap prioriteren.',
+    voeding: [
+      'Je insulinegevoeligheid is nu optimaal - je lichaam verwerkt koolhydraten efficiënt.',
+      'Veel verse groenten en fruit, je eetlust kan wat lager zijn dan in andere fases.',
+      'Voldoende eiwit voor spieropbouw (1.6-2g per kg lichaamsgewicht bij training).',
+      'Koolhydraten rondom training optimaliseren je prestaties en herstel.',
+      'Experimenteer met nieuwe recepten en ingrediënten - je staat er meer voor open nu.',
+    ],
+    training: [
+      'Dit is de fase om op te bouwen! Je lichaam reageert optimaal op trainingsbelasting.',
+      'Krachttraining met progressieve overload past uitstekend.',
+      'HIIT en intervallen als je je goed voelt - je energieniveau is vaak hoger.',
+      'Probeer nieuwe workouts of uitdagingen waar je tegenop zag.',
+      'Je herstelt sneller, dus je kunt frequenter trainen.',
+    ],
+    werk: [
+      'Creativiteit en nieuw denken pieken in deze fase.',
+      'Start nieuwe projecten, brainstorm, plan de komende maand.',
+      'Presentaties, pitches en creatieve sessies lukken nu vaak makkelijker.',
+      'Je bent communicatiever en opener - plan belangrijke gesprekken.',
+      'Leren en nieuwe vaardigheden oppakken gaat soepeler.',
+    ],
+    herstel: [
+      'Je hebt vaak meer energie voor sociale activiteiten.',
+      'Ondanks hogere energie: blijf slaap prioriteren (7-9 uur).',
+      'Actief herstel werkt goed: lichte beweging, zwemmen, fietsen.',
+      'Je kunt meer aan, maar waak voor overcommitment.',
+      'Dit is een goed moment voor preventief zelfzorg: massage, sauna.',
+    ],
   },
   zomer: {
-    voeding: 'Licht maar voedzaam. Voldoende zout en hydratatie, vooral bij warm weer of intensieve training.',
-    training: 'Dit is je moment! PR mogelijkheden, intensievere sessies als je herstel goed is.',
-    werk: 'Pitches, onderhandelen, zichtbaarheid. Je communiceert nu het beste.',
-    herstel: 'Geniet van sociale contacten, maar waak voor overstimulatie.',
+    voeding: [
+      'Licht maar voedzaam eten voelt vaak het beste. Grote maaltijden kunnen zwaar aanvoelen.',
+      'Extra aandacht voor hydratatie - drink voldoende water en voeg elektrolyten toe bij intensieve training.',
+      'Voldoende zout in je voeding, vooral als je veel zweet.',
+      'Verse salades, gegrilde groenten en lean proteïne passen goed.',
+      'Je eetlust kan fluctueren - luister naar je hongersignalen.',
+    ],
+    training: [
+      'Dit is je piek! Je kunt presteren op je hoogste niveau.',
+      'PR-pogingen, wedstrijden en testen passen het beste in deze fase.',
+      'Je kunt intensievere sessies aan - mits je herstel op orde is.',
+      'Competitieve elementen en uitdagingen voelen motiverend.',
+      'Let op: na ovulatie zakt dit snel, plan je topprestaties bewust.',
+    ],
+    werk: [
+      'Onderhandelen, pitchen en overtuigen gaan je makkelijker af.',
+      'Je bent op je communicatief sterkst en straalt meer zelfvertrouwen uit.',
+      'Plan belangrijke vergaderingen, presentaties en sollicitatiegesprekken.',
+      'Netwerken en nieuwe contacten leggen voelt natuurlijker.',
+      'Leiderschapstaken en zichtbaarheid passen bij deze fase.',
+    ],
+    herstel: [
+      'Sociale activiteiten voelen minder vermoeiend.',
+      'Je libido kan hoger zijn - dit is biologisch bedoeld.',
+      'Geniet van sociale contacten, maar waak voor overstimulatie.',
+      'Je kunt je supermens voelen - maar rust blijft belangrijk.',
+      'Bereid je mentaal voor op de fase die komt: de energiedip na ovulatie.',
+    ],
   },
   herfst: {
-    voeding: 'Stabiele maaltijdfrequentie, eiwit bij ontbijt, minder ultrabewerkt en alcohol. Magnesiumrijke voeding helpt.',
-    training: 'Kracht behouden, minder high intensity als je prikkelbaar bent. Luister naar je lichaam.',
-    werk: 'Structureren, deadlines slim plannen. Minder nieuwe projecten starten.',
-    herstel: 'Extra focus op slaap en stressregulatie. Dit voorkomt PMS klachten.',
+    voeding: [
+      'Stabiele maaltijdfrequentie is cruciaal - sla geen maaltijden over.',
+      'Begin elke dag met eiwit: dit stabiliseert je bloedsuiker en stemming.',
+      'Verminder ultrabewerkte voeding, suiker en alcohol - deze verergeren PMS.',
+      'Magnesiumrijke voeding (noten, zaden, donkere chocolade, bladgroen) helpt.',
+      'Complexe koolhydraten (zoete aardappel, quinoa) ondersteunen serotonineproductie.',
+      'B6-rijke voeding (kip, vis, banaan, kikkererwten) kan PMS verlichten.',
+    ],
+    training: [
+      'Kracht behouden is het doel, niet per se PR\'s jagen.',
+      'Minder high intensity als je prikkelbaar of vermoeid bent.',
+      'Steady-state cardio en matige krachttraining werken vaak beter.',
+      'Luister naar je lichaam - soms is rust beter dan doorduwen.',
+      'Yoga en pilates kunnen helpen bij spanning en onrust.',
+      'De week voor je menstruatie: overweeg intensiteit te verlagen.',
+    ],
+    werk: [
+      'Structureren, organiseren en afronden past beter dan starten.',
+      'Plan deadlines slim - liefst niet vlak voor je menstruatie.',
+      'Detail-georiënteerd werk kan goed gaan - je bent kritischer.',
+      'Start minder nieuwe grote projecten.',
+      'Wees mild voor jezelf als concentratie lastiger is.',
+      'Solo-werk kan productiever voelen dan teamprojecten.',
+    ],
+    herstel: [
+      'Slaap wordt extra belangrijk - je hebt vaak meer nodig.',
+      'Stress heeft nu meer impact - actieve stressregulatie is essentieel.',
+      'Ademhaling, meditatie en rust voorkomt dat spanning opbouwt.',
+      'Sociale energie kan lager zijn - plan bewust minder.',
+      'Warme baden, magnesium voor het slapen, en vroeg naar bed.',
+      'Dit is preventie: wat je nu doet bepaalt hoe heftig je menstruatie wordt.',
+    ],
   },
   onbekend: {
-    voeding: 'Focus op gevarieerd, voedzaam eten met voldoende eiwit en vezels.',
-    training: 'Beweeg op een manier die goed voelt. Luister naar je lichaam.',
-    werk: 'Plan je taken flexibel in.',
-    herstel: 'Zorg voor voldoende rust en ontspanning.',
+    voeding: [
+      'Focus op gevarieerd, voedzaam eten met voldoende eiwit en vezels.',
+      'Eet regelmatig om je bloedsuiker stabiel te houden.',
+      'Drink voldoende water gedurende de dag.',
+    ],
+    training: [
+      'Beweeg op een manier die goed voelt. Luister naar je lichaam.',
+      'Varieer tussen intensieve en rustige dagen.',
+      'Rust is ook training.',
+    ],
+    werk: [
+      'Plan je taken flexibel in.',
+      'Wees mild voor jezelf op dagen met minder energie.',
+    ],
+    herstel: [
+      'Zorg voor voldoende rust en ontspanning.',
+      'Prioriteer slaap en stressmanagement.',
+    ],
   },
 };
 
@@ -337,15 +451,31 @@ export default function CyclePage() {
           </CardContent>
         </Card>
 
-        {/* Predictions */}
+        {/* Predictions & Pattern combined */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-primary" />
-              Voorspelling
+              Voorspelling & Patroon
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Pattern info */}
+            <div className="grid grid-cols-2 gap-3 p-3 rounded-lg bg-muted/50">
+              <div>
+                <p className="text-xs text-muted-foreground">Gem. cycluslengte</p>
+                <p className="font-semibold">
+                  {prediction.avg_cycle_length ? `${prediction.avg_cycle_length} dagen` : 'Nog onbekend'}
+                </p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Variatie</p>
+                <p className="font-semibold">
+                  {prediction.cycle_variability !== undefined ? `±${prediction.cycle_variability} dagen` : 'Nog onbekend'}
+                </p>
+              </div>
+            </div>
+
             {prediction.next_period_start_min && prediction.next_period_start_max && (
               <div className="flex items-center justify-between">
                 <div>
@@ -395,13 +525,16 @@ export default function CyclePage() {
           </CardContent>
         </Card>
 
-        {/* Cycle syncing tips */}
+        {/* Cycle syncing tips - expanded */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
               Tips voor {seasonLabels[currentSeason].toLowerCase()}
             </CardTitle>
+            <CardDescription>
+              Praktische adviezen afgestemd op je huidige cyclusfase
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs defaultValue="voeding">
@@ -423,9 +556,16 @@ export default function CyclePage() {
                   Herstel
                 </TabsTrigger>
               </TabsList>
-              {Object.entries(tips).map(([key, value]) => (
+              {Object.entries(tips).map(([key, tipList]) => (
                 <TabsContent key={key} value={key} className="mt-4">
-                  <p className="text-sm leading-relaxed">{value}</p>
+                  <ul className="space-y-2">
+                    {tipList.map((tip, index) => (
+                      <li key={index} className="flex items-start gap-2 text-sm leading-relaxed">
+                        <span className="text-primary mt-1">•</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </TabsContent>
               ))}
             </Tabs>

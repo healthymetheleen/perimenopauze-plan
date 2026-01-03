@@ -1,10 +1,11 @@
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarDays, TrendingUp, Activity, ArrowRight, Plus } from 'lucide-react';
+import { CalendarDays, TrendingUp, Activity, ArrowRight, Plus, Snowflake, Leaf, Sun, Wind } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { ScoreBadge } from '@/components/ui/score-badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
@@ -12,25 +13,52 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
+import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors } from '@/hooks/useCycle';
+
+const seasonIcons: Record<string, React.ReactNode> = {
+  winter: <Snowflake className="h-3 w-3" />,
+  lente: <Leaf className="h-3 w-3" />,
+  zomer: <Sun className="h-3 w-3" />,
+  herfst: <Wind className="h-3 w-3" />,
+  onbekend: null,
+};
 
 export default function DashboardPage() {
   const { user } = useAuth();
   const { data: scores, isLoading, error, refetch } = useDailyScores(7);
   const { data: entitlements } = useEntitlements();
+  const { data: prediction } = useLatestPrediction();
+  const { data: preferences } = useCyclePreferences();
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayScore = scores?.find(s => s.day_date === today);
   const recentScores = scores?.slice(0, 5) || [];
 
+  const currentSeason = prediction?.current_season || 'onbekend';
+  const showSeasonBadge = preferences?.onboarding_completed && currentSeason !== 'onbekend';
+
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Header */}
+        {/* Header with season badge */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">
-              Welkom terug
-            </h1>
+            <div className="flex items-center gap-2">
+              <h1 className="text-2xl font-semibold text-foreground">
+                Perimenopauze Plan
+              </h1>
+              {showSeasonBadge && (
+                <Link to="/cycle">
+                  <Badge 
+                    variant="secondary" 
+                    className={`${seasonColors[currentSeason].bg} ${seasonColors[currentSeason].text} border-0 flex items-center gap-1`}
+                  >
+                    {seasonIcons[currentSeason]}
+                    {seasonLabels[currentSeason]}
+                  </Badge>
+                </Link>
+              )}
+            </div>
             <p className="text-muted-foreground">
               {format(new Date(), "EEEE d MMMM", { locale: nl })}
             </p>
