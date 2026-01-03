@@ -346,46 +346,64 @@ export default function CyclePage() {
           </div>
         </div>
 
-        {/* Quick log */}
+        {/* Daily logging - focused on symptoms first */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Droplets className="h-5 w-5 text-primary" />
+              <Calendar className="h-5 w-5 text-primary" />
               Vandaag loggen
             </CardTitle>
+            <p className="text-sm text-muted-foreground">
+              Log hoe je je voelt - bloedverlies kun je apart aangeven
+            </p>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-5 gap-2">
-              {[
-                { intensity: 'geen' as const, label: 'Geen', color: 'bg-gray-100 text-gray-800' },
-                { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800' },
-                { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900' },
-                { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900' },
-                { intensity: 'hevig' as const, label: 'Hevig', color: 'bg-red-300 text-red-900' },
-              ].map(({ intensity, label, color }) => (
-                <Button
-                  key={intensity}
-                  variant="outline"
-                  className={`h-auto py-2 flex-col gap-1 text-xs ${color} border-0`}
-                  onClick={() => intensity !== 'geen' && handleQuickLog(intensity)}
-                  disabled={logBleeding.isPending || intensity === 'geen'}
-                >
-                  {intensity !== 'geen' && <Droplets className="h-4 w-4" />}
-                  <span>{label}</span>
-                </Button>
-              ))}
-            </div>
+          <CardContent className="space-y-4">
+            {/* Primary action - symptom logging */}
             <Button
-              variant="ghost"
-              className="w-full mt-3"
+              variant="default"
+              className="w-full h-auto py-4"
               onClick={() => {
                 setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
                 setShowDayLog(true);
               }}
             >
-              Meer details loggen
-              <ChevronRight className="h-4 w-4 ml-1" />
+              <div className="flex items-center gap-3">
+                <Sparkles className="h-5 w-5" />
+                <div className="text-left">
+                  <p className="font-medium">Symptomen & gevoel loggen</p>
+                  <p className="text-xs opacity-80">Energie, mood, slaap, klachten</p>
+                </div>
+              </div>
+              <ChevronRight className="h-5 w-5 ml-auto" />
             </Button>
+
+            {/* Secondary - bleeding (collapsible feel) */}
+            <div className="pt-2 border-t">
+              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+                <Droplets className="h-3 w-3" />
+                Bloedverlies vandaag?
+              </p>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { intensity: 'geen' as const, label: 'Geen', color: 'bg-muted text-muted-foreground' },
+                  { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800' },
+                  { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900' },
+                  { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900' },
+                  { intensity: 'hevig' as const, label: 'Hevig', color: 'bg-red-300 text-red-900' },
+                ].map(({ intensity, label, color }) => (
+                  <Button
+                    key={intensity}
+                    variant="outline"
+                    size="sm"
+                    className={`h-auto py-1.5 text-xs ${color} border-0`}
+                    onClick={() => intensity !== 'geen' && handleQuickLog(intensity)}
+                    disabled={logBleeding.isPending || intensity === 'geen'}
+                  >
+                    {label}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </CardContent>
         </Card>
 

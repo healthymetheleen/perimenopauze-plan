@@ -14,21 +14,51 @@ import { ContextDialog } from '@/components/diary/ContextDialog';
 import { SymptomsDialog } from '@/components/diary/SymptomsDialog';
 import { MealCard } from '@/components/diary/MealCard';
 
-// Translate score reason codes to Dutch explanations
-const translateScoreReason = (reason: string): string => {
-  const translations: Record<string, string> = {
-    'low_protein': 'Weinig eiwit vandaag - probeer 20-30g per maaltijd',
-    'low_fiber': 'Weinig vezels - voeg groenten of peulvruchten toe',
-    'high_ultra_processed': 'Veel ultrabewerkte producten - kies voor onbewerkt',
-    'few_meals': 'Weinig maaltijden gelogd',
-    'no_breakfast': 'Geen ontbijt geregistreerd',
-    'late_eating': 'Laat gegeten - probeer 2-3 uur voor slapen te stoppen',
-    'skipped_meal': 'Maaltijd overgeslagen',
-    'good_protein': 'Goede eiwitinname 💪',
-    'good_fiber': 'Voldoende vezels 🥬',
-    'balanced_meals': 'Gebalanceerde maaltijden ✓',
+// Translate score reason codes to Dutch explanations with detailed advice
+const translateScoreReason = (reason: string): { text: string; advice: string } => {
+  const translations: Record<string, { text: string; advice: string }> = {
+    'low_protein': {
+      text: 'Weinig eiwit vandaag',
+      advice: 'Eiwit is essentieel voor hormoonbalans, spieronderhoud en verzadiging. Streef naar 20-30g per maaltijd. Goede bronnen: eieren, vis, peulvruchten, noten, zuivel, vlees.'
+    },
+    'low_fiber': {
+      text: 'Weinig vezels',
+      advice: 'Vezels ondersteunen je darmen, hormoonafvoer en bloedsuikerregulatie. Voeg extra groenten, peulvruchten, havermout of chiazaad toe. Streef naar 25-30g per dag.'
+    },
+    'high_ultra_processed': {
+      text: 'Veel ultrabewerkte producten',
+      advice: 'Ultrabewerkte voeding kan ontstekingen verhogen en je bloedsuiker destabiliseren. Kies waar mogelijk voor onbewerkte alternatieven met herkenbare ingrediënten.'
+    },
+    'few_meals': {
+      text: 'Weinig maaltijden gelogd',
+      advice: 'Regelmatig eten (3-4x per dag) houdt je bloedsuiker stabiel en voorkomt energiedips. Overslaan van maaltijden kan cortisol verhogen.'
+    },
+    'no_breakfast': {
+      text: 'Geen ontbijt geregistreerd',
+      advice: 'Een eiwitrijk ontbijt binnen 1-2 uur na opstaan helpt je stresshormonen te reguleren en geeft een stabiele start van de dag.'
+    },
+    'late_eating': {
+      text: 'Laat gegeten',
+      advice: 'Eten dicht voor het slapen kan je slaapkwaliteit beïnvloeden. Probeer je laatste maaltijd 2-3 uur voor bedtijd af te ronden.'
+    },
+    'skipped_meal': {
+      text: 'Maaltijd overgeslagen',
+      advice: 'Het overslaan van maaltijden kan je stresssysteem activeren, vooral in de luteale fase. Probeer regelmatig te eten, ook al heb je weinig trek.'
+    },
+    'good_protein': {
+      text: 'Goede eiwitinname 💪',
+      advice: 'Mooi! Voldoende eiwit ondersteunt je spieren, hormonen en verzadiging. Blijf dit volhouden.'
+    },
+    'good_fiber': {
+      text: 'Voldoende vezels 🥬',
+      advice: 'Top! Je vezelinname ziet er goed uit. Dit helpt je darmen en hormoonbalans.'
+    },
+    'balanced_meals': {
+      text: 'Gebalanceerde maaltijden ✓',
+      advice: 'Uitstekend! Je maaltijden zijn goed samengesteld met een goede balans van macronutriënten.'
+    },
   };
-  return translations[reason] || reason;
+  return translations[reason] || { text: reason, advice: '' };
 };
 
 export default function DiaryPage() {
@@ -114,16 +144,26 @@ export default function DiaryPage() {
                   </div>
                 </div>
                 {todayScore.score_reasons && todayScore.score_reasons.length > 0 && (
-                  <div className="space-y-1 pt-2 border-t">
-                    <p className="text-xs font-medium text-muted-foreground">Signalen:</p>
-                    <ul className="space-y-1">
-                      {todayScore.score_reasons.map((reason, i) => (
-                        <li key={i} className="text-sm flex items-start gap-2">
-                          <span className="text-amber-500">•</span>
-                          <span>{translateScoreReason(reason)}</span>
-                        </li>
-                      ))}
-                    </ul>
+                  <div className="space-y-3 pt-3 border-t">
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Analyse & Tips</p>
+                    <div className="space-y-3">
+                      {todayScore.score_reasons.map((reason, i) => {
+                        const translated = translateScoreReason(reason);
+                        return (
+                          <div key={i} className="p-3 rounded-lg bg-muted/50">
+                            <p className="font-medium text-sm flex items-center gap-2">
+                              <span className={reason.startsWith('good') || reason === 'balanced_meals' ? 'text-green-500' : 'text-amber-500'}>•</span>
+                              {translated.text}
+                            </p>
+                            {translated.advice && (
+                              <p className="text-xs text-muted-foreground mt-1 leading-relaxed">
+                                {translated.advice}
+                              </p>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
