@@ -521,6 +521,78 @@ export type Database = {
         }
         Relationships: []
       }
+      recipes: {
+        Row: {
+          carbs_g: number | null
+          cook_time_minutes: number | null
+          created_at: string
+          description: string | null
+          diet_tags: string[]
+          fat_g: number | null
+          fiber_g: number | null
+          id: string
+          image_url: string | null
+          ingredients: Json
+          instructions: string
+          is_published: boolean | null
+          kcal: number | null
+          meal_type: string
+          owner_id: string
+          prep_time_minutes: number | null
+          protein_g: number | null
+          seasons: string[]
+          servings: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          carbs_g?: number | null
+          cook_time_minutes?: number | null
+          created_at?: string
+          description?: string | null
+          diet_tags?: string[]
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions: string
+          is_published?: boolean | null
+          kcal?: number | null
+          meal_type: string
+          owner_id: string
+          prep_time_minutes?: number | null
+          protein_g?: number | null
+          seasons?: string[]
+          servings?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          carbs_g?: number | null
+          cook_time_minutes?: number | null
+          created_at?: string
+          description?: string | null
+          diet_tags?: string[]
+          fat_g?: number | null
+          fiber_g?: number | null
+          id?: string
+          image_url?: string | null
+          ingredients?: Json
+          instructions?: string
+          is_published?: boolean | null
+          kcal?: number | null
+          meal_type?: string
+          owner_id?: string
+          prep_time_minutes?: number | null
+          protein_g?: number | null
+          seasons?: string[]
+          servings?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string

@@ -19,6 +19,9 @@ import AccountPage from "./pages/Account";
 import SettingsPage from "./pages/Settings";
 import CyclePage from "./pages/Cycle";
 import CycleOnboardingPage from "./pages/CycleOnboarding";
+import RecipesPage from "./pages/Recipes";
+import RecipeDetailPage from "./pages/RecipeDetail";
+import RecipeAdminPage from "./pages/RecipeAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -138,6 +141,21 @@ function AppRoutes() {
       <Route path="/cycle/onboarding" element={
         <ProtectedRoute>
           <CycleOnboardingPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/recepten" element={
+        <ProtectedRoute>
+          <RecipesPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/recepten/:id" element={
+        <ProtectedRoute>
+          <RecipeDetailPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/recepten-beheer" element={
+        <ProtectedRoute>
+          <RecipeAdminPage />
         </ProtectedRoute>
       } />
       
