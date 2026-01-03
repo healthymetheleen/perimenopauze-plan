@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 
-const MONTHLY_AI_LIMIT = 30;
+const DAILY_AI_LIMIT = 30;
 
 export function useAIUsage() {
   const { user } = useAuth();
@@ -10,21 +10,23 @@ export function useAIUsage() {
   return useQuery({
     queryKey: ['ai-usage', user?.id],
     queryFn: async () => {
-      if (!user) return { remaining: 0, used: 0, limit: MONTHLY_AI_LIMIT };
+      if (!user) return { remaining: 0, used: 0, limit: DAILY_AI_LIMIT };
       
-      // Get remaining calls using the database function
-      const { data, error } = await supabase.rpc('get_ai_usage_remaining', {
-        user_id: user.id,
-        monthly_limit: MONTHLY_AI_LIMIT,
-      });
+      // Get today's usage
+      const today = new Date().toISOString().split('T')[0];
+      const { count, error } = await supabase
+        .from('ai_usage')
+        .select('*', { count: 'exact', head: true })
+        .eq('owner_id', user.id)
+        .gte('created_at', `${today}T00:00:00Z`);
       
       if (error) throw error;
       
-      const remaining = data as number;
+      const used = count || 0;
       return {
-        remaining,
-        used: MONTHLY_AI_LIMIT - remaining,
-        limit: MONTHLY_AI_LIMIT,
+        remaining: Math.max(0, DAILY_AI_LIMIT - used),
+        used,
+        limit: DAILY_AI_LIMIT,
       };
     },
     enabled: !!user,
@@ -36,13 +38,15 @@ export async function trackAIUsage(functionName: string): Promise<boolean> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return false;
 
-  // Check if user has remaining calls
-  const { data: canUse, error: checkError } = await supabase.rpc('check_ai_limit', {
-    user_id: userData.user.id,
-    monthly_limit: MONTHLY_AI_LIMIT,
-  });
+  // Check daily limit
+  const today = new Date().toISOString().split('T')[0];
+  const { count, error: countError } = await supabase
+    .from('ai_usage')
+    .select('*', { count: 'exact', head: true })
+    .eq('owner_id', userData.user.id)
+    .gte('created_at', `${today}T00:00:00Z`);
 
-  if (checkError || !canUse) {
+  if (countError || (count || 0) >= DAILY_AI_LIMIT) {
     return false;
   }
 
@@ -57,4 +61,4 @@ export async function trackAIUsage(functionName: string): Promise<boolean> {
   return !insertError;
 }
 
-export { MONTHLY_AI_LIMIT };
+export { DAILY_AI_LIMIT };

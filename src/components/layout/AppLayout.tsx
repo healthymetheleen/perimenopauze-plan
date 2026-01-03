@@ -12,6 +12,7 @@ import {
   X,
   Flower2,
   ChefHat,
+  Moon,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
   { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
+  { href: '/slaap', label: 'Slaap', icon: <Moon className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
   { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" />, premium: true },

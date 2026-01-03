@@ -614,6 +614,42 @@ export type Database = {
         }
         Relationships: []
       }
+      sleep_sessions: {
+        Row: {
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          notes: string | null
+          owner_id: string
+          quality_score: number | null
+          sleep_end: string | null
+          sleep_start: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          owner_id: string
+          quality_score?: number | null
+          sleep_end?: string | null
+          sleep_start: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          owner_id?: string
+          quality_score?: number | null
+          sleep_end?: string | null
+          sleep_start?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subscriptions: {
         Row: {
           created_at: string

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { format, subDays, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { ChevronLeft, ChevronRight, Plus, Utensils, Moon, Activity } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Plus, Utensils } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,8 +10,6 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { ScoreBadge } from '@/components/ui/score-badge';
 import { useDiaryDay, useMeals, useDailyScores } from '@/hooks/useDiary';
 import { AddMealDialog } from '@/components/diary/AddMealDialog';
-import { ContextDialog } from '@/components/diary/ContextDialog';
-import { SymptomsDialog } from '@/components/diary/SymptomsDialog';
 import { MealCard } from '@/components/diary/MealCard';
 
 // Translate score reason codes to Dutch explanations with detailed advice
@@ -64,8 +62,6 @@ const translateScoreReason = (reason: string): { text: string; advice: string } 
 export default function DiaryPage() {
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showAddMeal, setShowAddMeal] = useState(false);
-  const [showContext, setShowContext] = useState(false);
-  const [showSymptoms, setShowSymptoms] = useState(false);
   
   const { data: diaryDay, isLoading: dayLoading, createDay } = useDiaryDay(selectedDate);
   const { data: meals, isLoading: mealsLoading } = useMeals(diaryDay?.id || null);
@@ -90,20 +86,6 @@ export default function DiaryPage() {
       await createDay.mutateAsync();
     }
     setShowAddMeal(true);
-  };
-
-  const handleOpenContext = async () => {
-    if (!diaryDay) {
-      await createDay.mutateAsync();
-    }
-    setShowContext(true);
-  };
-
-  const handleOpenSymptoms = async () => {
-    if (!diaryDay) {
-      await createDay.mutateAsync();
-    }
-    setShowSymptoms(true);
   };
 
   return (
@@ -206,63 +188,16 @@ export default function DiaryPage() {
           </CardContent>
         </Card>
 
-        {/* Quick actions for context and symptoms */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card 
-            className="rounded-2xl hover:shadow-md transition-shadow cursor-pointer"
-            onClick={handleOpenContext}
-          >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <Moon className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Slaap & Stress</p>
-                  <p className="text-xs text-muted-foreground">Bijwerken</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card 
-            className="rounded-2xl hover:shadow-md transition-shadow cursor-pointer"
-            onClick={handleOpenSymptoms}
-          >
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-secondary/10">
-                  <Activity className="h-5 w-5 text-secondary" />
-                </div>
-                <div>
-                  <p className="font-medium text-sm">Symptomen</p>
-                  <p className="text-xs text-muted-foreground">Registreren</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
 
       {diaryDay && (
-        <>
-          <AddMealDialog 
-            open={showAddMeal} 
-            onOpenChange={setShowAddMeal}
-            dayId={diaryDay.id}
-            selectedDate={selectedDate}
-            onDateChange={setSelectedDate}
-          />
-          <ContextDialog
-            open={showContext}
-            onOpenChange={setShowContext}
-            dayId={diaryDay.id}
-          />
-          <SymptomsDialog
-            open={showSymptoms}
-            onOpenChange={setShowSymptoms}
-            dayId={diaryDay.id}
-          />
-        </>
+        <AddMealDialog 
+          open={showAddMeal} 
+          onOpenChange={setShowAddMeal}
+          dayId={diaryDay.id}
+          selectedDate={selectedDate}
+          onDateChange={setSelectedDate}
+        />
       )}
     </AppLayout>
   );
