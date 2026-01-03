@@ -158,8 +158,8 @@ export function AppLayout({ children }: AppLayoutProps) {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 min-h-screen">
-          <div className="container py-6 lg:py-8 max-w-5xl">
+        <main className="flex-1 min-h-screen overflow-x-hidden">
+          <div className="container py-6 lg:py-8 max-w-5xl px-4 sm:px-6 overflow-x-hidden">
             {children}
           </div>
         </main>

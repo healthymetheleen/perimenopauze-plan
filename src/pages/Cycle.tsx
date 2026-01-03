@@ -306,7 +306,7 @@ export default function CyclePage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 overflow-x-hidden">
         {/* Fertile window notification */}
         {isTodayFertile && (
           <div className="p-4 rounded-2xl bg-green-50 border border-green-200">

@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
+import { useAIUsage, trackAIUsage } from '@/hooks/useAIUsage';
 import { Loader2, Type, Camera, Mic, Check, Edit2 } from 'lucide-react';
 
 interface AddMealDialogProps {
@@ -75,10 +76,28 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     onDateChange?.(newDate);
   };
 
+  const { data: aiUsage } = useAIUsage();
+
   // Analyze meal with AI
   const analyzeMeal = async (text?: string, imageBase64?: string) => {
+    // Check AI usage limit
+    if (aiUsage && aiUsage.remaining <= 0) {
+      toast({
+        title: 'AI limiet bereikt',
+        description: `Je hebt je maandelijkse limiet van ${aiUsage.limit} AI analyses bereikt. Vul handmatig in of wacht tot volgende maand.`,
+        variant: 'destructive',
+      });
+      return;
+    }
+
     setIsAnalyzing(true);
     try {
+      // Track usage before making the call
+      const tracked = await trackAIUsage('analyze-meal');
+      if (!tracked) {
+        throw new Error('Kon AI gebruik niet tracken');
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-meal`,
         {
@@ -103,6 +122,9 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
       setAnalysis(result);
       setEditableAnalysis(result);
       setShowConfirmation(true);
+      
+      // Invalidate AI usage cache
+      queryClient.invalidateQueries({ queryKey: ['ai-usage'] });
     } catch (error) {
       toast({
         title: 'Analyse mislukt',
@@ -151,13 +173,46 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach(track => track.stop());
         
-        // For now, we'll show a message that voice is being processed
-        // In a full implementation, you'd transcribe the audio first
-        toast({
-          title: 'Spraak opgenomen',
-          description: 'Typ je beschrijving in het tekstveld. Spraak-naar-tekst wordt binnenkort toegevoegd.',
-        });
-        setInputMethod('text');
+        // Convert to base64 and send to transcription API
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64Audio = (reader.result as string).split(',')[1];
+          
+          setIsAnalyzing(true);
+          try {
+            const response = await fetch(
+              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-to-text`,
+              {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
+                },
+                body: JSON.stringify({ audio: base64Audio }),
+              }
+            );
+            
+            if (!response.ok) {
+              const error = await response.json();
+              throw new Error(error.error || 'Transcriptie mislukt');
+            }
+            
+            const result = await response.json();
+            if (result.text) {
+              setDescription(result.text);
+              // Auto-analyze the transcribed text
+              analyzeMeal(result.text);
+            }
+          } catch (error) {
+            toast({
+              title: 'Spraak niet herkend',
+              description: error instanceof Error ? error.message : 'Probeer het opnieuw',
+              variant: 'destructive',
+            });
+            setIsAnalyzing(false);
+          }
+        };
+        reader.readAsDataURL(audioBlob);
       };
 
       mediaRecorder.start();
@@ -228,11 +283,16 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg max-w-[95vw]">
         <DialogHeader>
           <DialogTitle>
             {showConfirmation ? 'Bevestig maaltijd' : 'Maaltijd toevoegen'}
           </DialogTitle>
+          {!showConfirmation && aiUsage && (
+            <p className="text-xs text-muted-foreground">
+              {aiUsage.remaining} van {aiUsage.limit} AI analyses deze maand
+            </p>
+          )}
         </DialogHeader>
 
         {!showConfirmation ? (

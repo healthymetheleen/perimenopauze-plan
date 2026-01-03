@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.cycle-coach]
 verify_jwt = false
+
+[functions.voice-to-text]
+verify_jwt = false
