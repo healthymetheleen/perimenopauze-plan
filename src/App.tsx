@@ -22,6 +22,7 @@ import CycleOnboardingPage from "./pages/CycleOnboarding";
 import RecipesPage from "./pages/Recipes";
 import RecipeDetailPage from "./pages/RecipeDetail";
 import RecipeAdminPage from "./pages/RecipeAdmin";
+import SleepPage from "./pages/Sleep";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -156,6 +157,11 @@ function AppRoutes() {
       <Route path="/recepten-beheer" element={
         <ProtectedRoute>
           <RecipeAdminPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/slaap" element={
+        <ProtectedRoute>
+          <SleepPage />
         </ProtectedRoute>
       } />
       
