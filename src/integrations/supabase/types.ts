@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_usage: {
+        Row: {
+          created_at: string
+          function_name: string
+          id: string
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          function_name: string
+          id?: string
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          function_name?: string
+          id?: string
+          owner_id?: string
+        }
+        Relationships: []
+      }
       bleeding_logs: {
         Row: {
           created_at: string
@@ -783,7 +804,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      check_ai_limit: {
+        Args: { monthly_limit?: number; user_id: string }
+        Returns: boolean
+      }
+      get_ai_usage_remaining: {
+        Args: { monthly_limit?: number; user_id: string }
+        Returns: number
+      }
     }
     Enums: {
       [_ in never]: never
