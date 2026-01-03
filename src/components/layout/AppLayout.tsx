@@ -6,6 +6,7 @@ import {
   TrendingUp, 
   Activity, 
   User,
+  Settings,
   LogOut,
   Menu,
   X
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
   { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" />, premium: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
+  { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
 ];
 
 interface AppLayoutProps {
