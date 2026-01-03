@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   Flower2,
+  ChefHat,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -29,6 +30,7 @@ const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
   { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
+  { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
   { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" />, premium: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
@@ -53,7 +55,7 @@ export function AppLayout({ children }: AppLayoutProps) {
       <header className="sticky top-0 z-50 lg:hidden bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/dashboard" className="text-xl font-semibold text-foreground">
-            HormoonBalans
+            Perimenopauze Plan
           </Link>
           <Button
             variant="ghost"
@@ -113,7 +115,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-border">
           <div className="p-6">
             <Link to="/dashboard" className="text-xl font-semibold text-foreground">
-              HormoonBalans
+              Perimenopauze Plan
             </Link>
             <p className="text-sm text-muted-foreground mt-1">Dagboek</p>
           </div>
