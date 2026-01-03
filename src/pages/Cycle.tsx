@@ -147,9 +147,9 @@ export default function CyclePage() {
     }
   };
 
-  // Generate calendar strip data
-  const calendarDays = Array.from({ length: 14 }, (_, i) => {
-    const date = addDays(new Date(), i - 3);
+  // Generate calendar strip data - 35 days to show full cycle
+  const calendarDays = Array.from({ length: 35 }, (_, i) => {
+    const date = addDays(new Date(), i - 7);
     const dateStr = format(date, 'yyyy-MM-dd');
     const bleeding = bleedingLogs?.find(l => l.log_date === dateStr);
     
@@ -161,6 +161,14 @@ export default function CyclePage() {
         start: parseISO(prediction.fertile_window_start),
         end: parseISO(prediction.fertile_window_end),
       });
+    
+    // Check if ovulation day
+    const isOvulation = prediction.ovulation_min && 
+      prediction.ovulation_max &&
+      isWithinInterval(date, {
+        start: parseISO(prediction.ovulation_min),
+        end: parseISO(prediction.ovulation_max),
+      });
 
     return {
       date,
@@ -168,12 +176,45 @@ export default function CyclePage() {
       isToday: isSameDay(date, new Date()),
       bleeding: bleeding?.intensity,
       isFertile,
+      isOvulation,
     };
   });
+
+  // Check if today is in fertile window for notification
+  const today = format(new Date(), 'yyyy-MM-dd');
+  const isTodayFertile = preferences?.show_fertile_days && 
+    prediction.fertile_window_start && 
+    prediction.fertile_window_end &&
+    isWithinInterval(new Date(), {
+      start: parseISO(prediction.fertile_window_start),
+      end: parseISO(prediction.fertile_window_end),
+    });
 
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Fertile window notification */}
+        {isTodayFertile && (
+          <div className="p-4 rounded-2xl bg-green-50 border border-green-200">
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-green-100">
+                <Sparkles className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <p className="font-medium text-green-800">Je bent in je vruchtbare periode</p>
+                <p className="text-sm text-green-700 mt-1">
+                  Je vruchtbare venster loopt van {format(parseISO(prediction.fertile_window_start!), 'd MMM', { locale: nl })} 
+                  {' t/m '} 
+                  {format(parseISO(prediction.fertile_window_end!), 'd MMM', { locale: nl })}.
+                </p>
+                <p className="text-xs text-green-600 mt-2">
+                  Let op: dit is een schatting en niet bedoeld als anticonceptie.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Season header */}
         <div className={`rounded-2xl p-6 ${colors.bg}`}>
           <div className="flex items-center gap-3 mb-2">
@@ -200,8 +241,9 @@ export default function CyclePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-5 gap-2">
               {[
+                { intensity: 'geen' as const, label: 'Geen', color: 'bg-gray-100 text-gray-800' },
                 { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800' },
                 { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900' },
                 { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900' },
@@ -210,12 +252,12 @@ export default function CyclePage() {
                 <Button
                   key={intensity}
                   variant="outline"
-                  className={`h-auto py-3 flex-col gap-1 ${color} border-0`}
-                  onClick={() => handleQuickLog(intensity)}
-                  disabled={logBleeding.isPending}
+                  className={`h-auto py-2 flex-col gap-1 text-xs ${color} border-0`}
+                  onClick={() => intensity !== 'geen' && handleQuickLog(intensity)}
+                  disabled={logBleeding.isPending || intensity === 'geen'}
                 >
-                  <Droplets className="h-5 w-5" />
-                  <span className="text-xs">{label}</span>
+                  {intensity !== 'geen' && <Droplets className="h-4 w-4" />}
+                  <span>{label}</span>
                 </Button>
               ))}
             </div>
@@ -235,33 +277,58 @@ export default function CyclePage() {
 
         {/* Calendar strip */}
         <Card className="rounded-2xl">
-          <CardContent className="pt-4">
+          <CardHeader className="pb-2">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-400" />
+                <span>Menstruatie</span>
+              </div>
+              {preferences?.show_fertile_days && (
+                <>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-400" />
+                    <span>Vruchtbaar</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <div className="w-2 h-2 rounded-full bg-purple-400" />
+                    <span>Ovulatie</span>
+                  </div>
+                </>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="pt-2">
             <div className="flex gap-1 overflow-x-auto pb-2">
-              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile }) => (
+              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation }) => (
                 <button
                   key={dateStr}
                   onClick={() => {
                     setSelectedDate(dateStr);
                     setShowDayLog(true);
                   }}
-                  className={`flex-shrink-0 w-12 p-2 rounded-lg text-center transition-colors ${
-                    isToday ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'
+                  className={`flex-shrink-0 w-10 p-1.5 rounded-lg text-center transition-colors ${
+                    isToday ? 'bg-primary text-primary-foreground' : 
+                    isFertile ? 'bg-green-50' : 
+                    isOvulation ? 'bg-purple-50' : 'hover:bg-muted'
                   }`}
                 >
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-[10px] text-muted-foreground">
                     {format(date, 'EEE', { locale: nl })}
                   </div>
-                  <div className="text-lg font-medium">{format(date, 'd')}</div>
-                  <div className="h-2 flex justify-center gap-0.5 mt-1">
+                  <div className="text-sm font-medium">{format(date, 'd')}</div>
+                  <div className="h-2 flex justify-center gap-0.5 mt-0.5">
                     {bleeding && (
-                      <div className={`w-2 h-2 rounded-full ${
+                      <div className={`w-1.5 h-1.5 rounded-full ${
                         bleeding === 'hevig' ? 'bg-red-500' :
                         bleeding === 'normaal' ? 'bg-red-400' :
                         bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
                       }`} />
                     )}
-                    {isFertile && (
-                      <div className="w-2 h-2 rounded-full bg-green-400" />
+                    {isFertile && !isOvulation && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                    )}
+                    {isOvulation && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
                     )}
                   </div>
                 </button>
