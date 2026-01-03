@@ -17,6 +17,8 @@ import TrendsPage from "./pages/Trends";
 import PatternsPage from "./pages/Patterns";
 import AccountPage from "./pages/Account";
 import SettingsPage from "./pages/Settings";
+import CyclePage from "./pages/Cycle";
+import CycleOnboardingPage from "./pages/CycleOnboarding";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -126,6 +128,16 @@ function AppRoutes() {
       <Route path="/settings" element={
         <ProtectedRoute>
           <SettingsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/cycle" element={
+        <ProtectedRoute>
+          <CyclePage />
+        </ProtectedRoute>
+      } />
+      <Route path="/cycle/onboarding" element={
+        <ProtectedRoute>
+          <CycleOnboardingPage />
         </ProtectedRoute>
       } />
       

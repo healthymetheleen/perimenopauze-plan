@@ -2,3 +2,6 @@ project_id = "rfvvpfvrxxodslzdqgll"
 
 [functions.analyze-meal]
 verify_jwt = false
+
+[functions.cycle-coach]
+verify_jwt = false

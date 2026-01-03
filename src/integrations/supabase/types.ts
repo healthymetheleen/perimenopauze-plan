@@ -14,6 +14,270 @@ export type Database = {
   }
   public: {
     Tables: {
+      bleeding_logs: {
+        Row: {
+          created_at: string
+          id: string
+          intensity: string
+          is_intermenstrual: boolean | null
+          log_date: string
+          notes: string | null
+          owner_id: string
+          pain_score: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          intensity: string
+          is_intermenstrual?: boolean | null
+          log_date: string
+          notes?: string | null
+          owner_id: string
+          pain_score?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          intensity?: string
+          is_intermenstrual?: boolean | null
+          log_date?: string
+          notes?: string | null
+          owner_id?: string
+          pain_score?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cycle_predictions: {
+        Row: {
+          ai_tips: Json | null
+          avg_cycle_length: number | null
+          created_at: string
+          current_phase: string
+          current_season: string
+          cycle_variability: number | null
+          fertile_confidence: number | null
+          fertile_window_end: string | null
+          fertile_window_start: string | null
+          generated_at: string
+          id: string
+          next_period_confidence: number | null
+          next_period_start_max: string | null
+          next_period_start_min: string | null
+          ovulation_confidence: number | null
+          ovulation_max: string | null
+          ovulation_min: string | null
+          owner_id: string
+          rationale: string | null
+          watchouts: string[] | null
+        }
+        Insert: {
+          ai_tips?: Json | null
+          avg_cycle_length?: number | null
+          created_at?: string
+          current_phase: string
+          current_season: string
+          cycle_variability?: number | null
+          fertile_confidence?: number | null
+          fertile_window_end?: string | null
+          fertile_window_start?: string | null
+          generated_at?: string
+          id?: string
+          next_period_confidence?: number | null
+          next_period_start_max?: string | null
+          next_period_start_min?: string | null
+          ovulation_confidence?: number | null
+          ovulation_max?: string | null
+          ovulation_min?: string | null
+          owner_id: string
+          rationale?: string | null
+          watchouts?: string[] | null
+        }
+        Update: {
+          ai_tips?: Json | null
+          avg_cycle_length?: number | null
+          created_at?: string
+          current_phase?: string
+          current_season?: string
+          cycle_variability?: number | null
+          fertile_confidence?: number | null
+          fertile_window_end?: string | null
+          fertile_window_start?: string | null
+          generated_at?: string
+          id?: string
+          next_period_confidence?: number | null
+          next_period_start_max?: string | null
+          next_period_start_min?: string | null
+          ovulation_confidence?: number | null
+          ovulation_max?: string | null
+          ovulation_min?: string | null
+          owner_id?: string
+          rationale?: string | null
+          watchouts?: string[] | null
+        }
+        Relationships: []
+      }
+      cycle_preferences: {
+        Row: {
+          avg_cycle_length: number | null
+          avg_period_length: number | null
+          breastfeeding: boolean | null
+          created_at: string
+          cycle_variability: number | null
+          has_iud: boolean | null
+          hormonal_contraception: boolean | null
+          id: string
+          luteal_phase_length: number | null
+          onboarding_completed: boolean | null
+          owner_id: string
+          pcos: boolean | null
+          perimenopause: boolean | null
+          recently_pregnant: boolean | null
+          reminders_enabled: boolean | null
+          show_fertile_days: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          avg_cycle_length?: number | null
+          avg_period_length?: number | null
+          breastfeeding?: boolean | null
+          created_at?: string
+          cycle_variability?: number | null
+          has_iud?: boolean | null
+          hormonal_contraception?: boolean | null
+          id?: string
+          luteal_phase_length?: number | null
+          onboarding_completed?: boolean | null
+          owner_id: string
+          pcos?: boolean | null
+          perimenopause?: boolean | null
+          recently_pregnant?: boolean | null
+          reminders_enabled?: boolean | null
+          show_fertile_days?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          avg_cycle_length?: number | null
+          avg_period_length?: number | null
+          breastfeeding?: boolean | null
+          created_at?: string
+          cycle_variability?: number | null
+          has_iud?: boolean | null
+          hormonal_contraception?: boolean | null
+          id?: string
+          luteal_phase_length?: number | null
+          onboarding_completed?: boolean | null
+          owner_id?: string
+          pcos?: boolean | null
+          perimenopause?: boolean | null
+          recently_pregnant?: boolean | null
+          reminders_enabled?: boolean | null
+          show_fertile_days?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cycle_symptom_logs: {
+        Row: {
+          anxiety: boolean | null
+          bloating: boolean | null
+          breast_tender: boolean | null
+          cravings: string | null
+          created_at: string
+          energy: number | null
+          headache: boolean | null
+          hot_flashes: boolean | null
+          id: string
+          irritability: boolean | null
+          libido: number | null
+          log_date: string
+          mood: number | null
+          notes: string | null
+          owner_id: string
+          sleep_quality: number | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          anxiety?: boolean | null
+          bloating?: boolean | null
+          breast_tender?: boolean | null
+          cravings?: string | null
+          created_at?: string
+          energy?: number | null
+          headache?: boolean | null
+          hot_flashes?: boolean | null
+          id?: string
+          irritability?: boolean | null
+          libido?: number | null
+          log_date: string
+          mood?: number | null
+          notes?: string | null
+          owner_id: string
+          sleep_quality?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          anxiety?: boolean | null
+          bloating?: boolean | null
+          breast_tender?: boolean | null
+          cravings?: string | null
+          created_at?: string
+          energy?: number | null
+          headache?: boolean | null
+          hot_flashes?: boolean | null
+          id?: string
+          irritability?: boolean | null
+          libido?: number | null
+          log_date?: string
+          mood?: number | null
+          notes?: string | null
+          owner_id?: string
+          sleep_quality?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      cycles: {
+        Row: {
+          computed_cycle_length: number | null
+          created_at: string
+          end_date: string | null
+          id: string
+          is_anovulatory: boolean | null
+          notes: string | null
+          owner_id: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          computed_cycle_length?: number | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_anovulatory?: boolean | null
+          notes?: string | null
+          owner_id: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          computed_cycle_length?: number | null
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          is_anovulatory?: boolean | null
+          notes?: string | null
+          owner_id?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       daily_context: {
         Row: {
           created_at: string
@@ -127,6 +391,45 @@ export type Database = {
           created_at?: string
           id?: string
           owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      fertility_signals: {
+        Row: {
+          bbt: number | null
+          cervical_mucus: string | null
+          created_at: string
+          id: string
+          lh_test: string | null
+          log_date: string
+          owner_id: string
+          resting_hr: number | null
+          training_load: number | null
+          updated_at: string
+        }
+        Insert: {
+          bbt?: number | null
+          cervical_mucus?: string | null
+          created_at?: string
+          id?: string
+          lh_test?: string | null
+          log_date: string
+          owner_id: string
+          resting_hr?: number | null
+          training_load?: number | null
+          updated_at?: string
+        }
+        Update: {
+          bbt?: number | null
+          cervical_mucus?: string | null
+          created_at?: string
+          id?: string
+          lh_test?: string | null
+          log_date?: string
+          owner_id?: string
+          resting_hr?: number | null
+          training_load?: number | null
           updated_at?: string
         }
         Relationships: []

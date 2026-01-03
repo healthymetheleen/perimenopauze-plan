@@ -9,7 +9,8 @@ import {
   Settings,
   LogOut,
   Menu,
-  X
+  X,
+  Flower2,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -26,7 +27,8 @@ interface NavItem {
 
 const navItems: NavItem[] = [
   { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
-  { href: '/diary', label: 'Dagboek', icon: <CalendarDays className="h-5 w-5" /> },
+  { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
+  { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
   { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" />, premium: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
