@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { appClient } from '@/lib/supabase-app';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
@@ -40,7 +40,7 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
   const { data: catalog } = useQuery({
     queryKey: ['symptom-catalog'],
     queryFn: async () => {
-      const { data, error } = await appClient
+      const { data, error } = await supabase
         .from('v_symptom_catalog')
         .select('code, label_nl, domain')
         .order('domain')
@@ -56,7 +56,7 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
     queryKey: ['symptoms', dayId],
     queryFn: async () => {
       if (!user || !dayId) return [];
-      const { data, error } = await appClient
+      const { data, error } = await supabase
         .from('symptoms')
         .select('symptom_code, severity_0_10')
         .eq('day_id', dayId)
@@ -68,11 +68,11 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
   });
 
   // Load existing symptoms when data arrives
-  useState(() => {
+  useEffect(() => {
     if (existingSymptoms?.length) {
       setSelectedSymptoms(existingSymptoms);
     }
-  });
+  }, [existingSymptoms]);
 
   const addSymptom = () => {
     if (!selectedCode || selectedSymptoms.some(s => s.code === selectedCode)) return;
@@ -95,7 +95,7 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
       if (!user) throw new Error('Not authenticated');
 
       // Delete existing symptoms for this day
-      await appClient
+      await supabase
         .from('symptoms')
         .delete()
         .eq('day_id', dayId)
@@ -103,7 +103,7 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
 
       // Insert new symptoms
       if (selectedSymptoms.length > 0) {
-        const { error } = await appClient
+        const { error } = await supabase
           .from('symptoms')
           .insert(
             selectedSymptoms.map(s => ({
