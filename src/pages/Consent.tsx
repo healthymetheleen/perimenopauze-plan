@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useConsent } from '@/hooks/useConsent';
 import { Button } from '@/components/ui/button';
@@ -51,7 +51,7 @@ const consentItems: ConsentItem[] = [
 export default function ConsentPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { consent, isLoading, updateConsent, hasCompletedConsent } = useConsent();
+  const { isLoading, updateConsent, hasCompletedConsent } = useConsent();
   
   const [accepted, setAccepted] = useState<Record<string, boolean>>({
     accepted_privacy: false,
@@ -60,13 +60,14 @@ export default function ConsentPage() {
     accepted_health_data_processing: false,
   });
 
-  // Redirect if already consented
-  if (hasCompletedConsent) {
-    navigate('/dashboard');
-    return null;
-  }
+  // Handle redirect via useEffect to avoid render-time navigation
+  React.useEffect(() => {
+    if (hasCompletedConsent) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [hasCompletedConsent, navigate]);
 
-  if (isLoading) {
+  if (isLoading || hasCompletedConsent) {
     return <LoadingPage />;
   }
 

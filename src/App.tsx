@@ -16,6 +16,7 @@ import DiaryPage from "./pages/Diary";
 import TrendsPage from "./pages/Trends";
 import PatternsPage from "./pages/Patterns";
 import AccountPage from "./pages/Account";
+import SettingsPage from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -120,6 +121,11 @@ function AppRoutes() {
       <Route path="/account" element={
         <ProtectedRoute>
           <AccountPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/settings" element={
+        <ProtectedRoute>
+          <SettingsPage />
         </ProtectedRoute>
       } />
       
