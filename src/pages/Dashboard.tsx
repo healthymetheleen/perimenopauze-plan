@@ -164,7 +164,7 @@ export default function DashboardPage() {
     <AppLayout>
       <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* Season Header - Always at top with date */}
-        <div className={`rounded-2xl p-5 mb-4 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
+        <div className={`rounded-2xl p-5 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
