@@ -251,6 +251,7 @@ export interface TrainingPreferences {
   sessionsPerWeek: number;
   minutesPerSession: number;
   preferredDays: string[];
+  excludedDays?: string[];
   goals: string[];
 }
 
