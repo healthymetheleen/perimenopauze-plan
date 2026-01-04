@@ -4,30 +4,30 @@ interface SeasonDecorationsProps {
   season: string;
 }
 
-// Subtle floating decorative elements per season
+// Large, visible floating decorative elements per season
 export function SeasonDecorations({ season }: SeasonDecorationsProps) {
   if (season === 'onbekend') return null;
 
   const decorations = {
     winter: {
       icon: Snowflake,
-      count: 5,
-      colorClass: 'text-blue-400 dark:text-blue-300',
+      count: 6,
+      colorClass: 'text-blue-500 dark:text-blue-400',
     },
     lente: {
       icon: Leaf,
-      count: 4,
-      colorClass: 'text-green-500 dark:text-green-400',
+      count: 5,
+      colorClass: 'text-green-600 dark:text-green-400',
     },
     zomer: {
       icon: Sun,
-      count: 3,
-      colorClass: 'text-amber-400 dark:text-amber-300',
+      count: 4,
+      colorClass: 'text-amber-500 dark:text-amber-400',
     },
     herfst: {
       icon: Wind,
-      count: 5,
-      colorClass: 'text-orange-400 dark:text-orange-300',
+      count: 6,
+      colorClass: 'text-orange-500 dark:text-orange-400',
     },
   };
 
@@ -36,17 +36,18 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
 
   const Icon = config.icon;
 
-  // Position and animation variants for floating elements - spread around badge
+  // Large, spread positions for visibility
   const positions = [
-    { top: '-12px', right: '-12px', delay: '0s', size: 'h-4 w-4', opacity: '0.8' },
-    { top: '4px', right: '-24px', delay: '0.7s', size: 'h-3 w-3', opacity: '0.6' },
-    { top: '-16px', right: '16px', delay: '1.4s', size: 'h-3 w-3', opacity: '0.7' },
-    { top: '8px', right: '32px', delay: '2.1s', size: 'h-2.5 w-2.5', opacity: '0.5' },
-    { top: '-8px', right: '48px', delay: '2.8s', size: 'h-2 w-2', opacity: '0.4' },
+    { top: '-20px', right: '10px', delay: '0s', size: 'h-8 w-8' },
+    { top: '0px', right: '-15px', delay: '0.5s', size: 'h-6 w-6' },
+    { top: '-30px', right: '50px', delay: '1s', size: 'h-7 w-7' },
+    { top: '10px', right: '80px', delay: '1.5s', size: 'h-5 w-5' },
+    { top: '-15px', right: '110px', delay: '2s', size: 'h-6 w-6' },
+    { top: '5px', right: '140px', delay: '2.5s', size: 'h-4 w-4' },
   ];
 
   return (
-    <div className="absolute inset-0 overflow-visible pointer-events-none">
+    <div className="absolute inset-0 overflow-visible pointer-events-none" style={{ width: '200px', height: '60px' }}>
       {positions.slice(0, config.count).map((pos, i) => (
         <div
           key={i}
@@ -55,11 +56,10 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
             top: pos.top,
             right: pos.right,
             animationDelay: pos.delay,
-            animationDuration: `${3 + i * 0.4}s`,
-            opacity: pos.opacity,
+            animationDuration: `${3 + i * 0.3}s`,
           }}
         >
-          <Icon className={`${pos.size} ${config.colorClass} drop-shadow-sm`} />
+          <Icon className={`${pos.size} ${config.colorClass} drop-shadow-md`} />
         </div>
       ))}
     </div>

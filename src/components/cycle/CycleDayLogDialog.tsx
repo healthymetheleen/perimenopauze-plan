@@ -16,10 +16,11 @@ import {
   useLogBleeding,
   useLogCycleSymptoms,
   useStartCycle,
+  useDeleteBleeding,
   BleedingLog,
   CycleSymptomLog,
 } from '@/hooks/useCycle';
-import { Loader2, Droplets, Heart } from 'lucide-react';
+import { Loader2, Droplets, Heart, Trash2 } from 'lucide-react';
 
 interface CycleDayLogDialogProps {
   open: boolean;
@@ -50,6 +51,7 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
   const logBleeding = useLogBleeding();
   const logSymptoms = useLogCycleSymptoms();
   const startCycle = useStartCycle();
+  const deleteBleeding = useDeleteBleeding();
 
   // State
   const [tab, setTab] = useState<'bleeding' | 'symptoms'>('bleeding');
@@ -128,8 +130,11 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
 
   const handleSave = async () => {
     try {
-      // Save bleeding log if intensity selected (skip 'geen' as it means no bleeding)
-      if (intensity && intensity !== 'geen') {
+      // If intensity is 'geen', delete any existing bleeding log
+      if (intensity === 'geen') {
+        await deleteBleeding.mutateAsync(date);
+      } else if (intensity) {
+        // Save bleeding log if intensity selected
         await logBleeding.mutateAsync({
           log_date: date,
           intensity,
@@ -159,7 +164,17 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
     }
   };
 
-  const isPending = logBleeding.isPending || logSymptoms.isPending;
+  const handleDeleteBleeding = async () => {
+    try {
+      await deleteBleeding.mutateAsync(date);
+      setIntensity(null);
+      toast({ title: 'Bloedingsdata verwijderd' });
+    } catch {
+      toast({ title: 'Kon niet verwijderen', variant: 'destructive' });
+    }
+  };
+
+  const isPending = logBleeding.isPending || logSymptoms.isPending || deleteBleeding.isPending;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -219,7 +234,7 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
             )}
 
             {/* Intermenstrual */}
-            {intensity && (
+            {intensity && intensity !== 'geen' && (
               <div className="flex items-center space-x-3">
                 <Checkbox
                   id="intermenstrual"
@@ -230,6 +245,20 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
                   Dit is tussentijds bloedverlies (niet mijn menstruatie)
                 </Label>
               </div>
+            )}
+
+            {/* Delete bleeding button */}
+            {existingBleeding && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full text-destructive hover:text-destructive border-destructive/30 hover:bg-destructive/10"
+                onClick={handleDeleteBleeding}
+                disabled={deleteBleeding.isPending}
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                Verwijder bloedingsdata voor deze dag
+              </Button>
             )}
           </TabsContent>
 
@@ -252,24 +281,6 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
               <Slider value={mood} onValueChange={setMood} min={1} max={10} step={1} />
             </div>
 
-
-            {/* Symptom chips */}
-            <div className="space-y-3">
-              <Label>Symptomen</Label>
-              <div className="flex flex-wrap gap-2">
-                {symptomChips.map(({ key, label }) => (
-                  <Button
-                    key={key}
-                    type="button"
-                    variant={symptoms[key] ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setSymptoms({ ...symptoms, [key]: !symptoms[key] })}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-            </div>
 
             {/* Symptom chips */}
             <div className="space-y-3">
