@@ -5,28 +5,42 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// PRIVACY: AI ontvangt alleen een beschrijving van de maaltijd, geen persoonlijke data
-const systemPrompt = `Je bent een voedingsexpert die maaltijden analyseert. Analyseer de beschrijving of foto van een maaltijd en geef een schatting van de voedingswaarden.
+// COMPLIANCE SYSTEM PROMPT - Alleen voedingsanalyse, geen medisch advies
+const systemPrompt = `Je bent een voedingsexpert die maaltijden analyseert.
 
-PRIVACY: Je ontvangt GEEN persoonlijke gegevens. Alleen een beschrijving of foto van een maaltijd.
+BELANGRIJKE RICHTLIJNEN:
+- Je bent GEEN arts of diëtist met behandelrelatie
+- Je geeft GEEN medisch voedingsadvies
+- Je stelt GEEN diagnoses over voedingsgerelateerde aandoeningen
+- Je doet GEEN uitspraken over allergieën of intoleranties
+
+Je taak:
+- Schat voedingswaarden van een maaltijd
+- Geef een objectieve beschrijving
+
+PRIVACY:
+- Je ontvangt ALLEEN een beschrijving of foto van een maaltijd
+- GEEN persoonlijke gegevens, geen context over de gebruiker
 
 Antwoord ALLEEN met een JSON object in dit formaat (geen andere tekst):
 {
-  "description": "korte beschrijving van de maaltijd",
+  "description": "korte, neutrale beschrijving van de maaltijd",
   "kcal": number,
   "protein_g": number,
   "carbs_g": number,
   "fat_g": number,
   "fiber_g": number,
   "confidence": "high" | "medium" | "low",
-  "notes": "optionele opmerkingen over de schatting"
+  "notes": "optionele neutrale opmerking over de schatting"
 }
 
 Richtlijnen:
 - Wees realistisch met portiegroottes
 - Bij twijfel, kies een gemiddelde portie
 - Geef confidence "low" als de beschrijving vaag is
-- Alle getallen zijn integers of floats, geen strings`;
+- Alle getallen zijn integers of floats, geen strings
+- GEEN uitspraken over of de maaltijd "gezond" of "ongezond" is
+- GEEN oordelen over voedingskeuzes`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -34,7 +48,25 @@ serve(async (req) => {
   }
 
   try {
-    const { description, imageBase64 } = await req.json();
+    const { description, imageBase64, hasAIConsent } = await req.json();
+    
+    // CONSENT CHECK
+    if (hasAIConsent === false) {
+      return new Response(JSON.stringify({
+        error: 'consent_required',
+        message: 'Om AI-analyse te gebruiken is toestemming nodig. Schakel dit in bij Instellingen.',
+        description: description || 'Maaltijd',
+        kcal: null,
+        protein_g: null,
+        carbs_g: null,
+        fat_g: null,
+        fiber_g: null,
+        confidence: 'low',
+        notes: 'Vul de waarden handmatig in of schakel AI-ondersteuning in bij Instellingen.'
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
     
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -46,7 +78,6 @@ serve(async (req) => {
     const userContent: any[] = [];
     
     if (description) {
-      // Alleen de maaltijdbeschrijving, geen context over de gebruiker
       userContent.push({
         type: 'text',
         text: `Analyseer deze maaltijd: ${description}`
@@ -72,7 +103,7 @@ serve(async (req) => {
       throw new Error('Geen beschrijving of foto ontvangen');
     }
 
-    console.log('Sending anonymized meal data to AI (no personal info)...');
+    console.log('Sending meal data to AI (no personal info, only food description)');
     
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -81,7 +112,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-nano',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: userContent }
@@ -112,9 +143,8 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('AI response received (meal analysis only)');
+    console.log('AI meal analysis received');
 
-    // Parse JSON from response
     let analysis;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
