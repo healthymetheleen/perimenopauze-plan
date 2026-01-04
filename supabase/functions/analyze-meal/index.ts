@@ -240,7 +240,12 @@ serve(async (req) => {
 
     console.log('Sending meal data to OpenAI for analysis (user:', user.id, ')');
     
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    // TWO-TIER AI STRATEGY: Start with nano (cheap), fallback to mini if needed
+    let analysis;
+    let usedFallback = false;
+    
+    // First try with gpt-5-nano (cheapest)
+    const nanoResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${openAIKey}`,
@@ -256,11 +261,11 @@ serve(async (req) => {
       }),
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+    if (!nanoResponse.ok) {
+      const errorText = await nanoResponse.text();
+      console.error('OpenAI API error:', nanoResponse.status, errorText);
       
-      if (response.status === 429) {
+      if (nanoResponse.status === 429) {
         return new Response(JSON.stringify({ 
           error: 'rate_limit',
           message: 'Te veel verzoeken. Probeer het later opnieuw.' 
@@ -270,7 +275,7 @@ serve(async (req) => {
         });
       }
       
-      if (response.status === 402) {
+      if (nanoResponse.status === 402) {
         return new Response(JSON.stringify({ 
           error: 'service_unavailable',
           message: 'De AI-service is tijdelijk niet beschikbaar.' 
@@ -283,38 +288,81 @@ serve(async (req) => {
       throw new Error('AI service unavailable');
     }
 
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content;
+    const nanoData = await nanoResponse.json();
+    const nanoContent = nanoData.choices?.[0]?.message?.content;
     
-    console.log('OpenAI meal analysis received');
+    console.log('Nano response received');
 
-    let analysis;
+    // Parse nano response
     try {
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
+      const jsonMatch = nanoContent.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
-      console.error('Failed to parse AI response:', parseError);
+      console.error('Failed to parse nano AI response:', parseError);
       analysis = {
         description: description || 'Onbekende maaltijd',
         items: [],
-        totals: {
-          kcal: null,
-          protein_g: null,
-          carbs_g: null,
-          fat_g: null,
-          fiber_g: null
-        },
+        totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
         ultra_processed_level: null,
         confidence: 'low',
+        needs_review: true,
         verification_questions: [],
         quality_flags: {},
         notes: 'Kon de maaltijd niet analyseren. Vul de waarden handmatig in.'
       };
     }
+
+    // CHECK IF FALLBACK TO MINI IS NEEDED
+    // Fallback if: confidence is low, needs_review is true, or image analysis with uncertain result
+    const needsFallback = 
+      analysis.confidence === 'low' || 
+      analysis.needs_review === true ||
+      (imageBase64 && analysis.confidence !== 'high');
+
+    if (needsFallback) {
+      console.log('Low confidence from nano, falling back to gpt-5-mini (user:', user.id, ')');
+      usedFallback = true;
+      
+      const miniResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAIKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'gpt-5-mini-2025-08-07',
+          messages: [
+            { role: 'system', content: foodParsingPrompt },
+            { role: 'user', content: userContent }
+          ],
+          max_completion_tokens: 1000,
+        }),
+      });
+
+      if (miniResponse.ok) {
+        const miniData = await miniResponse.json();
+        const miniContent = miniData.choices?.[0]?.message?.content;
+        
+        try {
+          const jsonMatch = miniContent.match(/\{[\s\S]*\}/);
+          if (jsonMatch) {
+            analysis = JSON.parse(jsonMatch[0]);
+            console.log('Mini fallback successful');
+          }
+        } catch (parseError) {
+          console.error('Failed to parse mini AI response, keeping nano result');
+        }
+      } else {
+        console.error('Mini fallback failed, keeping nano result');
+      }
+    }
+    
+    // Add metadata about which model was used
+    analysis.model_used = usedFallback ? 'gpt-5-mini' : 'gpt-5-nano';
 
     // Add late meal flag based on time
     if (mealTime) {
