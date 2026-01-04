@@ -211,12 +211,12 @@ export function usePaymentStatus(paymentId: string | null) {
   });
 }
 
-// Subscription pricing - €4.50/month with 7-day free trial
+// Subscription pricing - €7.50/month with 7-day free trial
 export const SUBSCRIPTION_PLANS = {
   monthly: {
     id: 'monthly',
     name: 'Maandelijks',
-    price: 4.50,
+    price: 7.50,
     interval: '1 month',
     description: 'Na 7 dagen gratis proberen',
     trialDays: 7,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,10 +10,12 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
+import { useAuth } from '@/lib/auth';
+import { useEntitlements } from '@/hooks/useEntitlements';
 
 const timezones = [
   { value: 'Europe/Amsterdam', label: 'Amsterdam (CET)' },
@@ -32,10 +34,20 @@ const digestTimes = [
 
 export default function SettingsPage() {
   const { toast } = useToast();
+  const { user, signOut } = useAuth();
+  const { data: entitlements } = useEntitlements();
+  const navigate = useNavigate();
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
   const [digestTime, setDigestTime] = useState('09:00');
   const [privacyMode, setPrivacyMode] = useState(false);
   const { consent, updateConsent } = useConsent();
+  
+  const isPremium = entitlements?.plan === 'premium' && entitlements?.status === 'active';
+  
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/login');
+  };
 
   const handleAIToggle = async (enabled: boolean) => {
     try {
@@ -70,6 +82,67 @@ export default function SettingsPage() {
             AI wordt ingezet als hulpmiddel en ontvangt geen herleidbare persoonsgegevens.
           </AlertDescription>
         </Alert>
+
+        {/* Account & Subscription */}
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Account & Abonnement
+            </CardTitle>
+            <CardDescription>Beheer je account en premium toegang</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>E-mailadres</Label>
+                <p className="text-sm text-muted-foreground">{user?.email}</p>
+              </div>
+            </div>
+            
+            <Separator />
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5 flex-1">
+                <Label className="flex items-center gap-2">
+                  {isPremium && <Crown className="h-4 w-4 text-primary" />}
+                  Abonnement
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  {isPremium ? 'Premium - volledige toegang' : 'Gratis - beperkte functies'}
+                </p>
+              </div>
+              <Button variant="outline" asChild className="glass">
+                <Link to="/subscription">
+                  <CreditCard className="h-4 w-4 mr-2" />
+                  {isPremium ? 'Beheren' : 'Upgraden'}
+                </Link>
+              </Button>
+            </div>
+            
+            <Separator />
+            
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Accountbeheer</Label>
+                <p className="text-sm text-muted-foreground">Data downloaden of account verwijderen</p>
+              </div>
+              <Button variant="outline" asChild className="glass">
+                <Link to="/account">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Beheren
+                </Link>
+              </Button>
+            </div>
+            
+            <Separator />
+            
+            <Button variant="outline" onClick={handleSignOut} className="w-full">
+              <LogOut className="h-4 w-4 mr-2" />
+              Uitloggen
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Preferences */}
         <Card className="glass rounded-2xl">
@@ -245,9 +318,6 @@ export default function SettingsPage() {
                 <FileText className="h-4 w-4" />
                 <span>Consent versie {CONSENT_VERSION}</span>
               </div>
-              <Link to="/subscription" className="text-primary hover:underline">
-                Beheer abonnement
-              </Link>
             </div>
           </CardContent>
         </Card>

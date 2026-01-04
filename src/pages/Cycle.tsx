@@ -286,22 +286,35 @@ export default function CyclePage() {
   };
 
   // Calculate predicted season for a given date based on cycle phase
-  const getPredictedSeason = (date: Date): string | null => {
-    if (!prediction.avg_cycle_length || !cycles?.length) return null;
+  const getPredictedSeason = (date: Date): string => {
+    // Use prediction's current season if we have it, otherwise calculate
+    const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
+    
+    // If no cycles yet, use simple calculation based on today's date
+    if (!cycles?.length) {
+      // Without cycle data, we can't predict - return current season from prediction
+      return prediction.current_season || 'onbekend';
+    }
     
     const latestCycle = cycles[0];
-    if (!latestCycle) return null;
-    
     const cycleStart = parseISO(latestCycle.start_date);
     const daysSinceStart = Math.floor((date.getTime() - cycleStart.getTime()) / (1000 * 60 * 60 * 24));
-    const avgCycleLength = prediction.avg_cycle_length || 28;
-    const dayInCycle = ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
     
-    // Calculate phases based on average cycle
+    // Handle dates before cycle start
+    if (daysSinceStart < 0) {
+      // For past dates, extrapolate backwards
+      const daysIntoCycle = ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
+      return getSeasonFromCycleDay(daysIntoCycle, avgCycleLength);
+    }
+    
+    const dayInCycle = daysSinceStart % avgCycleLength;
+    return getSeasonFromCycleDay(dayInCycle, avgCycleLength);
+  };
+  
+  const getSeasonFromCycleDay = (dayInCycle: number, avgCycleLength: number): string => {
     const periodLength = preferences?.avg_period_length || 5;
     const follicularEnd = Math.floor(avgCycleLength * 0.35);
     const ovulatoryEnd = Math.floor(avgCycleLength * 0.5);
-    const lutealEnd = avgCycleLength;
     
     if (dayInCycle < periodLength) return 'winter';
     if (dayInCycle < follicularEnd) return 'lente';

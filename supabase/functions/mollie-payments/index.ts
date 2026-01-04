@@ -559,10 +559,10 @@ serve(async (req) => {
                 body: JSON.stringify({
                   amount: {
                     currency: 'EUR',
-                    value: '4.50',
+                    value: '7.50',
                   },
                   interval: '1 month',
-                  description: 'HormoonBalans Premium Maandelijks',
+                  description: 'Perimenopauze Plan App - Maandelijks',
                   startDate: startDate.toISOString().split('T')[0],
                   webhookUrl: `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
                   metadata: {
