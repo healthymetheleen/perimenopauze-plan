@@ -10,7 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAIUsage } from '@/hooks/useAIUsage';
 import { useConsent } from '@/hooks/useConsent';
-import { Loader2, Type, Camera, Mic, Check, Edit2 } from 'lucide-react';
+import { ImageCropper } from './ImageCropper';
+import { Loader2, Type, Camera, Mic, Check, Edit2, Crop } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
 
 interface AddMealDialogProps {
@@ -74,6 +75,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const [description, setDescription] = useState('');
   const [photoDescription, setPhotoDescription] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [rawImage, setRawImage] = useState<string | null>(null); // Original image before crop
+  const [showCropper, setShowCropper] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mealDate, setMealDate] = useState(selectedDate);
@@ -105,6 +108,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     setDescription('');
     setPhotoDescription('');
     setImagePreview(null);
+    setRawImage(null);
+    setShowCropper(false);
     setAnalysis(null);
     setEditableAnalysis(null);
     setShowConfirmation(false);
@@ -270,7 +275,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     });
   };
 
-  // Handle photo upload with compression
+  // Handle photo upload with compression - show cropper first
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -285,7 +290,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       }
       
       const compressedBase64 = await compressImage(file, 1024, 0.7);
-      setImagePreview(compressedBase64);
+      setRawImage(compressedBase64);
+      setShowCropper(true); // Show cropper first
     } catch (error) {
       toast({
         title: 'Foto kon niet worden geladen',
@@ -293,6 +299,19 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
         variant: 'destructive',
       });
     }
+  };
+
+  // Handle crop complete
+  const handleCropComplete = (croppedImage: string) => {
+    setImagePreview(croppedImage);
+    setShowCropper(false);
+  };
+
+  // Skip cropping
+  const handleSkipCrop = () => {
+    setImagePreview(rawImage);
+    setRawImage(null);
+    setShowCropper(false);
   };
 
   // Analyze photo with optional description
@@ -529,7 +548,25 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                   className="hidden"
                 />
                 
-                {imagePreview ? (
+                {showCropper && rawImage ? (
+                  <div className="space-y-4">
+                    <ImageCropper
+                      imageSrc={rawImage}
+                      onCropComplete={handleCropComplete}
+                      onCancel={() => {
+                        setRawImage(null);
+                        setShowCropper(false);
+                      }}
+                    />
+                    <Button
+                      variant="ghost"
+                      className="w-full text-muted-foreground"
+                      onClick={handleSkipCrop}
+                    >
+                      Overslaan (hele foto gebruiken)
+                    </Button>
+                  </div>
+                ) : imagePreview ? (
                   <div className="space-y-4">
                     <div className="relative rounded-lg overflow-hidden">
                       <img 
@@ -563,6 +600,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         variant="outline"
                         onClick={() => {
                           setImagePreview(null);
+                          setRawImage(null);
                           setPhotoDescription('');
                         }}
                         className="flex-1"
@@ -594,6 +632,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     <div className="flex flex-col items-center gap-2">
                       <Camera className="h-8 w-8 text-muted-foreground" />
                       <span className="text-muted-foreground">Maak of kies een foto</span>
+                      <span className="text-xs text-muted-foreground">Je kunt daarna bijsnijden naar het bord</span>
                     </div>
                   </Button>
                 )}
