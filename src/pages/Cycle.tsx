@@ -539,48 +539,61 @@ export default function CyclePage() {
               const ovulationDay = calendarDays.find(d => d.isOvulation)?.dateStr;
 
               return (
-                <div className="grid grid-cols-7 gap-1">
-                  {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod, predictedSeason }) => {
-                    const season = predictedSeason || 'onbekend';
-                    const isOvulationDay = dateStr === ovulationDay;
-                    
-                    let cellClass = seasonBgColors[season];
-                    let textClass = seasonTextColors[season];
-                    
-                    if (isToday) {
-                      cellClass = 'bg-primary ring-2 ring-primary ring-offset-1';
-                      textClass = 'text-primary-foreground';
-                    } else if (bleeding) {
-                      cellClass = 'bg-red-400 border-red-500';
-                      textClass = 'text-white';
-                    } else if (isPredictedPeriod) {
-                      cellClass = 'bg-red-200/80 border-2 border-dashed border-red-400';
-                      textClass = 'text-red-700';
-                    } else if (isFertile) {
-                      cellClass = 'bg-green-300 dark:bg-green-700/60 border-green-400';
-                      textClass = 'text-green-800 dark:text-green-200';
-                    }
-                    
-                    return (
-                      <button
-                        key={dateStr}
-                        onClick={() => {
-                          setSelectedDate(dateStr);
-                          setShowDayLog(true);
-                        }}
-                        className={`aspect-square min-h-[48px] rounded-lg border text-center transition-all hover:opacity-80 flex flex-col items-center justify-center p-1 ${cellClass}`}
-                      >
-                        <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
-                          {format(date, 'EE', { locale: nl })}
-                        </div>
-                        <div className={`text-base font-bold leading-tight ${textClass}`}>
-                          {format(date, 'd')}
-                          {isOvulationDay && <span className="text-sm ml-0.5">★</span>}
-                        </div>
-                      </button>
-                    );
-                  })}
-                </div>
+                <>
+                  {/* Season legend */}
+                  <div className="flex flex-wrap gap-2 mb-3 text-xs">
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /><span className="text-muted-foreground">Winter</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-200 border border-green-300" /><span className="text-muted-foreground">Lente</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /><span className="text-muted-foreground">Zomer</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-orange-200 border border-orange-300" /><span className="text-muted-foreground">Herfst</span></div>
+                  </div>
+                  
+                  <div className="grid grid-cols-7 gap-1">
+                    {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod, predictedSeason }) => {
+                      const season = predictedSeason || 'onbekend';
+                      const isOvulationDay = dateStr === ovulationDay;
+                      
+                      // Base season colors - always apply
+                      let baseBg = seasonBgColors[season];
+                      let textClass = seasonTextColors[season];
+                      let extraClass = '';
+                      
+                      // Overlays for special states (keep season visible)
+                      if (isToday) {
+                        extraClass = 'ring-2 ring-primary ring-offset-2';
+                      }
+                      if (bleeding) {
+                        baseBg = 'bg-red-400 border-red-500';
+                        textClass = 'text-white';
+                      } else if (isPredictedPeriod) {
+                        baseBg = 'bg-red-200/80 border-2 border-dashed border-red-400';
+                        textClass = 'text-red-700 dark:text-red-300';
+                      } else if (isFertile) {
+                        baseBg = 'bg-green-300 dark:bg-green-700/60 border-green-400';
+                        textClass = 'text-green-800 dark:text-green-200';
+                      }
+                      
+                      return (
+                        <button
+                          key={dateStr}
+                          onClick={() => {
+                            setSelectedDate(dateStr);
+                            setShowDayLog(true);
+                          }}
+                          className={`aspect-square min-h-[48px] rounded-lg border text-center transition-all hover:opacity-80 flex flex-col items-center justify-center p-1 ${baseBg} ${extraClass}`}
+                        >
+                          <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
+                            {format(date, 'EE', { locale: nl })}
+                          </div>
+                          <div className={`text-base font-bold leading-tight ${textClass}`}>
+                            {format(date, 'd')}
+                            {isOvulationDay && <span className="text-sm ml-0.5">★</span>}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </>
               );
             })()}
           </CardContent>
