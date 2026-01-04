@@ -380,6 +380,17 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     mutationFn: async () => {
       if (!user || !editableAnalysis) throw new Error('Not authenticated');
       
+      // Ensure we have a valid day_id - create day if it doesn't exist
+      let dayIdToUse = currentDayId;
+      
+      if (!dayIdToUse) {
+        console.log('No dayId found, creating day for date:', mealDate);
+        dayIdToUse = await getOrCreateDayId(mealDate);
+        setCurrentDayId(dayIdToUse);
+      }
+      
+      console.log('Saving meal with dayId:', dayIdToUse, 'date:', mealDate);
+      
       const qualityFlags = {
         ai_description: editableAnalysis.description,
         ai_confidence: editableAnalysis.confidence,
@@ -395,7 +406,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
         .from('meals')
         .insert([{
           owner_id: user.id,
-          day_id: currentDayId,
+          day_id: dayIdToUse,
           time_local: time,
           kcal: editableAnalysis.kcal,
           protein_g: editableAnalysis.protein_g,
@@ -407,7 +418,10 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
           quality_flags: qualityFlags as unknown as Json,
         }]);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error saving meal:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       toast({ title: 'Maaltijd opgeslagen' });
@@ -416,8 +430,13 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       queryClient.invalidateQueries({ queryKey: ['diary-day'] });
       handleClose();
     },
-    onError: () => {
-      toast({ title: 'Kon maaltijd niet opslaan', variant: 'destructive' });
+    onError: (error) => {
+      console.error('Save meal error:', error);
+      toast({ 
+        title: 'Kon maaltijd niet opslaan', 
+        description: error instanceof Error ? error.message : 'Probeer het opnieuw',
+        variant: 'destructive' 
+      });
     },
   });
 

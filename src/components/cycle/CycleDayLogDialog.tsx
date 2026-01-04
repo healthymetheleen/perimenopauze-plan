@@ -58,8 +58,6 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
   const [isIntermenstrual, setIsIntermenstrual] = useState(false);
   const [energy, setEnergy] = useState<number[]>([5]);
   const [mood, setMood] = useState<number[]>([5]);
-  const [sleepQuality, setSleepQuality] = useState<number[]>([5]);
-  const [cravings, setCravings] = useState<'none' | 'mild' | 'strong'>('none');
   const [symptoms, setSymptoms] = useState<Record<string, boolean>>({});
   const [notes, setNotes] = useState('');
 
@@ -111,8 +109,6 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
     if (existingSymptoms) {
       setEnergy([existingSymptoms.energy || 5]);
       setMood([existingSymptoms.mood || 5]);
-      setSleepQuality([existingSymptoms.sleep_quality || 5]);
-      setCravings((existingSymptoms.cravings as 'none' | 'mild' | 'strong') || 'none');
       setSymptoms({
         headache: existingSymptoms.headache,
         breast_tender: existingSymptoms.breast_tender,
@@ -125,8 +121,6 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
     } else {
       setEnergy([5]);
       setMood([5]);
-      setSleepQuality([5]);
-      setCravings('none');
       setSymptoms({});
       setNotes('');
     }
@@ -149,8 +143,6 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
         log_date: date,
         energy: energy[0],
         mood: mood[0],
-        sleep_quality: sleepQuality[0],
-        cravings,
         headache: symptoms.headache || false,
         breast_tender: symptoms.breast_tender || false,
         anxiety: symptoms.anxiety || false,
@@ -260,28 +252,20 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
               <Slider value={mood} onValueChange={setMood} min={1} max={10} step={1} />
             </div>
 
-            {/* Sleep */}
-            <div className="space-y-3">
-              <div className="flex justify-between">
-                <Label>Slaapkwaliteit</Label>
-                <span className="text-sm text-muted-foreground">{sleepQuality[0]}/10</span>
-              </div>
-              <Slider value={sleepQuality} onValueChange={setSleepQuality} min={1} max={10} step={1} />
-            </div>
 
-            {/* Cravings */}
+            {/* Symptom chips */}
             <div className="space-y-3">
-              <Label>Cravings</Label>
-              <div className="flex gap-2">
-                {(['none', 'mild', 'strong'] as const).map((c) => (
+              <Label>Symptomen</Label>
+              <div className="flex flex-wrap gap-2">
+                {symptomChips.map(({ key, label }) => (
                   <Button
-                    key={c}
+                    key={key}
                     type="button"
-                    variant={cravings === c ? 'default' : 'outline'}
+                    variant={symptoms[key] ? 'default' : 'outline'}
                     size="sm"
-                    onClick={() => setCravings(c)}
+                    onClick={() => setSymptoms({ ...symptoms, [key]: !symptoms[key] })}
                   >
-                    {c === 'none' ? 'Geen' : c === 'mild' ? 'Mild' : 'Sterk'}
+                    {label}
                   </Button>
                 ))}
               </div>
