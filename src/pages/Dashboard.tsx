@@ -1,7 +1,7 @@
 import { format, subDays, differenceInMinutes, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
-  CalendarDays, TrendingUp, Activity, ArrowRight, Plus, 
+  CalendarDays, TrendingUp, ArrowRight, Plus, Briefcase,
   Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText, Heart
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -288,7 +288,7 @@ export default function DashboardPage() {
           <Card className="glass-strong rounded-2xl card-premium">
             <CardHeader className="pb-2">
               <CardTitle className="text-base flex items-center gap-2">
-                <Activity className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-primary" />
                 Advies voor {seasonLabels[currentSeason]}
               </CardTitle>
             </CardHeader>
@@ -305,7 +305,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex gap-3">
                   <div className="p-2 rounded-lg bg-primary/20 h-fit">
-                    <Activity className="h-4 w-4 text-primary" />
+                    <Briefcase className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-sm font-medium">Werk</p>
@@ -445,36 +445,20 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Quick actions */}
-        <div className="grid grid-cols-2 gap-4">
-          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
-            <Link to="/trends" className="block p-5">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-primary/10">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                </div>
-                <span className="font-medium">Trends</span>
+        {/* Quick actions - Trends only (combines trends + patterns, premium only) */}
+        <Card className="glass rounded-2xl hover:shadow-soft transition-all">
+          <Link to="/trends" className="block p-5">
+            <div className="flex items-center gap-3 mb-2">
+              <div className="p-2 rounded-full bg-primary/10">
+                <TrendingUp className="h-5 w-5 text-primary" />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Bekijk je voortgang over tijd
-              </p>
-            </Link>
-          </Card>
-
-          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
-            <Link to="/patterns" className="block p-5">
-              <div className="flex items-center gap-3 mb-2">
-                <div className="p-2 rounded-full bg-accent/20">
-                  <Activity className="h-5 w-5 text-accent-foreground" />
-                </div>
-                <span className="font-medium">Patronen</span>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Ontdek verbanden
-              </p>
-            </Link>
-          </Card>
-        </div>
+              <span className="font-medium">Trends & Patronen</span>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Bekijk je voortgang en ontdek verbanden
+            </p>
+          </Link>
+        </Card>
       </div>
     </AppLayout>
   );
