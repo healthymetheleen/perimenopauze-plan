@@ -10,6 +10,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRecipes, useSeasonRecipes, mealTypes, seasons, dietTags } from '@/hooks/useRecipes';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
+import { sanitizeImageUrl } from '@/lib/sanitize';
 import { Search, Clock, Users, ChefHat, Sparkles, Filter, X } from 'lucide-react';
 
 export default function RecipesPage() {
@@ -73,9 +74,9 @@ export default function RecipesPage() {
                     to={`/recepten/${recipe.id}`}
                     className="flex items-center gap-3 p-3 rounded-lg bg-background hover:bg-muted transition-colors"
                   >
-                    {recipe.image_url ? (
+                    {sanitizeImageUrl(recipe.image_url) ? (
                       <img
-                        src={recipe.image_url}
+                        src={sanitizeImageUrl(recipe.image_url)}
                         alt={recipe.title}
                         className="w-16 h-16 rounded-lg object-cover"
                       />
@@ -187,9 +188,9 @@ export default function RecipesPage() {
                 <Card className="rounded-2xl hover:shadow-md transition-shadow">
                   <CardContent className="p-4">
                     <div className="flex gap-4">
-                      {recipe.image_url ? (
+                      {sanitizeImageUrl(recipe.image_url) ? (
                         <img
-                          src={recipe.image_url}
+                          src={sanitizeImageUrl(recipe.image_url)}
                           alt={recipe.title}
                           className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
                         />
