@@ -66,7 +66,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center bg-background px-4">
       <Card className="w-full max-w-md rounded-2xl">
         <CardHeader className="text-center">
-          <CardTitle className="text-2xl">HormoonBalans Dagboek</CardTitle>
+          <CardTitle className="text-2xl">Perimenopauze Plan</CardTitle>
           <CardDescription>
             Volg je eetpatroon en ontdek verbanden met hoe je je voelt
           </CardDescription>
