@@ -6,42 +6,91 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// COMPLIANCE SYSTEM PROMPT - Alleen voedingsanalyse, geen medisch advies
-const systemPrompt = `Je bent een voedingsexpert die maaltijden analyseert.
+// FOOD PARSING PROMPT - Verbeterde item herkenning met attributen
+const foodParsingPrompt = `Je bent een voedingsexpert die maaltijden analyseert naar gestructureerde items.
 
 BELANGRIJKE RICHTLIJNEN:
 - Je bent GEEN arts of diëtist met behandelrelatie
 - Je geeft GEEN medisch voedingsadvies
-- Je stelt GEEN diagnoses over voedingsgerelateerde aandoeningen
 - Je doet GEEN uitspraken over allergieën of intoleranties
+- GEEN oordelen over of voedsel "gezond" of "ongezond" is
 
 Je taak:
-- Schat voedingswaarden van een maaltijd
-- Geef een objectieve beschrijving
+1. Identificeer alle items in de maaltijd
+2. Schat voedingswaarden per item
+3. Bepaal het bewerkingsniveau
+4. Stel maximaal 1-2 verificatievragen als je onzeker bent
 
-PRIVACY:
-- Je ontvangt ALLEEN een beschrijving of foto van een maaltijd
-- GEEN persoonlijke gegevens, geen context over de gebruiker
+ITEM CATEGORIEËN:
+- brood: wit, volkoren, spelt, zuurdesem, glutenvrij, met_zaden
+- zuivel: melk_vol, melk_mager, yoghurt_vol, yoghurt_mager, grieks, skyr, plantaardig
+- kaas: jong, belegen, oud, geitenkaas, feta, mozzarella
+- vlees: rood, wit, verwerkt (worst, bacon, ham)
+- vis: vet (zalm, makreel), mager (kabeljauw, tilapia), verwerkt
+- groenten: rauw, gekookt, verwerkt
+- fruit: vers, gedroogd, sap
+- granen: wit, volkoren, havermout
+- noten_zaden: ongezouten, gezouten, gesuikerd
+- dranken: water, koffie, thee, frisdrank, alcohol
+- snacks: chips, koekjes, chocolade, noten
+- sauzen: mayonaise, ketchup, dressing, olie
 
-Antwoord ALLEEN met een JSON object in dit formaat (geen andere tekst):
+BEWERKINGSNIVEAU (ultra_processed_level 0-10):
+0-2: Vers/minimaal bewerkt (groenten, fruit, vlees, vis, eieren)
+3-4: Bewerkte ingrediënten (olie, boter, suiker, bloem)
+5-6: Bewerkte voeding (kaas, brood, ingeblikt)
+7-8: Ultra-bewerkt (frisdrank, chips, kant-en-klaar)
+9-10: Zeer ultra-bewerkt (fast food, energiedranken)
+
+Antwoord ALLEEN met een JSON object:
 {
-  "description": "korte, neutrale beschrijving van de maaltijd",
-  "kcal": number,
-  "protein_g": number,
-  "carbs_g": number,
-  "fat_g": number,
-  "fiber_g": number,
+  "description": "korte neutrale beschrijving",
+  "items": [
+    {
+      "name": "item naam",
+      "category": "categorie",
+      "attributes": ["attribuut1", "attribuut2"],
+      "quantity": "hoeveelheid (1 snee, 200g, etc)",
+      "kcal": number,
+      "protein_g": number,
+      "carbs_g": number,
+      "fat_g": number,
+      "fiber_g": number,
+      "processing_level": 0-10
+    }
+  ],
+  "totals": {
+    "kcal": number,
+    "protein_g": number,
+    "carbs_g": number,
+    "fat_g": number,
+    "fiber_g": number
+  },
+  "ultra_processed_level": 0-10 (gewogen gemiddelde),
   "confidence": "high" | "medium" | "low",
-  "notes": "optionele neutrale opmerking over de schatting"
+  "verification_questions": [
+    {
+      "question": "Was dit volkoren of wit brood?",
+      "options": ["volkoren", "wit", "zuurdesem", "weet niet"],
+      "affects": "fiber_g"
+    }
+  ],
+  "quality_flags": {
+    "has_protein": boolean (>15g eiwit per maaltijd),
+    "has_fiber": boolean (>5g vezels per maaltijd),
+    "has_vegetables": boolean,
+    "is_ultra_processed": boolean (level >= 7),
+    "is_late_meal": false
+  },
+  "notes": "optionele opmerking over schatting"
 }
 
 Richtlijnen:
-- Wees realistisch met portiegroottes
-- Bij twijfel, kies een gemiddelde portie
-- Geef confidence "low" als de beschrijving vaag is
-- Alle getallen zijn integers of floats, geen strings
-- GEEN uitspraken over of de maaltijd "gezond" of "ongezond" is
-- GEEN oordelen over voedingskeuzes`;
+- Wees realistisch met portiegroottes (Nederlandse porties)
+- Bij twijfel, kies gemiddelde portie
+- Stel max 2 verificatievragen voor de belangrijkste items
+- Alle getallen zijn integers of floats
+- GEEN uitspraken over gezondheid`;
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -49,7 +98,7 @@ serve(async (req) => {
   }
 
   try {
-    const { description, imageBase64, hasAIConsent } = await req.json();
+    const { description, imageBase64, hasAIConsent, mealTime } = await req.json();
     
     // CONSENT CHECK
     if (hasAIConsent === false) {
@@ -57,26 +106,26 @@ serve(async (req) => {
         error: 'consent_required',
         message: 'Om AI-analyse te gebruiken is toestemming nodig. Schakel dit in bij Instellingen.',
         description: description || 'Maaltijd',
-        kcal: null,
-        protein_g: null,
-        carbs_g: null,
-        fat_g: null,
-        fiber_g: null,
+        items: [],
+        totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+        ultra_processed_level: null,
         confidence: 'low',
+        verification_questions: [],
+        quality_flags: {},
         notes: 'Vul de waarden handmatig in of schakel AI-ondersteuning in bij Instellingen.'
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
     
-    // Use OpenAI API key from Supabase secrets
-    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured');
+    // Use Lovable AI Gateway
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
+      throw new Error('AI service is niet geconfigureerd');
     }
 
-    // PRIVACY: We sturen ALLEEN de maaltijdbeschrijving naar AI
-    // Geen user_id, geen timestamps, geen andere persoonsgegevens
+    // Build user content
     const userContent: any[] = [];
     
     if (description) {
@@ -105,37 +154,48 @@ serve(async (req) => {
       throw new Error('Geen beschrijving of foto ontvangen');
     }
 
-    console.log('Sending meal data to OpenAI (no personal info, only food description)');
+    console.log('Sending meal data to Lovable AI for analysis');
     
-    // Direct call to OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: foodParsingPrompt },
           { role: 'user', content: userContent }
         ],
-        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Te veel verzoeken. Probeer het later opnieuw.' }), {
+        return new Response(JSON.stringify({ 
+          error: 'rate_limit',
+          message: 'Te veel verzoeken. Probeer het later opnieuw.' 
+        }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       
-      throw new Error(`OpenAI error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'payment_required',
+          message: 'AI-credits zijn op.' 
+        }), {
+          status: 402,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error(`AI error: ${response.status}`);
     }
 
     const data = await response.json();
@@ -155,14 +215,48 @@ serve(async (req) => {
       console.error('Failed to parse AI response:', parseError);
       analysis = {
         description: description || 'Onbekende maaltijd',
-        kcal: null,
-        protein_g: null,
-        carbs_g: null,
-        fat_g: null,
-        fiber_g: null,
+        items: [],
+        totals: {
+          kcal: null,
+          protein_g: null,
+          carbs_g: null,
+          fat_g: null,
+          fiber_g: null
+        },
+        ultra_processed_level: null,
         confidence: 'low',
+        verification_questions: [],
+        quality_flags: {},
         notes: 'Kon de maaltijd niet analyseren. Vul de waarden handmatig in.'
       };
+    }
+
+    // Add late meal flag based on time
+    if (mealTime) {
+      const hour = parseInt(mealTime.split(':')[0], 10);
+      if (analysis.quality_flags) {
+        analysis.quality_flags.is_late_meal = hour >= 21;
+      }
+    }
+
+    // Ensure backward compatibility with old format
+    if (!analysis.totals && analysis.kcal !== undefined) {
+      analysis.totals = {
+        kcal: analysis.kcal,
+        protein_g: analysis.protein_g,
+        carbs_g: analysis.carbs_g,
+        fat_g: analysis.fat_g,
+        fiber_g: analysis.fiber_g
+      };
+    }
+    
+    // Also provide flat values for backward compatibility
+    if (analysis.totals) {
+      analysis.kcal = analysis.totals.kcal;
+      analysis.protein_g = analysis.totals.protein_g;
+      analysis.carbs_g = analysis.totals.carbs_g;
+      analysis.fat_g = analysis.totals.fat_g;
+      analysis.fiber_g = analysis.totals.fiber_g;
     }
 
     return new Response(JSON.stringify(analysis), {
