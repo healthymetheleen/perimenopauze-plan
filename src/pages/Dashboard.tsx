@@ -1,6 +1,9 @@
-import { format } from 'date-fns';
+import { format, subDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { CalendarDays, TrendingUp, Activity, ArrowRight, Plus, Snowflake, Leaf, Sun, Wind } from 'lucide-react';
+import { 
+  CalendarDays, TrendingUp, Activity, ArrowRight, Plus, 
+  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils 
+} from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,14 +16,47 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
-import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors, phaseLabels } from '@/hooks/useCycle';
+import { useSleepSessions, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
 
 const seasonIcons: Record<string, React.ReactNode> = {
-  winter: <Snowflake className="h-3 w-3" />,
-  lente: <Leaf className="h-3 w-3" />,
-  zomer: <Sun className="h-3 w-3" />,
-  herfst: <Wind className="h-3 w-3" />,
+  winter: <Snowflake className="h-4 w-4" />,
+  lente: <Leaf className="h-4 w-4" />,
+  zomer: <Sun className="h-4 w-4" />,
+  herfst: <Wind className="h-4 w-4" />,
   onbekend: null,
+};
+
+// Phase-based advice for sports/movement/work
+const phaseAdvice: Record<string, { sport: string; werk: string; beweging: string }> = {
+  menstrual: {
+    sport: 'Lichte beweging zoals wandelen, zachte yoga of stretchen. Luister naar je lichaam.',
+    werk: 'Plan geen intensieve meetings. Focus op routine taken en rust.',
+    beweging: 'Rustige wandelingen, zachte stretches. Vermijd zware workouts.',
+  },
+  follicular: {
+    sport: 'Je energie stijgt! Ideaal voor krachttraining, HIIT of nieuwe sporten uitproberen.',
+    werk: 'Beste fase voor creatieve projecten, brainstormen en nieuwe initiatieven.',
+    beweging: 'Cardio, dansen, zwemmen. Je lichaam kan meer aan in deze fase.',
+  },
+  ovulatory: {
+    sport: 'Piek van energie en kracht. Perfecte tijd voor intensieve workouts en competitie.',
+    werk: 'Uitstekend voor presentaties, onderhandelingen en sociale interactie.',
+    beweging: 'Groepslessen, hardlopen, intensieve training. Maak gebruik van deze energie!',
+  },
+  luteal: {
+    sport: 'Moderate intensiteit. Pilates, yoga, rustig joggen. Vermijd overtraining.',
+    werk: 'Focus op afronden van projecten, administratie en plannen.',
+    beweging: 'Wandelen, fietsen, yoga. Verminder intensiteit richting menstruatie.',
+  },
+};
+
+// Map season to phase for advice
+const seasonToPhase: Record<string, string> = {
+  winter: 'menstrual',
+  lente: 'follicular',
+  zomer: 'ovulatory',
+  herfst: 'luteal',
 };
 
 export default function DashboardPage() {
@@ -29,41 +65,57 @@ export default function DashboardPage() {
   const { data: entitlements } = useEntitlements();
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
+  const { data: sleepSessions } = useSleepSessions(7);
 
   const today = format(new Date(), 'yyyy-MM-dd');
+  const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
   const todayScore = scores?.find(s => s.day_date === today);
-  const recentScores = scores?.slice(0, 5) || [];
+  const yesterdayScore = scores?.find(s => s.day_date === yesterday);
 
   const currentSeason = prediction?.current_season || 'onbekend';
+  const currentPhase = prediction?.current_phase || 'unknown';
   const showSeasonBadge = preferences?.onboarding_completed && currentSeason !== 'onbekend';
+  
+  const sleepScore = sleepSessions ? calculateSleepScore(sleepSessions) : 0;
+  const sleepStats = sleepSessions ? calculateSleepStats(sleepSessions) : null;
+  
+  const phaseKey = seasonToPhase[currentSeason] || 'follicular';
+  const currentAdvice = phaseAdvice[phaseKey];
+
+  const getScoreGradientClass = (score: number | null) => {
+    if (!score) return '';
+    if (score >= 70) return 'score-gradient-high';
+    if (score >= 40) return 'score-gradient-medium';
+    return 'score-gradient-low';
+  };
+
+  const getSleepScoreColor = (score: number) => {
+    if (score >= 70) return 'text-success';
+    if (score >= 40) return 'text-warning';
+    return 'text-destructive';
+  };
 
   return (
     <AppLayout>
-      <div className="space-y-6">
-        {/* Header with season badge */}
+      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+        {/* Header with logo and season badge */}
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-semibold text-foreground">
+          <div className="flex items-center gap-3">
+            <img 
+              src="/favicon.svg" 
+              alt="Logo" 
+              className="h-10 w-10"
+            />
+            <div>
+              <h1 className="text-xl sm:text-2xl font-semibold text-gradient">
                 Perimenopauze Plan
               </h1>
-              {showSeasonBadge && (
-                <Link to="/cycle">
-                  <Badge 
-                    variant="secondary" 
-                    className={`${seasonColors[currentSeason].bg} ${seasonColors[currentSeason].text} border-0 flex items-center gap-1`}
-                  >
-                    {seasonIcons[currentSeason]}
-                    {seasonLabels[currentSeason]}
-                  </Badge>
-                </Link>
-              )}
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(), "EEEE d MMMM", { locale: nl })}
+              </p>
             </div>
-            <p className="text-muted-foreground">
-              {format(new Date(), "EEEE d MMMM", { locale: nl })}
-            </p>
           </div>
-          <Button asChild>
+          <Button asChild className="btn-gradient text-primary-foreground shadow-soft">
             <Link to="/diary">
               <Plus className="h-4 w-4 mr-2" />
               Registreren
@@ -71,8 +123,118 @@ export default function DashboardPage() {
           </Button>
         </div>
 
+        {/* Season Badge Card */}
+        {showSeasonBadge && (
+          <Link to="/cycle">
+            <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
+                  {seasonIcons[currentSeason]}
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-muted-foreground">Huidige fase</p>
+                  <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
+                  {currentPhase !== 'unknown' && (
+                    <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
+                  )}
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
+        {/* Scores Grid */}
+        <div className="grid grid-cols-2 gap-4">
+          {/* Yesterday's Eating Score */}
+          <Link to="/diary">
+            <Card className={`glass rounded-2xl h-full ${getScoreGradientClass(yesterdayScore?.day_score ?? null)}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Utensils className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Eten gisteren</span>
+                </div>
+                {yesterdayScore ? (
+                  <div>
+                    <ScoreBadge score={yesterdayScore.day_score} size="lg" />
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {yesterdayScore.meals_count} maaltijden
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Geen data</p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Sleep Score */}
+          <Link to="/slaap">
+            <Card className={`glass rounded-2xl h-full ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-2">
+                  <Moon className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Slaap 7 dagen</span>
+                </div>
+                {sleepStats && sleepStats.totalSessions > 0 ? (
+                  <div>
+                    <div className={`text-3xl font-bold ${getSleepScoreColor(sleepScore)}`}>
+                      {sleepScore}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Gem. {sleepStats.avgDurationHours.toFixed(1)}u slaap
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Geen data</p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Phase-based Advice */}
+        {showSeasonBadge && currentAdvice && (
+          <Card className="glass-strong rounded-2xl card-premium">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Activity className="h-5 w-5 text-primary" />
+                Advies voor {seasonLabels[currentSeason]}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-3">
+                <div className="flex gap-3">
+                  <div className="p-2 rounded-lg bg-accent/20 h-fit">
+                    <Dumbbell className="h-4 w-4 text-accent-foreground" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Sport & Beweging</p>
+                    <p className="text-sm text-muted-foreground">{currentAdvice.sport}</p>
+                  </div>
+                </div>
+                <div className="flex gap-3">
+                  <div className="p-2 rounded-lg bg-primary/20 h-fit">
+                    <Activity className="h-4 w-4 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium">Werk</p>
+                    <p className="text-sm text-muted-foreground">{currentAdvice.werk}</p>
+                  </div>
+                </div>
+              </div>
+              <Button variant="ghost" size="sm" asChild className="w-full">
+                <Link to="/bewegen">
+                  Bekijk trainingsschema
+                  <ArrowRight className="h-4 w-4 ml-1" />
+                </Link>
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Today's score */}
-        <Card className="rounded-2xl">
+        <Card className="glass rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <CalendarDays className="h-5 w-5 text-primary" />
@@ -118,7 +280,7 @@ export default function DashboardPage() {
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-4">
-          <Card className="rounded-2xl hover:shadow-md transition-shadow">
+          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
             <Link to="/trends" className="block p-5">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 rounded-full bg-primary/10">
@@ -130,14 +292,14 @@ export default function DashboardPage() {
                 Bekijk je voortgang over tijd
               </p>
               {!entitlements?.can_use_trends && (
-                <span className="inline-block mt-2 text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">
+                <Badge variant="secondary" className="mt-2">
                   Premium
-                </span>
+                </Badge>
               )}
             </Link>
           </Card>
 
-          <Card className="rounded-2xl hover:shadow-md transition-shadow">
+          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
             <Link to="/patterns" className="block p-5">
               <div className="flex items-center gap-3 mb-2">
                 <div className="p-2 rounded-full bg-accent/20">
@@ -149,46 +311,13 @@ export default function DashboardPage() {
                 Ontdek verbanden
               </p>
               {!entitlements?.can_use_patterns && (
-                <span className="inline-block mt-2 text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">
+                <Badge variant="secondary" className="mt-2">
                   Premium
-                </span>
+                </Badge>
               )}
             </Link>
           </Card>
         </div>
-
-        {/* Recent days */}
-        {recentScores.length > 0 && (
-          <Card className="rounded-2xl">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-lg">Afgelopen dagen</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                {recentScores.map((score) => (
-                  <Link
-                    key={score.day_id}
-                    to={`/diary?date=${score.day_date}`}
-                    className="flex items-center justify-between p-3 rounded-lg hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center gap-3">
-                      <ScoreBadge score={score.day_score} size="sm" />
-                      <div>
-                        <p className="font-medium text-sm">
-                          {format(new Date(score.day_date), "EEEE d MMM", { locale: nl })}
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          {score.meals_count} maaltijden
-                        </p>
-                      </div>
-                    </div>
-                    <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                  </Link>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
       </div>
     </AppLayout>
   );
