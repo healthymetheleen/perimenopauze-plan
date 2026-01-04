@@ -13,13 +13,14 @@ import {
   useActiveSleepSession,
   useStartSleep,
   useEndSleep,
+  useAddManualSleep,
   calculateSleepStats,
   calculateSleepScore,
   generateSleepAdvice,
 } from '@/hooks/useSleep';
 import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
-import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   Dialog,
@@ -30,19 +31,28 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 
 export default function SleepPage() {
   const { toast } = useToast();
   const [showQualityDialog, setShowQualityDialog] = useState(false);
+  const [showManualDialog, setShowManualDialog] = useState(false);
   const [qualityScore, setQualityScore] = useState([7]);
   const [wakeFeeling, setWakeFeeling] = useState<string>('');
   const [nightInterruptions, setNightInterruptions] = useState<string>('');
+  
+  // Manual sleep entry state
+  const [manualDate, setManualDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+  const [manualSleepTime, setManualSleepTime] = useState('23:00');
+  const [manualWakeTime, setManualWakeTime] = useState('07:00');
+  const [manualQuality, setManualQuality] = useState([7]);
 
   const { data: sessions, isLoading } = useSleepSessions(7);
   const { data: activeSession, isLoading: activeLoading } = useActiveSleepSession();
   const { data: prediction } = useLatestPrediction();
   const startSleep = useStartSleep();
   const endSleep = useEndSleep();
+  const addManualSleep = useAddManualSleep();
 
   const stats = sessions ? calculateSleepStats(sessions) : null;
   const sleepScore = sessions ? calculateSleepScore(sessions) : 0;
@@ -73,6 +83,40 @@ export default function SleepPage() {
       toast({ title: 'Goedemorgen! ☀️', description: 'Je slaapsessie is opgeslagen.' });
     } catch {
       toast({ title: 'Kon slaapsessie niet afsluiten', variant: 'destructive' });
+    }
+  };
+
+  const handleManualSleep = async () => {
+    try {
+      // Parse sleep time (assume night before if wake time < sleep time)
+      const sleepDate = new Date(manualDate);
+      const wakeDate = new Date(manualDate);
+      
+      const [sleepHour, sleepMin] = manualSleepTime.split(':').map(Number);
+      const [wakeHour, wakeMin] = manualWakeTime.split(':').map(Number);
+      
+      sleepDate.setHours(sleepHour, sleepMin, 0, 0);
+      wakeDate.setHours(wakeHour, wakeMin, 0, 0);
+      
+      // If sleep time is after wake time, sleep was the night before
+      if (sleepHour > wakeHour || (sleepHour === wakeHour && sleepMin > wakeMin)) {
+        sleepDate.setDate(sleepDate.getDate() - 1);
+      }
+      
+      await addManualSleep.mutateAsync({
+        sleepStart: sleepDate.toISOString(),
+        sleepEnd: wakeDate.toISOString(),
+        qualityScore: manualQuality[0],
+      });
+      
+      setShowManualDialog(false);
+      toast({ title: 'Slaap opgeslagen! 🌙' });
+    } catch (error) {
+      toast({ 
+        title: 'Kon slaap niet opslaan', 
+        description: error instanceof Error ? error.message : 'Probeer het opnieuw',
+        variant: 'destructive' 
+      });
     }
   };
 
@@ -173,6 +217,14 @@ export default function SleepPage() {
                 >
                   <Moon className="h-5 w-5 mr-2" />
                   Ik ga slapen
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => setShowManualDialog(true)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Slaap achteraf invoeren
                 </Button>
               </div>
             )}
@@ -448,6 +500,75 @@ export default function SleepPage() {
               disabled={endSleep.isPending}
             >
               Bevestigen
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Manual Sleep Entry Dialog */}
+      <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
+        <DialogContent className="sm:max-w-md max-w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Slaap achteraf invoeren</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            {/* Date */}
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Datum (wakker geworden)</Label>
+              <Input
+                type="date"
+                value={manualDate}
+                onChange={(e) => setManualDate(e.target.value)}
+              />
+            </div>
+
+            {/* Sleep time */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Naar bed gegaan</Label>
+                <Input
+                  type="time"
+                  value={manualSleepTime}
+                  onChange={(e) => setManualSleepTime(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium">Wakker geworden</Label>
+                <Input
+                  type="time"
+                  value={manualWakeTime}
+                  onChange={(e) => setManualWakeTime(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Quality score slider */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Slaapkwaliteit</Label>
+              <div className="text-center">
+                <span className="text-4xl font-bold">{manualQuality[0]}</span>
+                <span className="text-muted-foreground">/10</span>
+              </div>
+              <Slider
+                value={manualQuality}
+                onValueChange={setManualQuality}
+                min={1}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Slecht</span>
+                <span>Uitstekend</span>
+              </div>
+            </div>
+
+            <Button
+              className="w-full"
+              onClick={handleManualSleep}
+              disabled={addManualSleep.isPending}
+            >
+              Opslaan
             </Button>
           </div>
         </DialogContent>

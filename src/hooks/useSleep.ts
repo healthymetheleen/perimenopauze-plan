@@ -87,6 +87,52 @@ export function useStartSleep() {
   });
 }
 
+// Add manual sleep session (for retrospective logging)
+export function useAddManualSleep() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async ({ 
+      sleepStart, 
+      sleepEnd, 
+      qualityScore 
+    }: { 
+      sleepStart: string; 
+      sleepEnd: string; 
+      qualityScore?: number;
+    }) => {
+      if (!user) throw new Error('Niet ingelogd');
+      
+      const startTime = new Date(sleepStart);
+      const endTime = new Date(sleepEnd);
+      const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
+      
+      if (durationMinutes <= 0) {
+        throw new Error('Eindtijd moet na starttijd zijn');
+      }
+      
+      const { data, error } = await supabase
+        .from('sleep_sessions')
+        .insert({
+          owner_id: user.id,
+          sleep_start: startTime.toISOString(),
+          sleep_end: endTime.toISOString(),
+          duration_minutes: durationMinutes,
+          quality_score: qualityScore,
+        })
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sleep-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['active-sleep-session'] });
+    },
+  });
+}
+
 // End sleep session
 export function useEndSleep() {
   const queryClient = useQueryClient();
