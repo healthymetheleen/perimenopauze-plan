@@ -96,6 +96,12 @@ export default {
           urogenital: "hsl(var(--domain-urogenital))",
           dermatological: "hsl(var(--domain-dermatological))",
         },
+        // Gradient colors
+        gradient: {
+          start: "hsl(var(--gradient-start))",
+          end: "hsl(var(--gradient-end))",
+          accent: "hsl(var(--gradient-accent))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

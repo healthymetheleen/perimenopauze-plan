@@ -23,6 +23,7 @@ import RecipesPage from "./pages/Recipes";
 import RecipeDetailPage from "./pages/RecipeDetail";
 import RecipeAdminPage from "./pages/RecipeAdmin";
 import SleepPage from "./pages/Sleep";
+import MovementPage from "./pages/Movement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -162,6 +163,11 @@ function AppRoutes() {
       <Route path="/slaap" element={
         <ProtectedRoute>
           <SleepPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/bewegen" element={
+        <ProtectedRoute>
+          <MovementPage />
         </ProtectedRoute>
       } />
       
