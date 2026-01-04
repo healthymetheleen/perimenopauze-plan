@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      ai_insights_cache: {
+        Row: {
+          created_at: string
+          id: string
+          input_hash: string | null
+          insight_data: Json
+          insight_date: string
+          insight_type: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          input_hash?: string | null
+          insight_data: Json
+          insight_date?: string
+          insight_type: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          input_hash?: string | null
+          insight_data?: Json
+          insight_date?: string
+          insight_type?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           created_at: string
@@ -1156,6 +1189,7 @@ export type Database = {
         Args: { monthly_limit?: number; user_id: string }
         Returns: boolean
       }
+      cleanup_ai_cache: { Args: never; Returns: undefined }
       cleanup_old_data: { Args: never; Returns: undefined }
       delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
       export_user_data: { Args: { user_uuid: string }; Returns: Json }
