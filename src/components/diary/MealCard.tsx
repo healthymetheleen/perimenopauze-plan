@@ -12,11 +12,25 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import type { Meal } from '@/hooks/useDiary';
 
 // Generate a description from meal data
-function getMealDescription(meal: Meal): string {
+function getMealSummary(meal: Meal): string {
+  // Use AI description if available
+  const flags = meal.quality_flags;
+  if (flags?.ai_description) {
+    // Truncate long descriptions
+    const desc = flags.ai_description;
+    return desc.length > 50 ? desc.substring(0, 50) + '...' : desc;
+  }
+  
+  // Fall back to items names
+  if (flags?.items && flags.items.length > 0) {
+    const names = flags.items.map(i => i.name).join(', ');
+    return names.length > 50 ? names.substring(0, 50) + '...' : names;
+  }
+  
+  // Fall back to macros
   const parts: string[] = [];
   if (meal.kcal) parts.push(`${Math.round(meal.kcal)} kcal`);
   if (meal.protein_g) parts.push(`${Math.round(meal.protein_g)}g eiwit`);
-  if (!parts.length && meal.carbs_g) parts.push(`${Math.round(meal.carbs_g)}g koolh.`);
   return parts.length > 0 ? parts.join(', ') : 'Maaltijd';
 }
 
@@ -88,6 +102,9 @@ export function MealCard({ meal }: MealCardProps) {
     },
   });
 
+  // Get meal description for display
+  const mealDescription = getMealSummary(meal);
+
   return (
     <>
       <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors group">
@@ -95,16 +112,24 @@ export function MealCard({ meal }: MealCardProps) {
           <Utensils className="h-4 w-4 text-primary" />
         </div>
         <div className="flex-1 min-w-0">
-          <div className="flex items-center justify-between">
-            <p className="font-medium text-sm">
-              {meal.time_local 
-                ? format(new Date(`2000-01-01T${meal.time_local}`), 'HH:mm')
-                : 'Tijd onbekend'}
-            </p>
-            <div className="flex items-center gap-1">
-              {meal.kcal && (
-                <span className="text-sm text-muted-foreground mr-2">{Math.round(meal.kcal)} kcal</span>
-              )}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2">
+                <p className="font-medium text-sm">
+                  {meal.time_local 
+                    ? format(new Date(`2000-01-01T${meal.time_local}`), 'HH:mm')
+                    : 'Tijd onbekend'}
+                </p>
+                {meal.kcal && (
+                  <span className="text-xs text-muted-foreground">{Math.round(meal.kcal)} kcal</span>
+                )}
+              </div>
+              {/* Show meal description/summary */}
+              <p className="text-sm text-foreground mt-0.5 truncate">
+                {mealDescription}
+              </p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
               <Button
                 variant="ghost"
                 size="icon"
@@ -125,11 +150,9 @@ export function MealCard({ meal }: MealCardProps) {
             </div>
           </div>
           {hasNutrition && (
-            <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
-              {meal.protein_g && <span>{Math.round(meal.protein_g)}g eiwit</span>}
-              {meal.carbs_g && <span>{Math.round(meal.carbs_g)}g koolh.</span>}
-              {meal.fat_g && <span>{Math.round(meal.fat_g)}g vet</span>}
-              {meal.fiber_g && <span>{Math.round(meal.fiber_g)}g vezels</span>}
+            <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-muted-foreground">
+              {meal.protein_g && <span className="bg-muted px-1.5 py-0.5 rounded">{Math.round(meal.protein_g)}g eiwit</span>}
+              {meal.fiber_g && <span className="bg-muted px-1.5 py-0.5 rounded">{Math.round(meal.fiber_g)}g vezels</span>}
             </div>
           )}
           {meal.ultra_processed_level !== null && meal.ultra_processed_level > 1 && (
@@ -145,8 +168,8 @@ export function MealCard({ meal }: MealCardProps) {
           <DialogHeader>
             <DialogTitle>
               {meal.time_local 
-                ? `${format(new Date(`2000-01-01T${meal.time_local}`), 'HH:mm')} - ${getMealDescription(meal)}`
-                : getMealDescription(meal)}
+                ? `${format(new Date(`2000-01-01T${meal.time_local}`), 'HH:mm')} - ${getMealSummary(meal)}`
+                : getMealSummary(meal)}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">

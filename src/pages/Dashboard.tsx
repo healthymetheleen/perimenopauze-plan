@@ -166,21 +166,34 @@ export default function DashboardPage() {
         {/* Season Header - Always at top with date */}
         <div className={`rounded-2xl p-5 relative overflow-hidden ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
           <div className="flex items-start justify-between">
-            <div>
+            <div className="flex-1">
               <p className="text-sm text-muted-foreground">
                 {format(new Date(), "EEEE", { locale: nl })}
               </p>
               <p className="text-xl font-semibold text-foreground">
                 {format(new Date(), "d MMMM yyyy", { locale: nl })}
               </p>
+              
+              {/* Season badge - prominent display */}
               {showSeasonBadge && (
-                <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-sm font-semibold ${seasonAccent.accent} text-white`}>
-                  {seasonIcons[currentSeason]}
-                  <span>{seasonLabels[currentSeason]}</span>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-base font-bold ${seasonAccent.accent} text-white shadow-md`}>
+                    {seasonIcons[currentSeason]}
+                    <span>{seasonLabels[currentSeason]}</span>
+                  </div>
+                  
+                  {/* Fertile badge */}
+                  {isTodayFertile && (
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-500 text-white shadow-md animate-pulse">
+                      <Heart className="h-4 w-4" />
+                      <span>Vruchtbaar</span>
+                    </div>
+                  )}
                 </div>
               )}
+              
               {showSeasonBadge && currentPhase !== 'unknown' && (
-                <p className="text-sm text-muted-foreground mt-1">{phaseLabels[currentPhase]}</p>
+                <p className="text-sm text-muted-foreground mt-2">{phaseLabels[currentPhase]}</p>
               )}
             </div>
             {showSeasonBadge && (

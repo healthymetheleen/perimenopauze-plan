@@ -135,8 +135,8 @@ export default function MeditationPage() {
   const [selectedMeditation, setSelectedMeditation] = useState<Meditation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
-  const currentSeason = prediction?.current_season || 'lente';
-  const colors = seasonColors[currentSeason] ?? seasonColors.onbekend;
+  const currentSeason = prediction?.current_season || 'onbekend';
+  const colors = seasonColors[currentSeason] || seasonColors.onbekend;
   
   // Get recommended meditation based on cycle
   const cycleRecommendation = meditations.find(m => {

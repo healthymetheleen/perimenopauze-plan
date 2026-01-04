@@ -112,8 +112,8 @@ export default function MovementPage() {
   const [selectedExercise, setSelectedExercise] = useState<YogaExercise | null>(null);
   const [prefsDialogOpen, setPrefsDialogOpen] = useState(false);
 
-  const currentSeason = prediction?.current_season || 'lente';
-  const colors = seasonColors[currentSeason] ?? seasonColors.onbekend;
+  const currentSeason = prediction?.current_season || 'onbekend';
+  const colors = seasonColors[currentSeason] || seasonColors.onbekend;
   const currentWorkout = getWorkoutForSeason(currentSeason);
   const weeklySchedule = generatePersonalizedSchedule(currentSeason, trainingPrefs);
   

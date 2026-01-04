@@ -216,20 +216,44 @@ export function useCycleSymptomLogs(days = 90) {
 
 export function useLatestPrediction() {
   const { user } = useAuth();
+  const { data: cycles } = useCycles(6);
+  const { data: bleedingLogs } = useBleedingLogs(90);
+  const { data: preferences } = useCyclePreferences();
 
   return useQuery({
-    queryKey: ['cycle-prediction', user?.id],
+    queryKey: ['cycle-prediction', user?.id, cycles?.length, bleedingLogs?.length],
     queryFn: async (): Promise<CyclePrediction | null> => {
       if (!user) return null;
-      const { data, error } = await supabase
+      
+      // First try to get stored prediction
+      const { data: stored } = await supabase
         .from('cycle_predictions')
         .select('*')
         .eq('owner_id', user.id)
         .order('generated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (error) throw error;
-      return data;
+      
+      // Always calculate fresh prediction based on current data
+      if (cycles && cycles.length > 0) {
+        const calculated = calculatePhaseAndPredictions(
+          cycles,
+          bleedingLogs || [],
+          preferences || null
+        );
+        
+        // Return calculated prediction merged with any stored AI tips
+        return {
+          id: stored?.id || 'calculated',
+          owner_id: user.id,
+          generated_at: new Date().toISOString(),
+          ...calculated,
+          ai_tips: stored?.ai_tips || calculated.ai_tips,
+          watchouts: calculated.watchouts,
+        } as CyclePrediction;
+      }
+      
+      return stored;
     },
     enabled: !!user,
   });
