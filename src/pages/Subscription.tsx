@@ -13,8 +13,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { 
   useSubscription, 
-  useCreatePayment, 
-  useCreateIdealPayment,
+  useCreateFirstPayment,
   useIdealIssuers,
   SUBSCRIPTION_PLANS
 } from '@/hooks/useMollie';
@@ -31,8 +30,7 @@ export default function SubscriptionPage() {
   const { toast } = useToast();
   const { data: subscription, isLoading: loadingSubscription } = useSubscription();
   const { data: idealIssuers, isLoading: loadingIssuers } = useIdealIssuers();
-  const createPayment = useCreatePayment();
-  const createIdealPayment = useCreateIdealPayment();
+  const createFirstPayment = useCreateFirstPayment();
 
   const [selectedPlan] = useState<PlanId>('monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('ideal');
@@ -52,25 +50,17 @@ export default function SubscriptionPage() {
     setIsProcessing(true);
 
     try {
-      let result;
       const baseUrl = window.location.origin;
 
-      if (paymentMethod === 'ideal') {
-        result = await createIdealPayment.mutateAsync({
-          amount: plan.price,
-          description: `HormoonBalans ${plan.name} abonnement`,
-          redirectUrl: `${baseUrl}/subscription?status=complete`,
-          metadata: { plan: plan.id },
-          issuer: selectedIssuer || undefined,
-        });
-      } else {
-        result = await createPayment.mutateAsync({
-          amount: plan.price,
-          description: `HormoonBalans ${plan.name} abonnement`,
-          redirectUrl: `${baseUrl}/subscription?status=complete`,
-          metadata: { plan: plan.id },
-        });
-      }
+      // Use first-payment flow to establish mandate for recurring
+      const result = await createFirstPayment.mutateAsync({
+        amount: plan.price,
+        description: `HormoonBalans ${plan.name} - Eerste betaling + machtiging`,
+        redirectUrl: `${baseUrl}/subscription?status=complete`,
+        metadata: { plan: plan.id },
+        method: paymentMethod === 'ideal' ? 'ideal' : undefined,
+        issuer: paymentMethod === 'ideal' ? selectedIssuer || undefined : undefined,
+      });
 
       if (result.checkoutUrl) {
         window.location.href = result.checkoutUrl;

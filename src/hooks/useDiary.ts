@@ -29,6 +29,7 @@ export interface DailyScore {
   day_score: number;
   score_reasons: string[];
   meals_count: number;
+  kcal_total?: number;
   protein_g: number;
   fiber_g: number;
 }

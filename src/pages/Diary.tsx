@@ -121,8 +121,24 @@ export default function DiaryPage() {
                   <div>
                     <p className="font-medium">Dagscore</p>
                     <p className="text-sm text-muted-foreground">
-                      {todayScore.meals_count || 0} maaltijden • {Math.round(todayScore.protein_g || 0)}g eiwit • {Math.round(todayScore.fiber_g || 0)}g vezels
+                      {todayScore.meals_count || 0} maaltijden
                     </p>
+                  </div>
+                </div>
+                
+                {/* Nutrition totals */}
+                <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/50">
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-foreground">{Math.round(todayScore.kcal_total || 0)}</p>
+                    <p className="text-xs text-muted-foreground">kcal</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-foreground">{Math.round(todayScore.protein_g || 0)}g</p>
+                    <p className="text-xs text-muted-foreground">eiwit</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-foreground">{Math.round(todayScore.fiber_g || 0)}g</p>
+                    <p className="text-xs text-muted-foreground">vezels</p>
                   </div>
                 </div>
                 {todayScore.score_reasons && todayScore.score_reasons.length > 0 && (
