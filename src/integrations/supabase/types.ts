@@ -768,36 +768,48 @@ export type Database = {
       }
       user_consents: {
         Row: {
+          accepted_ai_processing: boolean | null
           accepted_at: string | null
           accepted_disclaimer: boolean
           accepted_health_data_processing: boolean
           accepted_privacy: boolean
           accepted_terms: boolean
+          consent_version: string | null
           created_at: string
           id: string
           owner_id: string
+          privacy_policy_version: string | null
+          terms_version: string | null
           updated_at: string
         }
         Insert: {
+          accepted_ai_processing?: boolean | null
           accepted_at?: string | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
           accepted_privacy?: boolean
           accepted_terms?: boolean
+          consent_version?: string | null
           created_at?: string
           id?: string
           owner_id: string
+          privacy_policy_version?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Update: {
+          accepted_ai_processing?: boolean | null
           accepted_at?: string | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
           accepted_privacy?: boolean
           accepted_terms?: boolean
+          consent_version?: string | null
           created_at?: string
           id?: string
           owner_id?: string
+          privacy_policy_version?: string | null
+          terms_version?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -844,6 +856,9 @@ export type Database = {
         Args: { monthly_limit?: number; user_id: string }
         Returns: boolean
       }
+      cleanup_old_data: { Args: never; Returns: undefined }
+      delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
+      export_user_data: { Args: { user_uuid: string }; Returns: Json }
       get_ai_usage_remaining: {
         Args: { monthly_limit?: number; user_id: string }
         Returns: number
