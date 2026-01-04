@@ -276,32 +276,32 @@
   .season-surface-winter {
     background: linear-gradient(
       135deg,
-      hsl(210 60% 97% / 0.92) 0%,
-      hsl(210 45% 92% / 0.72) 100%
+      hsl(210 65% 97% / 0.94) 0%,
+      hsl(210 55% 90% / 0.78) 100%
     );
   }
 
   .season-surface-lente {
     background: linear-gradient(
       135deg,
-      hsl(120 40% 97% / 0.92) 0%,
-      hsl(95 30% 92% / 0.72) 100%
+      hsl(135 45% 97% / 0.94) 0%,
+      hsl(120 35% 90% / 0.78) 100%
     );
   }
 
   .season-surface-zomer {
     background: linear-gradient(
       135deg,
-      hsl(45 80% 97% / 0.92) 0%,
-      hsl(35 65% 92% / 0.72) 100%
+      hsl(48 90% 97% / 0.94) 0%,
+      hsl(38 70% 90% / 0.78) 100%
     );
   }
 
   .season-surface-herfst {
     background: linear-gradient(
       135deg,
-      hsl(25 65% 97% / 0.92) 0%,
-      hsl(15 55% 92% / 0.72) 100%
+      hsl(24 80% 97% / 0.94) 0%,
+      hsl(14 60% 90% / 0.78) 100%
     );
   }
 
@@ -340,29 +340,29 @@
   .dark .season-surface-winter {
     background: linear-gradient(
       135deg,
-      hsl(210 30% 18% / 0.55) 0%,
-      hsl(210 25% 12% / 0.35) 100%
+      hsl(210 35% 20% / 0.62) 0%,
+      hsl(210 30% 12% / 0.42) 100%
     );
   }
   .dark .season-surface-lente {
     background: linear-gradient(
       135deg,
-      hsl(140 25% 18% / 0.55) 0%,
-      hsl(140 22% 12% / 0.35) 100%
+      hsl(140 30% 20% / 0.62) 0%,
+      hsl(140 26% 12% / 0.42) 100%
     );
   }
   .dark .season-surface-zomer {
     background: linear-gradient(
       135deg,
-      hsl(35 35% 18% / 0.55) 0%,
-      hsl(35 30% 12% / 0.35) 100%
+      hsl(38 45% 20% / 0.62) 0%,
+      hsl(38 35% 12% / 0.42) 100%
     );
   }
   .dark .season-surface-herfst {
     background: linear-gradient(
       135deg,
-      hsl(18 35% 18% / 0.55) 0%,
-      hsl(18 30% 12% / 0.35) 100%
+      hsl(18 45% 20% / 0.62) 0%,
+      hsl(18 35% 12% / 0.42) 100%
     );
   }
 
