@@ -132,18 +132,32 @@ export default function SettingsPage() {
               <Switch 
                 checked={consent?.accepted_ai_processing ?? false} 
                 onCheckedChange={handleAIToggle}
-                disabled={updateConsent.isPending}
+                disabled={updateConsent.isPending || !consent}
               />
+            </div>
+
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20 space-y-3">
+              <p className="font-medium text-sm flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-primary" />
+                Wat doet AI in deze app?
+              </p>
+              <ul className="text-sm text-muted-foreground space-y-2">
+                <li>• <strong>Maaltijdanalyse:</strong> Herkent voedsel uit foto's en beschrijvingen, schat voedingswaarden</li>
+                <li>• <strong>Dagelijkse reflectie:</strong> Beschrijft patronen in je dag zonder oordeel</li>
+                <li>• <strong>Slaapinzicht:</strong> Verbindt slaapervaring met context als eten en cyclus</li>
+                <li>• <strong>Cycluscoaching:</strong> Geeft fase-specifieke context en normalisatie</li>
+                <li>• <strong>Patroonherkenning:</strong> Toont samenhang tussen voeding, slaap en klachten</li>
+              </ul>
             </div>
 
             <div className="p-3 bg-muted/50 rounded-lg space-y-2">
               <div className="flex items-center gap-2 text-sm">
                 <Lock className="h-4 w-4 text-success" />
-                <span>AI ontvangt alleen geanonimiseerde data</span>
+                <span>AI ontvangt alleen geanonimiseerde features (geen namen/datums)</span>
               </div>
               <div className="flex items-center gap-2 text-sm">
                 <Shield className="h-4 w-4 text-success" />
-                <span>Geen namen, datums of herleidbare info</span>
+                <span>AI beschrijft patronen, stelt geen diagnoses of geeft geen behandeladvies</span>
               </div>
             </div>
           </CardContent>

@@ -14,6 +14,7 @@ import {
   ChefHat,
   Moon,
   Dumbbell,
+  HeartPulse,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -35,9 +36,10 @@ const navItems: NavItem[] = [
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
   { href: '/slaap', label: 'Slaap', icon: <Moon className="h-5 w-5" /> },
   { href: '/bewegen', label: 'Bewegen', icon: <Dumbbell className="h-5 w-5" /> },
+  { href: '/meditatie', label: 'Meditaties', icon: <HeartPulse className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
-  { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
-  { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" />, premium: true },
+  { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" /> },
+  { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" /> },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
 ];
