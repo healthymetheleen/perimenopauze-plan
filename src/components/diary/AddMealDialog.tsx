@@ -121,7 +121,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     if (aiUsage && aiUsage.remaining <= 0) {
       toast({
         title: 'AI limiet bereikt',
-        description: `Je hebt je maandelijkse limiet van ${aiUsage.limit} AI analyses bereikt. Vul handmatig in of wacht tot volgende maand.`,
+        description: `Je hebt je dagelijkse limiet van ${aiUsage.limit} AI analyses bereikt. Vul handmatig in of probeer het morgen opnieuw.`,
         variant: 'destructive',
       });
       return;
@@ -145,6 +145,12 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
       if (result.error) {
         if (result.error === 'limit_exceeded') {
           throw new Error(result.message || 'Dagelijkse AI-limiet bereikt');
+        }
+        if (result.error === 'rate_limit') {
+          throw new Error(result.message || 'Te veel verzoeken. Probeer het later opnieuw.');
+        }
+        if (result.error === 'service_error' || result.error === 'service_unavailable') {
+          throw new Error(result.message || 'De AI-service is tijdelijk niet beschikbaar.');
         }
         throw new Error(result.message || result.error);
       }
@@ -332,7 +338,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
           </DialogTitle>
           {!showConfirmation && aiUsage && (
             <p className="text-xs text-muted-foreground">
-              {aiUsage.remaining} van {aiUsage.limit} AI analyses deze maand
+              {aiUsage.remaining} van {aiUsage.limit} AI analyses vandaag
             </p>
           )}
         </DialogHeader>
