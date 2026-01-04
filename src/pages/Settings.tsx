@@ -132,7 +132,7 @@ export default function SettingsPage() {
               <Switch 
                 checked={consent?.accepted_ai_processing ?? false} 
                 onCheckedChange={handleAIToggle}
-                disabled={updateConsent.isPending || !consent}
+                disabled={updateConsent.isPending}
               />
             </div>
 

@@ -536,6 +536,57 @@ export type Database = {
         }
         Relationships: []
       }
+      exercises: {
+        Row: {
+          benefits: string[] | null
+          created_at: string
+          cycle_phase: string
+          description: string | null
+          difficulty: string
+          duration: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          name: string
+          name_dutch: string
+          sort_order: number | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          benefits?: string[] | null
+          created_at?: string
+          cycle_phase: string
+          description?: string | null
+          difficulty: string
+          duration: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name: string
+          name_dutch: string
+          sort_order?: number | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          benefits?: string[] | null
+          created_at?: string
+          cycle_phase?: string
+          description?: string | null
+          difficulty?: string
+          duration?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          name?: string
+          name_dutch?: string
+          sort_order?: number | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       fertility_signals: {
         Row: {
           bbt: number | null
@@ -640,6 +691,51 @@ export type Database = {
             referencedColumns: ["day_id", "owner_id"]
           },
         ]
+      }
+      meditations: {
+        Row: {
+          audio_url: string | null
+          category: string
+          created_at: string
+          cycle_season: string | null
+          description: string | null
+          duration: string
+          id: string
+          image_url: string | null
+          is_active: boolean | null
+          sort_order: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          audio_url?: string | null
+          category: string
+          created_at?: string
+          cycle_season?: string | null
+          description?: string | null
+          duration: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          audio_url?: string | null
+          category?: string
+          created_at?: string
+          cycle_season?: string | null
+          description?: string | null
+          duration?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean | null
+          sort_order?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {
