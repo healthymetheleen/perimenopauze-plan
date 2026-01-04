@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -166,15 +167,16 @@ serve(async (req) => {
       });
     }
     
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    // Use OpenAI API key from Supabase secrets
+    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is not configured');
     }
 
     // PRIVACY: Anonimiseer naar categorieën, geen exacte waarden
     const anonymized = anonymizeData(inputData);
     
-    console.log('Sending anonymized feature categories to AI (no identifiable data)');
+    console.log('Sending anonymized feature categories to OpenAI (no identifiable data)');
 
     // Context met ALLEEN categorische kenmerken
     const context = `
@@ -203,24 +205,26 @@ HUIDIGE FASE (inschatting):
 Geef ondersteunende, niet-medische inzichten. Gebruik voorzichtige taal.
 Verwijs bij twijfel naar een zorgverlener.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // Direct call to OpenAI API
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
         ],
+        max_tokens: 600,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('AI gateway error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ error: 'Te veel verzoeken. Probeer het later opnieuw.' }), {
@@ -228,20 +232,14 @@ Verwijs bij twijfel naar een zorgverlener.`;
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ error: 'AI credits zijn op.' }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
       
-      throw new Error(`AI error: ${response.status}`);
+      throw new Error(`OpenAI error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('CycleCoach response received');
+    console.log('CycleCoach response received from OpenAI');
 
     let result;
     try {
