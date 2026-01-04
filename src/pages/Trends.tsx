@@ -34,13 +34,13 @@ export default function TrendsPage() {
       <AppLayout>
         <div className="max-w-md mx-auto py-12">
           <PaywallCard
-            feature="Trends & Analyses"
-            description="Bekijk hoe je eetpatroon en welzijn zich ontwikkelen over tijd."
+            feature="Trends & inzichten"
+            description="Bekijk hoe je eetpatroon en ervaren welzijn zich over tijd ontwikkelen en herken terugkerende patronen."
             benefits={[
-              '14 dagen overzicht',
+              'Inzichtelijke overzichten over meerdere dagen',
               'Grafische weergave van je voortgang',
-              'Signalen en observaties',
-              'Vergelijk patronen over weken',
+              'Signalen en persoonlijke observaties',
+              'Vergelijk patronen over meerdere weken',
             ]}
           />
         </div>
