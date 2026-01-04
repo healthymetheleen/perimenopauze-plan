@@ -303,16 +303,10 @@ serve(async (req) => {
       }
     } catch (parseError) {
       console.error('Failed to parse nano AI response:', parseError);
+      // Set confidence low to trigger fallback to mini
       analysis = {
-        description: description || 'Onbekende maaltijd',
-        items: [],
-        totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-        ultra_processed_level: null,
         confidence: 'low',
-        needs_review: true,
-        verification_questions: [],
-        quality_flags: {},
-        notes: 'Kon de maaltijd niet analyseren. Vul de waarden handmatig in.'
+        needs_review: true
       };
     }
 
@@ -352,12 +346,57 @@ serve(async (req) => {
           if (jsonMatch) {
             analysis = JSON.parse(jsonMatch[0]);
             console.log('Mini fallback successful');
+          } else {
+            // Both nano and mini failed to return valid JSON
+            console.error('Mini also returned no valid JSON');
+            analysis = {
+              description: description || 'Maaltijd',
+              items: [],
+              totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+              ultra_processed_level: null,
+              confidence: 'low',
+              verification_questions: [{
+                question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+                options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+                affects: 'description'
+              }],
+              quality_flags: {},
+              notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
+            };
           }
         } catch (parseError) {
-          console.error('Failed to parse mini AI response, keeping nano result');
+          console.error('Failed to parse mini AI response');
+          analysis = {
+            description: description || 'Maaltijd',
+            items: [],
+            totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+            ultra_processed_level: null,
+            confidence: 'low',
+            verification_questions: [{
+              question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+              options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+              affects: 'description'
+            }],
+            quality_flags: {},
+            notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
+          };
         }
       } else {
-        console.error('Mini fallback failed, keeping nano result');
+        console.error('Mini fallback failed');
+        analysis = {
+          description: description || 'Maaltijd',
+          items: [],
+          totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+          ultra_processed_level: null,
+          confidence: 'low',
+          verification_questions: [{
+            question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+            options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+            affects: 'description'
+          }],
+          quality_flags: {},
+          notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
+        };
       }
     }
     

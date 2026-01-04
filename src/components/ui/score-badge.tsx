@@ -37,7 +37,7 @@ export function ScoreBadge({
         getScoreColor(score),
         sizeClasses[size]
       )}>
-        {score.toFixed(1)}
+        {Math.round(score)}
       </div>
       {showLabel && (
         <span className="text-sm text-muted-foreground">

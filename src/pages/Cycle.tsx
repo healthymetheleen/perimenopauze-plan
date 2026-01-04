@@ -287,39 +287,41 @@ export default function CyclePage() {
 
   // Calculate predicted season for a given date based on cycle phase
   const getPredictedSeason = (date: Date): string => {
-    // Use prediction's current season if we have it, otherwise calculate
     const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
+    const periodLength = preferences?.avg_period_length || 5;
+    const lutealLength = 13; // Standard luteal phase
     
-    // If no cycles yet, use simple calculation based on today's date
+    // If no cycles yet, return unknown
     if (!cycles?.length) {
-      // Without cycle data, we can't predict - return current season from prediction
-      return prediction.current_season || 'onbekend';
+      return 'onbekend';
     }
     
     const latestCycle = cycles[0];
     const cycleStart = parseISO(latestCycle.start_date);
     const daysSinceStart = Math.floor((date.getTime() - cycleStart.getTime()) / (1000 * 60 * 60 * 24));
     
-    // Handle dates before cycle start
+    // Calculate which day in the cycle (handling multiple cycles)
+    let dayInCycle: number;
     if (daysSinceStart < 0) {
-      // For past dates, extrapolate backwards
-      const daysIntoCycle = ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
-      return getSeasonFromCycleDay(daysIntoCycle, avgCycleLength);
+      // Past dates: extrapolate backwards
+      dayInCycle = ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
+    } else {
+      dayInCycle = daysSinceStart % avgCycleLength;
     }
     
-    const dayInCycle = daysSinceStart % avgCycleLength;
-    return getSeasonFromCycleDay(dayInCycle, avgCycleLength);
+    return getSeasonFromCycleDay(dayInCycle, avgCycleLength, periodLength, lutealLength);
   };
   
-  const getSeasonFromCycleDay = (dayInCycle: number, avgCycleLength: number): string => {
-    const periodLength = preferences?.avg_period_length || 5;
-    const follicularEnd = Math.floor(avgCycleLength * 0.35);
-    const ovulatoryEnd = Math.floor(avgCycleLength * 0.5);
+  const getSeasonFromCycleDay = (dayInCycle: number, avgCycleLength: number, periodLength: number, lutealLength: number): string => {
+    // Phase boundaries based on actual cycle biology
+    const ovulationDay = avgCycleLength - lutealLength; // ~day 15 for 28-day cycle
+    const follicularEnd = ovulationDay - 1; // Day before ovulation
+    const ovulatoryEnd = ovulationDay + 1; // Day after ovulation
     
-    if (dayInCycle < periodLength) return 'winter';
-    if (dayInCycle < follicularEnd) return 'lente';
-    if (dayInCycle < ovulatoryEnd) return 'zomer';
-    return 'herfst';
+    if (dayInCycle < periodLength) return 'winter'; // Menstruation
+    if (dayInCycle < follicularEnd) return 'lente'; // Follicular
+    if (dayInCycle <= ovulatoryEnd) return 'zomer'; // Ovulation window
+    return 'herfst'; // Luteal phase
   };
 
   // Generate calendar strip data - 35 days to show full cycle
@@ -569,8 +571,8 @@ export default function CyclePage() {
                           {format(group.days[0].date, 'd MMM', { locale: nl })} - {format(group.days[group.days.length - 1].date, 'd MMM', { locale: nl })}
                         </span>
                       </div>
-                      {/* Days grid - 7 columns */}
-                      <div className="grid grid-cols-7 gap-0.5">
+                      {/* Days grid - responsive columns */}
+                      <div className="grid grid-cols-7 gap-1">
                         {group.days.map(({ date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod }) => {
                           // Ovulation is only the single estimated day
                           const isOvulationDay = dateStr === ovulationDay;
@@ -599,14 +601,14 @@ export default function CyclePage() {
                                 setSelectedDate(dateStr);
                                 setShowDayLog(true);
                               }}
-                              className={`p-0.5 rounded text-center transition-all hover:opacity-80 ${cellClass}`}
+                              className={`aspect-square min-h-[36px] rounded-lg text-center transition-all hover:opacity-80 flex flex-col items-center justify-center ${cellClass}`}
                             >
-                              <div className={`text-[7px] leading-tight opacity-60 ${textClass}`}>
+                              <div className={`text-[9px] leading-tight opacity-60 ${textClass}`}>
                                 {format(date, 'EE', { locale: nl })}
                               </div>
-                              <div className={`text-[10px] font-semibold leading-tight ${textClass}`}>
+                              <div className={`text-xs font-semibold leading-tight ${textClass}`}>
                                 {format(date, 'd')}
-                                {isOvulationDay && <span className="text-[8px]">★</span>}
+                                {isOvulationDay && <span className="text-[9px] ml-0.5">★</span>}
                               </div>
                             </button>
                           );
