@@ -191,118 +191,128 @@ export default function DashboardPage() {
 
         {/* Fertility Banner - only for users with child wish (show_fertile_days enabled) */}
         {isTodayFertile && (
-          <Card className="rounded-2xl bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 border-green-200 dark:from-green-950/50 dark:via-emerald-950/30 dark:to-green-950/50 dark:border-green-800">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
-                <Heart className="h-5 w-5 text-green-700 dark:text-green-300" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-green-800 dark:text-green-200">Je bent nu vruchtbaar 💚</p>
-                <p className="text-sm text-green-700 dark:text-green-300">
-                  Vruchtbare periode t/m {format(parseISO(prediction!.fertile_window_end!), 'd MMMM', { locale: nl })}
-                </p>
-              </div>
-              <Link to="/cycle">
-                <ArrowRight className="h-5 w-5 text-green-600" />
-              </Link>
-            </CardContent>
-          </Card>
+          <div>
+            <Card className="rounded-2xl bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 border-green-200 dark:from-green-950/50 dark:via-emerald-950/30 dark:to-green-950/50 dark:border-green-800">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
+                  <Heart className="h-5 w-5 text-green-700 dark:text-green-300" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-green-800 dark:text-green-200">Je bent nu vruchtbaar 💚</p>
+                  <p className="text-sm text-green-700 dark:text-green-300">
+                    Vruchtbare periode t/m {format(parseISO(prediction!.fertile_window_end!), 'd MMMM', { locale: nl })}
+                  </p>
+                </div>
+                <Link to="/cycle">
+                  <ArrowRight className="h-5 w-5 text-green-600" />
+                </Link>
+              </CardContent>
+            </Card>
+          </div>
         )}
 
         {/* Daily Check-in Button */}
-        <Link to="/cycle">
-          <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/20">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Dagelijkse check-in</p>
-                <p className="text-sm text-muted-foreground">
-                  Log hoe je je voelt, energie, slaap & klachten
-                </p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
+        <div>
+          <Link to="/cycle">
+            <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 rounded-full bg-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Dagelijkse check-in</p>
+                  <p className="text-sm text-muted-foreground">
+                    Log hoe je je voelt, energie, slaap & klachten
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-primary" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
 
         {/* Trial Countdown */}
-        <TrialCountdown />
+        <div>
+          <TrialCountdown />
+        </div>
 
         {/* Today's Food - Single Card with Score + Macros */}
-        <Link to="/diary">
-          <Card className={`glass rounded-2xl ${getScoreGradientClass(todayScore?.day_score ?? null)}`}>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Utensils className="h-4 w-4 text-primary" />
-                <span className="text-sm font-medium">Eten vandaag</span>
-                {todayScore && (
-                  <span className="text-xs text-muted-foreground ml-auto">
-                    {todayScore.meals_count} maaltijden
-                  </span>
-                )}
-              </div>
-              {todayScore ? (
-                <div className="space-y-3">
-                  <ScoreBadge score={todayScore.day_score} size="lg" />
-                  <div className="flex items-center justify-between gap-2 text-xs pt-2 border-t">
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{Math.round(todayScore.kcal_total || 0)}</span>
-                      <span className="text-muted-foreground">kcal</span>
-                    </div>
-                    <div className="h-3 w-px bg-border" />
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{Math.round(todayScore.carbs_g || 0)}g</span>
-                      <span className="text-muted-foreground">koolh</span>
-                    </div>
-                    <div className="h-3 w-px bg-border" />
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{Math.round(todayScore.protein_g || 0)}g</span>
-                      <span className="text-muted-foreground">eiwit</span>
-                    </div>
-                    <div className="h-3 w-px bg-border" />
-                    <div className="flex items-center gap-1">
-                      <span className="font-medium">{Math.round(todayScore.fiber_g || 0)}g</span>
-                      <span className="text-muted-foreground">vezels</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Nog niets gelogd</p>
-              )}
-            </CardContent>
-          </Card>
-        </Link>
-
-        {/* Sleep Score - moved above monthly analysis */}
-        <Link to="/slaap">
-          <Card className={`glass rounded-2xl ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
-            <CardContent className="p-4 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                  <Moon className="h-5 w-5 text-indigo-600" />
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Slaap 7 dagen</p>
-                  {sleepStats && sleepStats.totalSessions > 0 ? (
-                    <div className="flex items-center gap-3">
-                      <span className={`text-2xl font-bold ${getSleepScoreColor(sleepScore)}`}>
-                        {sleepScore}
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        Gem. {sleepStats.avgDurationHours.toFixed(1)}u
-                      </span>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">Geen data</p>
+        <div>
+          <Link to="/diary">
+            <Card className={`glass rounded-2xl ${getScoreGradientClass(todayScore?.day_score ?? null)}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Utensils className="h-4 w-4 text-primary" />
+                  <span className="text-sm font-medium">Eten vandaag</span>
+                  {todayScore && (
+                    <span className="text-xs text-muted-foreground ml-auto">
+                      {todayScore.meals_count} maaltijden
+                    </span>
                   )}
                 </div>
-              </div>
-              <ArrowRight className="h-5 w-5 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
+                {todayScore ? (
+                  <div className="space-y-3">
+                    <ScoreBadge score={todayScore.day_score} size="lg" />
+                    <div className="flex items-center justify-between gap-2 text-xs pt-2 border-t">
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{Math.round(todayScore.kcal_total || 0)}</span>
+                        <span className="text-muted-foreground">kcal</span>
+                      </div>
+                      <div className="h-3 w-px bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{Math.round(todayScore.carbs_g || 0)}g</span>
+                        <span className="text-muted-foreground">koolh</span>
+                      </div>
+                      <div className="h-3 w-px bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{Math.round(todayScore.protein_g || 0)}g</span>
+                        <span className="text-muted-foreground">eiwit</span>
+                      </div>
+                      <div className="h-3 w-px bg-border" />
+                      <div className="flex items-center gap-1">
+                        <span className="font-medium">{Math.round(todayScore.fiber_g || 0)}g</span>
+                        <span className="text-muted-foreground">vezels</span>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Nog niets gelogd</p>
+                )}
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
+
+        {/* Sleep Score - moved above monthly analysis */}
+        <div>
+          <Link to="/slaap">
+            <Card className={`glass rounded-2xl ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                    <Moon className="h-5 w-5 text-indigo-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Slaap 7 dagen</p>
+                    {sleepStats && sleepStats.totalSessions > 0 ? (
+                      <div className="flex items-center gap-3">
+                        <span className={`text-2xl font-bold ${getSleepScoreColor(sleepScore)}`}>
+                          {sleepScore}
+                        </span>
+                        <span className="text-sm text-muted-foreground">
+                          Gem. {sleepStats.avgDurationHours.toFixed(1)}u
+                        </span>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Geen data</p>
+                    )}
+                  </div>
+                </div>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
 
         {/* Phase-based Advice */}
         {showSeasonBadge && currentAdvice && (
