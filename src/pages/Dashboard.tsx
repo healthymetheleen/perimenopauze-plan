@@ -14,7 +14,7 @@ import { ScoreBadge } from '@/components/ui/score-badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { DailyReflectionCard } from '@/components/insights';
+import { DailyReflectionCard, TodayAtAGlance } from '@/components/insights';
 import { MovementWidget } from '@/components/insights/MovementWidget';
 import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { useDailyScores } from '@/hooks/useDiary';
@@ -205,27 +205,8 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Fertility Banner - only for users with child wish (show_fertile_days enabled) */}
-        {isTodayFertile && (
-          <div>
-            <Card className="rounded-2xl bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 border-green-200 dark:from-green-950/50 dark:via-emerald-950/30 dark:to-green-950/50 dark:border-green-800">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
-                  <Heart className="h-5 w-5 text-green-700 dark:text-green-300" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-green-800 dark:text-green-200">Je bent nu vruchtbaar 💚</p>
-                  <p className="text-sm text-green-700 dark:text-green-300">
-                    Vruchtbare periode t/m {format(parseISO(prediction!.fertile_window_end!), 'd MMMM', { locale: nl })}
-                  </p>
-                </div>
-                <Link to="/cycle">
-                  <ArrowRight className="h-5 w-5 text-green-600" />
-                </Link>
-              </CardContent>
-            </Card>
-          </div>
-        )}
+        {/* TODAY AT A GLANCE - Main widget */}
+        <TodayAtAGlance />
 
         {/* Daily Check-in Button */}
         <div>
