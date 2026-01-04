@@ -528,12 +528,13 @@ export default function CyclePage() {
                 <span>Herfst</span>
               </div>
             </div>
-            <div className="flex gap-1 overflow-x-auto pb-2">
+            {/* Calendar Grid - Multiple rows (1 month view) */}
+            <div className="grid grid-cols-7 gap-1">
               {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason }) => {
                 const seasonBorderColor = predictedSeason === 'winter' ? 'border-blue-300' :
                   predictedSeason === 'lente' ? 'border-green-300' :
                   predictedSeason === 'zomer' ? 'border-amber-300' :
-                  predictedSeason === 'herfst' ? 'border-orange-300' : '';
+                  predictedSeason === 'herfst' ? 'border-orange-300' : 'border-transparent';
                 
                 return (
                   <button
@@ -542,7 +543,7 @@ export default function CyclePage() {
                       setSelectedDate(dateStr);
                       setShowDayLog(true);
                     }}
-                    className={`flex-shrink-0 w-10 p-1.5 rounded-lg text-center transition-colors border-2 ${
+                    className={`w-full aspect-square p-1 rounded-lg text-center transition-colors border-2 ${
                       isToday ? 'bg-primary text-primary-foreground border-primary' : 
                       isPredictedPeriod ? `bg-red-50 border-dashed border-red-200` :
                       isFertile ? `bg-green-50 ${seasonBorderColor}` : 
@@ -550,26 +551,26 @@ export default function CyclePage() {
                       `hover:bg-muted ${seasonBorderColor}`
                     }`}
                   >
-                    <div className={`text-[10px] ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                    <div className={`text-[9px] leading-tight ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                       {format(date, 'EEE', { locale: nl })}
                     </div>
-                    <div className="text-sm font-medium">{format(date, 'd')}</div>
-                    <div className="h-2 flex justify-center gap-0.5 mt-0.5">
+                    <div className="text-xs font-medium">{format(date, 'd')}</div>
+                    <div className="h-1.5 flex justify-center gap-0.5 mt-0.5">
                       {bleeding && (
-                        <div className={`w-1.5 h-1.5 rounded-full ${
+                        <div className={`w-1 h-1 rounded-full ${
                           bleeding === 'hevig' ? 'bg-red-500' :
                           bleeding === 'normaal' ? 'bg-red-400' :
                           bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
                         }`} />
                       )}
                       {isPredictedPeriod && !bleeding && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-red-200 border border-red-400" />
+                        <div className="w-1 h-1 rounded-full bg-red-200 border border-red-400" />
                       )}
                       {isFertile && !isOvulation && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                        <div className="w-1 h-1 rounded-full bg-green-400" />
                       )}
                       {isOvulation && (
-                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                        <div className="w-1 h-1 rounded-full bg-purple-500" />
                       )}
                     </div>
                   </button>
