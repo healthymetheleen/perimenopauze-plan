@@ -101,6 +101,18 @@ export default function DashboardPage() {
       end: parseISO(prediction.fertile_window_end),
     });
 
+  // Get season-based background class
+  const getSeasonBackgroundClass = () => {
+    if (!showSeasonBadge) return 'bg-gradient-subtle';
+    switch (currentSeason) {
+      case 'winter': return 'bg-gradient-to-br from-blue-50/80 via-slate-50 to-indigo-100/60 dark:from-blue-950/40 dark:via-slate-950/30 dark:to-indigo-950/40';
+      case 'lente': return 'bg-gradient-to-br from-green-50/80 via-emerald-50 to-lime-100/60 dark:from-green-950/40 dark:via-emerald-950/30 dark:to-lime-950/40';
+      case 'zomer': return 'bg-gradient-to-br from-amber-50/80 via-yellow-50 to-orange-100/60 dark:from-amber-950/40 dark:via-yellow-950/30 dark:to-orange-950/40';
+      case 'herfst': return 'bg-gradient-to-br from-orange-50/80 via-amber-50 to-red-100/60 dark:from-orange-950/40 dark:via-amber-950/30 dark:to-red-950/40';
+      default: return 'bg-gradient-subtle';
+    }
+  };
+
   // Calculate current sleep duration if sleeping
   const currentSleepDuration = activeSession
     ? differenceInMinutes(new Date(), new Date(activeSession.sleep_start))
@@ -140,12 +152,25 @@ export default function DashboardPage() {
     return 'text-destructive';
   };
 
+  // Get season accent for decorative elements
+  const getSeasonAccent = () => {
+    const colors = seasonColors[currentSeason] ?? seasonColors.onbekend;
+    return colors;
+  };
+  const seasonAccent = getSeasonAccent();
+
   return (
     <AppLayout>
-      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+      <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* Header with date and action buttons */}
         <div className="flex items-center justify-between">
           <div>
+            {showSeasonBadge && (
+              <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${seasonAccent.accent} text-white`}>
+                {seasonIcons[currentSeason]}
+                <span>{seasonLabels[currentSeason]}</span>
+              </div>
+            )}
             <p className="text-lg font-medium text-foreground">
               {format(new Date(), "EEEE d MMMM", { locale: nl })}
             </p>
