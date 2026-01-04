@@ -107,6 +107,13 @@ export type Database = {
             referencedRelation: "community_posts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "v_community_posts"
+            referencedColumns: ["id"]
+          },
         ]
       }
       community_likes: {
@@ -134,6 +141,13 @@ export type Database = {
             columns: ["post_id"]
             isOneToOne: false
             referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_likes_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "v_community_posts"
             referencedColumns: ["id"]
           },
         ]
@@ -922,6 +936,90 @@ export type Database = {
       }
     }
     Views: {
+      v_community_comments: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string | null
+          is_anonymous: boolean | null
+          owner_id: string | null
+          post_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          owner_id?: never
+          post_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          owner_id?: never
+          post_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "community_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "community_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "v_community_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_community_posts: {
+        Row: {
+          category: string | null
+          comments_count: number | null
+          content: string | null
+          created_at: string | null
+          id: string | null
+          is_anonymous: boolean | null
+          likes_count: number | null
+          owner_id: string | null
+          title: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          category?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          likes_count?: number | null
+          owner_id?: never
+          title?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string | null
+          comments_count?: number | null
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          is_anonymous?: boolean | null
+          likes_count?: number | null
+          owner_id?: never
+          title?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       v_daily_scores: {
         Row: {
           day_date: string | null

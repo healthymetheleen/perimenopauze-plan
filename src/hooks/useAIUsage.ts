@@ -34,11 +34,13 @@ export function useAIUsage() {
   });
 }
 
+// Note: AI usage is now tracked server-side in edge functions
+// This function is kept for backward compatibility but just checks limits
 export async function trackAIUsage(functionName: string): Promise<boolean> {
   const { data: userData } = await supabase.auth.getUser();
   if (!userData.user) return false;
 
-  // Check daily limit
+  // Check daily limit (usage is now tracked server-side)
   const today = new Date().toISOString().split('T')[0];
   const { count, error: countError } = await supabase
     .from('ai_usage')
@@ -50,15 +52,8 @@ export async function trackAIUsage(functionName: string): Promise<boolean> {
     return false;
   }
 
-  // Track the usage
-  const { error: insertError } = await supabase
-    .from('ai_usage')
-    .insert({
-      owner_id: userData.user.id,
-      function_name: functionName,
-    });
-
-  return !insertError;
+  // Usage is now tracked server-side, so just return true if under limit
+  return true;
 }
 
 export { DAILY_AI_LIMIT };

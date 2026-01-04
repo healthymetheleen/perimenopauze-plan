@@ -45,8 +45,9 @@ export function useCommunityPosts(category?: string) {
   return useQuery({
     queryKey: ['community-posts', category],
     queryFn: async (): Promise<CommunityPost[]> => {
+      // Use the secure view that masks owner_id for anonymous posts
       let query = supabase
-        .from('community_posts')
+        .from('v_community_posts')
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -67,8 +68,8 @@ export function useCommunityPosts(category?: string) {
         userLikes = likes?.map(l => l.post_id) || [];
       }
 
-      // Get author names for non-anonymous posts
-      const ownerIds = [...new Set(posts?.filter(p => !p.is_anonymous).map(p => p.owner_id) || [])];
+      // Get author names for non-anonymous posts (owner_id is null for anonymous in the view)
+      const ownerIds = [...new Set(posts?.filter(p => p.owner_id).map(p => p.owner_id) || [])];
       let profiles: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profileData } = await supabase
@@ -82,7 +83,8 @@ export function useCommunityPosts(category?: string) {
 
       return (posts || []).map(post => ({
         ...post,
-        author_name: post.is_anonymous ? 'Anoniem' : (profiles[post.owner_id] || 'Gebruiker'),
+        owner_id: post.owner_id || '', // Ensure owner_id is always defined for type safety
+        author_name: !post.owner_id ? 'Anoniem' : (profiles[post.owner_id] || 'Gebruiker'),
         has_liked: userLikes.includes(post.id),
       }));
     },
@@ -95,8 +97,9 @@ export function useCommunityPost(postId: string) {
   return useQuery({
     queryKey: ['community-post', postId],
     queryFn: async (): Promise<CommunityPost | null> => {
+      // Use the secure view that masks owner_id for anonymous posts
       const { data: post, error } = await supabase
-        .from('community_posts')
+        .from('v_community_posts')
         .select('*')
         .eq('id', postId)
         .single();
@@ -116,9 +119,9 @@ export function useCommunityPost(postId: string) {
         hasLiked = !!like;
       }
 
-      // Get author name
+      // Get author name (owner_id is null for anonymous in the view)
       let authorName = 'Anoniem';
-      if (!post.is_anonymous) {
+      if (post.owner_id) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('display_name')
@@ -129,6 +132,7 @@ export function useCommunityPost(postId: string) {
 
       return {
         ...post,
+        owner_id: post.owner_id || '', // Ensure owner_id is always defined for type safety
         author_name: authorName,
         has_liked: hasLiked,
       };
@@ -141,16 +145,17 @@ export function usePostComments(postId: string) {
   return useQuery({
     queryKey: ['community-comments', postId],
     queryFn: async (): Promise<CommunityComment[]> => {
+      // Use the secure view that masks owner_id for anonymous comments
       const { data: comments, error } = await supabase
-        .from('community_comments')
+        .from('v_community_comments')
         .select('*')
         .eq('post_id', postId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
-      // Get author names
-      const ownerIds = [...new Set(comments?.filter(c => !c.is_anonymous).map(c => c.owner_id) || [])];
+      // Get author names (owner_id is null for anonymous in the view)
+      const ownerIds = [...new Set(comments?.filter(c => c.owner_id).map(c => c.owner_id) || [])];
       let profiles: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profileData } = await supabase
@@ -164,7 +169,8 @@ export function usePostComments(postId: string) {
 
       return (comments || []).map(comment => ({
         ...comment,
-        author_name: comment.is_anonymous ? 'Anoniem' : (profiles[comment.owner_id] || 'Gebruiker'),
+        owner_id: comment.owner_id || '', // Ensure owner_id is always defined for type safety
+        author_name: !comment.owner_id ? 'Anoniem' : (profiles[comment.owner_id] || 'Gebruiker'),
       }));
     },
     enabled: !!postId,
