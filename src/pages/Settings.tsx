@@ -245,8 +245,8 @@ export default function SettingsPage() {
                 <FileText className="h-4 w-4" />
                 <span>Consent versie {CONSENT_VERSION}</span>
               </div>
-              <Link to="/pricing" className="text-primary hover:underline">
-                Bekijk abonnement
+              <Link to="/subscription" className="text-primary hover:underline">
+                Beheer abonnement
               </Link>
             </div>
           </CardContent>
