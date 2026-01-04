@@ -255,6 +255,49 @@ export function useLogBleeding() {
   });
 }
 
+export function useDeleteBleeding() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (logDate: string) => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('bleeding_logs')
+        .delete()
+        .eq('owner_id', user.id)
+        .eq('log_date', logDate);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bleeding-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['bleeding-log'] });
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+    },
+  });
+}
+
+export function useDeleteAllBleeding() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async () => {
+      if (!user) throw new Error('Not authenticated');
+      const { error } = await supabase
+        .from('bleeding_logs')
+        .delete()
+        .eq('owner_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['bleeding-logs'] });
+      queryClient.invalidateQueries({ queryKey: ['bleeding-log'] });
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+    },
+  });
+}
+
 export function useLogCycleSymptoms() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
