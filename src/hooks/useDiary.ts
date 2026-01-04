@@ -31,6 +31,7 @@ export interface DailyScore {
   meals_count: number;
   kcal_total?: number;
   protein_g: number;
+  carbs_g?: number;
   fiber_g: number;
 }
 
