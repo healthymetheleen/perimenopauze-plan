@@ -26,6 +26,8 @@ import RecipeAdminPage from "./pages/RecipeAdmin";
 import SleepPage from "./pages/Sleep";
 import MovementPage from "./pages/Movement";
 import MeditationPage from "./pages/Meditation";
+import CommunityPage from "./pages/Community";
+import CommunityPostPage from "./pages/CommunityPost";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import IntendedUse from "./pages/IntendedUse";
@@ -181,6 +183,16 @@ function AppRoutes() {
       <Route path="/meditatie" element={
         <ProtectedRoute>
           <MeditationPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/community" element={
+        <ProtectedRoute>
+          <CommunityPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/community/:postId" element={
+        <ProtectedRoute>
+          <CommunityPostPage />
         </ProtectedRoute>
       } />
       

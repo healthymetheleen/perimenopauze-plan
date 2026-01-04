@@ -15,6 +15,7 @@ import {
   Moon,
   Dumbbell,
   HeartPulse,
+  Users,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -38,6 +39,7 @@ const navItems: NavItem[] = [
   { href: '/bewegen', label: 'Bewegen', icon: <Dumbbell className="h-5 w-5" /> },
   { href: '/meditatie', label: 'Meditaties', icon: <HeartPulse className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
+  { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" /> },
   { href: '/patterns', label: 'Patronen', icon: <Activity className="h-5 w-5" /> },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
