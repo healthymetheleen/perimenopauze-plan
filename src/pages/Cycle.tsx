@@ -568,14 +568,14 @@ export default function CyclePage() {
                           setSelectedDate(dateStr);
                           setShowDayLog(true);
                         }}
-                        className={`aspect-square rounded-lg border text-center transition-all hover:opacity-80 flex flex-col items-center justify-center p-1 ${cellClass}`}
+                        className={`aspect-square min-h-[48px] rounded-lg border text-center transition-all hover:opacity-80 flex flex-col items-center justify-center p-1 ${cellClass}`}
                       >
-                        <div className={`text-[10px] leading-tight opacity-70 ${textClass}`}>
+                        <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
                           {format(date, 'EE', { locale: nl })}
                         </div>
-                        <div className={`text-sm font-bold leading-tight ${textClass}`}>
+                        <div className={`text-base font-bold leading-tight ${textClass}`}>
                           {format(date, 'd')}
-                          {isOvulationDay && <span className="text-xs ml-0.5">★</span>}
+                          {isOvulationDay && <span className="text-sm ml-0.5">★</span>}
                         </div>
                       </button>
                     );

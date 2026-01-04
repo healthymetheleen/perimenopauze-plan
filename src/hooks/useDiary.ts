@@ -10,6 +10,22 @@ export interface DiaryDay {
   data_quality: unknown;
 }
 
+export interface MealQualityFlags {
+  ai_description?: string;
+  ai_confidence?: 'high' | 'medium' | 'low';
+  items?: Array<{
+    name: string;
+    quantity?: string;
+    kcal?: number;
+    protein_g?: number;
+  }>;
+  has_protein?: boolean;
+  has_fiber?: boolean;
+  has_vegetables?: boolean;
+  is_ultra_processed?: boolean;
+  is_late_meal?: boolean;
+}
+
 export interface Meal {
   id: string;
   day_id: string;
@@ -20,7 +36,7 @@ export interface Meal {
   fat_g: number | null;
   fiber_g: number | null;
   ultra_processed_level: number | null;
-  quality_flags: unknown;
+  quality_flags: MealQualityFlags | null;
 }
 
 export interface DailyScore {
@@ -98,7 +114,20 @@ export function useMeals(dayId: string | null) {
         .order('time_local', { ascending: true });
       
       if (error) throw error;
-      return data || [];
+      
+      // Map data to match Meal interface with properly typed quality_flags
+      return (data || []).map(meal => ({
+        id: meal.id,
+        day_id: meal.day_id,
+        time_local: meal.time_local,
+        kcal: meal.kcal,
+        protein_g: meal.protein_g,
+        carbs_g: meal.carbs_g,
+        fat_g: meal.fat_g,
+        fiber_g: meal.fiber_g,
+        ultra_processed_level: meal.ultra_processed_level,
+        quality_flags: meal.quality_flags as MealQualityFlags | null,
+      }));
     },
     enabled: !!user && !!dayId,
   });
