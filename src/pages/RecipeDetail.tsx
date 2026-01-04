@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { useRecipe, mealTypes, seasons, dietTags } from '@/hooks/useRecipes';
+import { sanitizeImageUrl } from '@/lib/sanitize';
 import { ArrowLeft, Clock, Users, ChefHat, Flame, Beef, Wheat, Droplet } from 'lucide-react';
-
 export default function RecipeDetailPage() {
   const { id } = useParams<{ id: string }>();
   const { data: recipe, isLoading } = useRecipe(id || null);
@@ -50,10 +50,10 @@ export default function RecipeDetailPage() {
         </Button>
 
         {/* Header with image */}
-        {recipe.image_url && (
+        {sanitizeImageUrl(recipe.image_url) && (
           <div className="aspect-video rounded-2xl overflow-hidden">
             <img
-              src={recipe.image_url}
+              src={sanitizeImageUrl(recipe.image_url)}
               alt={recipe.title}
               className="w-full h-full object-cover"
             />
