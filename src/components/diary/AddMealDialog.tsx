@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAIUsage, trackAIUsage } from '@/hooks/useAIUsage';
 import { useConsent } from '@/hooks/useConsent';
 import { Loader2, Type, Camera, Mic, Check, Edit2 } from 'lucide-react';
+import type { Json } from '@/integrations/supabase/types';
 
 interface AddMealDialogProps {
   open: boolean;
@@ -20,14 +21,45 @@ interface AddMealDialogProps {
   onDateChange?: (date: string) => void;
 }
 
+interface VerificationQuestion {
+  question: string;
+  options: string[];
+  affects: string;
+}
+
+interface QualityFlags {
+  has_protein?: boolean;
+  has_fiber?: boolean;
+  has_vegetables?: boolean;
+  is_ultra_processed?: boolean;
+  is_late_meal?: boolean;
+}
+
+interface MealItem {
+  name: string;
+  category: string;
+  attributes?: string[];
+  quantity: string;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number;
+  processing_level?: number;
+}
+
 interface MealAnalysis {
   description: string;
+  items?: MealItem[];
   kcal: number | null;
   protein_g: number | null;
   carbs_g: number | null;
   fat_g: number | null;
   fiber_g: number | null;
+  ultra_processed_level?: number | null;
   confidence: 'high' | 'medium' | 'low';
+  verification_questions?: VerificationQuestion[];
+  quality_flags?: QualityFlags;
   notes?: string;
 }
 
@@ -242,9 +274,20 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     mutationFn: async () => {
       if (!user || !editableAnalysis) throw new Error('Not authenticated');
       
+      const qualityFlags = {
+        ai_description: editableAnalysis.description,
+        ai_confidence: editableAnalysis.confidence,
+        items: editableAnalysis.items || [],
+        has_protein: editableAnalysis.quality_flags?.has_protein ?? false,
+        has_fiber: editableAnalysis.quality_flags?.has_fiber ?? false,
+        has_vegetables: editableAnalysis.quality_flags?.has_vegetables ?? false,
+        is_ultra_processed: editableAnalysis.quality_flags?.is_ultra_processed ?? false,
+        is_late_meal: editableAnalysis.quality_flags?.is_late_meal ?? false,
+      };
+      
       const { error } = await supabase
         .from('meals')
-        .insert({
+        .insert([{
           owner_id: user.id,
           day_id: dayId,
           time_local: time,
@@ -253,12 +296,10 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
           carbs_g: editableAnalysis.carbs_g,
           fat_g: editableAnalysis.fat_g,
           fiber_g: editableAnalysis.fiber_g,
+          ultra_processed_level: editableAnalysis.ultra_processed_level ?? null,
           source: 'ai',
-          quality_flags: {
-            ai_description: editableAnalysis.description,
-            ai_confidence: editableAnalysis.confidence,
-          },
-        });
+          quality_flags: qualityFlags as unknown as Json,
+        }]);
       
       if (error) throw error;
     },
