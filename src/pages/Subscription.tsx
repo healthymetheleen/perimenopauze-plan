@@ -1,16 +1,29 @@
 import { useState } from 'react';
 import { 
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
-  Loader2, ChevronRight, Building2
+  Loader2, ChevronRight, Building2, XCircle, Clock
 } from 'lucide-react';
+import { differenceInDays, addDays, format } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { 
   useSubscription, 
   useCreateFirstPayment,
@@ -19,8 +32,7 @@ import {
 } from '@/hooks/useMollie';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
-import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { supabase } from '@/integrations/supabase/client';
 
 type PlanId = keyof typeof SUBSCRIPTION_PLANS;
 type PaymentMethodType = 'ideal' | 'other';
@@ -36,6 +48,8 @@ export default function SubscriptionPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('ideal');
   const [selectedIssuer, setSelectedIssuer] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [isCancelling, setIsCancelling] = useState(false);
 
   const isActive = subscription?.status === 'active';
   const isPremium = isActive && subscription?.plan !== 'free';
@@ -74,6 +88,37 @@ export default function SubscriptionPage() {
       });
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleCancelSubscription = async () => {
+    setIsCancelling(true);
+    try {
+      // For now, we update the subscription status in the database
+      // In production, this would also cancel the Mollie subscription
+      const { error } = await supabase
+        .from('subscriptions')
+        .update({ status: 'cancelled' })
+        .eq('owner_id', user?.id);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Abonnement opgezegd',
+        description: 'Je hebt nog toegang tot het einde van je huidige periode.',
+      });
+      setShowCancelDialog(false);
+      // Refetch subscription data
+      window.location.reload();
+    } catch (error) {
+      console.error('Cancel error:', error);
+      toast({
+        title: 'Opzeggen mislukt',
+        description: 'Neem contact op met support@hormoonbalans.nl',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsCancelling(false);
     }
   };
 
@@ -138,6 +183,37 @@ export default function SubscriptionPage() {
                   <Badge className="bg-success text-success-foreground">Actief</Badge>
                 </div>
                 
+                {/* Trial progress if applicable */}
+                {subscription?.created_at && (() => {
+                  const startDate = new Date(subscription.created_at);
+                  const trialEndDate = addDays(startDate, 7);
+                  const daysRemaining = Math.max(0, differenceInDays(trialEndDate, new Date()));
+                  const trialProgress = ((7 - daysRemaining) / 7) * 100;
+                  
+                  if (daysRemaining > 0) {
+                    return (
+                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4 text-amber-600" />
+                            <span className="text-sm font-medium text-amber-700">
+                              Gratis trial: nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'}
+                            </span>
+                          </div>
+                          <span className="text-xs text-amber-600">
+                            t/m {format(trialEndDate, 'd MMM', { locale: nl })}
+                          </span>
+                        </div>
+                        <Progress value={trialProgress} className="h-2" />
+                        <p className="text-xs text-amber-600 mt-2">
+                          Na de trial wordt €4,50/maand automatisch afgeschreven
+                        </p>
+                      </div>
+                    );
+                  }
+                  return null;
+                })()}
+
                 {subscription?.created_at && (
                   <p className="text-sm text-muted-foreground">
                     Gestart op {format(new Date(subscription.created_at), 'd MMMM yyyy', { locale: nl })}
@@ -163,6 +239,18 @@ export default function SubscriptionPage() {
                     </li>
                   </ul>
                 </div>
+
+                <Separator />
+
+                {/* Cancel subscription button */}
+                <Button 
+                  variant="outline" 
+                  className="w-full text-destructive border-destructive/30 hover:bg-destructive/10"
+                  onClick={() => setShowCancelDialog(true)}
+                >
+                  <XCircle className="h-4 w-4 mr-2" />
+                  Abonnement opzeggen
+                </Button>
               </div>
             ) : (
               <div className="space-y-4">
@@ -336,6 +424,49 @@ export default function SubscriptionPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Cancel Subscription Dialog */}
+      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <XCircle className="h-5 w-5 text-destructive" />
+              Abonnement opzeggen?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3">
+              <p>
+                Als je je abonnement opzegt, verlies je toegang tot:
+              </p>
+              <ul className="list-disc list-inside text-sm space-y-1">
+                <li>Onbeperkte maaltijdanalyses</li>
+                <li>AI-inzichten & reflecties</li>
+                <li>Maandelijkse totaalanalyse</li>
+                <li>Alle bewegingsoefeningen</li>
+              </ul>
+              <p className="text-sm pt-2">
+                Je kunt later altijd weer opnieuw abonneren.
+              </p>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleCancelSubscription}
+              disabled={isCancelling}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isCancelling ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Opzeggen...
+                </>
+              ) : (
+                'Ja, opzeggen'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }

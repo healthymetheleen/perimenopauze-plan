@@ -63,8 +63,11 @@ export function useAIInsight<T>(type: InsightType, data: InsightData, enabled: b
   const { consent } = useConsent();
   const hasAIConsent = consent?.accepted_ai_processing === true;
 
+  // Generate a date-based cache key to ensure insights are only fetched once per day
+  const today = new Date().toISOString().split('T')[0];
+
   return useQuery({
-    queryKey: ['ai-insight', type, user?.id, JSON.stringify(data)],
+    queryKey: ['ai-insight', type, user?.id, today],
     queryFn: async (): Promise<T> => {
       if (!user) throw new Error('Not authenticated');
       
@@ -82,8 +85,11 @@ export function useAIInsight<T>(type: InsightType, data: InsightData, enabled: b
       return result as T;
     },
     enabled: enabled && !!user && hasAIConsent && Object.keys(data).length > 0,
-    staleTime: 30 * 60 * 1000, // 30 minutes
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours - insights are cached for a full day
+    gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
     retry: false,
+    refetchOnWindowFocus: false, // Don't refetch on window focus
+    refetchOnMount: false, // Don't refetch on component mount if data exists
   });
 }
 
