@@ -68,6 +68,39 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          actor_id: string
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          metadata: Json | null
+          target_id: string | null
+          target_type: string | null
+        }
+        Insert: {
+          action: string
+          actor_id: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          metadata?: Json | null
+          target_id?: string | null
+          target_type?: string | null
+        }
+        Relationships: []
+      }
       bleeding_logs: {
         Row: {
           created_at: string
@@ -78,6 +111,7 @@ export type Database = {
           notes: string | null
           owner_id: string
           pain_score: number | null
+          retention_until: string | null
           updated_at: string
         }
         Insert: {
@@ -89,6 +123,7 @@ export type Database = {
           notes?: string | null
           owner_id: string
           pain_score?: number | null
+          retention_until?: string | null
           updated_at?: string
         }
         Update: {
@@ -100,6 +135,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string
           pain_score?: number | null
+          retention_until?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -221,6 +257,39 @@ export type Database = {
           owner_id?: string
           title?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      consent_history: {
+        Row: {
+          consent_given: boolean
+          consent_type: string
+          consent_version: string
+          created_at: string | null
+          id: string
+          ip_address: unknown
+          owner_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          consent_given: boolean
+          consent_type: string
+          consent_version: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          owner_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          consent_given?: boolean
+          consent_type?: string
+          consent_version?: string
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown
+          owner_id?: string
+          user_agent?: string | null
         }
         Relationships: []
       }
@@ -370,6 +439,7 @@ export type Database = {
           mood: number | null
           notes: string | null
           owner_id: string
+          retention_until: string | null
           sleep_quality: number | null
           tags: string[] | null
           updated_at: string
@@ -390,6 +460,7 @@ export type Database = {
           mood?: number | null
           notes?: string | null
           owner_id: string
+          retention_until?: string | null
           sleep_quality?: number | null
           tags?: string[] | null
           updated_at?: string
@@ -410,6 +481,7 @@ export type Database = {
           mood?: number | null
           notes?: string | null
           owner_id?: string
+          retention_until?: string | null
           sleep_quality?: number | null
           tags?: string[] | null
           updated_at?: string
@@ -671,6 +743,7 @@ export type Database = {
           owner_id: string
           protein_g: number | null
           quality_flags: Json
+          retention_until: string | null
           source: string
           time_local: string | null
           ultra_processed_level: number | null
@@ -687,6 +760,7 @@ export type Database = {
           owner_id: string
           protein_g?: number | null
           quality_flags?: Json
+          retention_until?: string | null
           source?: string
           time_local?: string | null
           ultra_processed_level?: number | null
@@ -703,6 +777,7 @@ export type Database = {
           owner_id?: string
           protein_g?: number | null
           quality_flags?: Json
+          retention_until?: string | null
           source?: string
           time_local?: string | null
           ultra_processed_level?: number | null
@@ -916,6 +991,7 @@ export type Database = {
           notes: string | null
           owner_id: string
           quality_score: number | null
+          retention_until: string | null
           sleep_end: string | null
           sleep_start: string
           updated_at: string
@@ -927,6 +1003,7 @@ export type Database = {
           notes?: string | null
           owner_id: string
           quality_score?: number | null
+          retention_until?: string | null
           sleep_end?: string | null
           sleep_start: string
           updated_at?: string
@@ -938,6 +1015,7 @@ export type Database = {
           notes?: string | null
           owner_id?: string
           quality_score?: number | null
+          retention_until?: string | null
           sleep_end?: string | null
           sleep_start?: string
           updated_at?: string
@@ -1001,6 +1079,7 @@ export type Database = {
           day_id: string
           id: string
           owner_id: string
+          retention_until: string | null
           severity_0_10: number
           symptom_code: string
           tags: Json
@@ -1012,6 +1091,7 @@ export type Database = {
           day_id: string
           id?: string
           owner_id: string
+          retention_until?: string | null
           severity_0_10: number
           symptom_code: string
           tags?: Json
@@ -1023,6 +1103,7 @@ export type Database = {
           day_id?: string
           id?: string
           owner_id?: string
+          retention_until?: string | null
           severity_0_10?: number
           symptom_code?: string
           tags?: Json
@@ -1258,9 +1339,11 @@ export type Database = {
         Returns: boolean
       }
       cleanup_ai_cache: { Args: never; Returns: undefined }
+      cleanup_expired_data: { Args: never; Returns: undefined }
       cleanup_old_data: { Args: never; Returns: undefined }
       delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
       export_user_data: { Args: { user_uuid: string }; Returns: Json }
+      export_user_data_complete: { Args: { user_uuid: string }; Returns: Json }
       get_ai_usage_remaining: {
         Args: { monthly_limit?: number; user_id: string }
         Returns: number
