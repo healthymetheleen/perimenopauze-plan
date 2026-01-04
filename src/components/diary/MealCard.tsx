@@ -11,6 +11,15 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import type { Meal } from '@/hooks/useDiary';
 
+// Generate a description from meal data
+function getMealDescription(meal: Meal): string {
+  const parts: string[] = [];
+  if (meal.kcal) parts.push(`${Math.round(meal.kcal)} kcal`);
+  if (meal.protein_g) parts.push(`${Math.round(meal.protein_g)}g eiwit`);
+  if (!parts.length && meal.carbs_g) parts.push(`${Math.round(meal.carbs_g)}g koolh.`);
+  return parts.length > 0 ? parts.join(', ') : 'Maaltijd';
+}
+
 interface MealCardProps {
   meal: Meal;
 }
@@ -134,7 +143,11 @@ export function MealCard({ meal }: MealCardProps) {
       <Dialog open={showEdit} onOpenChange={setShowEdit}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Maaltijd bewerken</DialogTitle>
+            <DialogTitle>
+              {meal.time_local 
+                ? `${format(new Date(`2000-01-01T${meal.time_local}`), 'HH:mm')} - ${getMealDescription(meal)}`
+                : getMealDescription(meal)}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
