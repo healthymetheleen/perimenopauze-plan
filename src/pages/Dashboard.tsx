@@ -15,6 +15,7 @@ import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DailyReflectionCard } from '@/components/insights';
 import { MovementWidget } from '@/components/insights/MovementWidget';
+import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
@@ -156,6 +157,9 @@ export default function DashboardPage() {
             </Card>
           </Link>
         </div>
+
+        {/* Trial Countdown */}
+        <TrialCountdown />
 
         {/* Season Badge - Always visible if onboarding completed */}
         {showSeasonBadge && (
