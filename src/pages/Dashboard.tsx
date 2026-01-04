@@ -2,7 +2,7 @@ import { format, subDays, differenceInMinutes } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   CalendarDays, TrendingUp, Activity, ArrowRight, Plus, 
-  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles
+  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -14,12 +14,14 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DailyReflectionCard } from '@/components/insights';
+import { MovementWidget } from '@/components/insights/MovementWidget';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
 import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors, phaseLabels } from '@/hooks/useCycle';
 import { useSleepSessions, useActiveSleepSession, useStartSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
 import { useToast } from '@/hooks/use-toast';
+import { useCanGenerateMonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
 
 const seasonIcons: Record<string, React.ReactNode> = {
   winter: <Snowflake className="h-4 w-4" />,
@@ -68,6 +70,7 @@ export default function DashboardPage() {
   const { data: entitlements } = useEntitlements();
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
+  const { data: canGenerateMonthly } = useCanGenerateMonthlyAnalysis();
   const { data: sleepSessions } = useSleepSessions(7);
   const { data: activeSession } = useActiveSleepSession();
   const startSleep = useStartSleep();
@@ -316,7 +319,30 @@ export default function DashboardPage() {
           cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
         />
 
-        {/* Sleep Quick Action */}
+        {/* Movement & Focus Widget */}
+        {showSeasonBadge && <MovementWidget />}
+
+        {/* Monthly Analysis CTA */}
+        {canGenerateMonthly && (
+          <Link to="/analyse">
+            <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-rose-500/10 hover:shadow-soft transition-all">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 rounded-full bg-purple-500/20">
+                  <FileText className="h-5 w-5 text-purple-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Maandelijkse Analyse klaar</p>
+                  <p className="text-sm text-muted-foreground">
+                    Uitgebreide analyse met hormoon- en voedingsinzichten
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-purple-600" />
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
+
         <Card className="glass rounded-2xl overflow-hidden">
           {activeSession ? (
             <Link to="/slaap">

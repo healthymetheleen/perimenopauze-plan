@@ -33,6 +33,7 @@ import InstallPage from "./pages/Install";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import IntendedUse from "./pages/IntendedUse";
+import MonthlyAnalysisPage from "./pages/MonthlyAnalysis";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -201,6 +202,11 @@ function AppRoutes() {
       <Route path="/content-beheer" element={
         <ProtectedRoute>
           <ContentAdminPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/analyse" element={
+        <ProtectedRoute>
+          <MonthlyAnalysisPage />
         </ProtectedRoute>
       } />
       
