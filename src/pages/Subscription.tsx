@@ -62,7 +62,7 @@ export default function SubscriptionPage() {
       // Use first-payment flow to establish mandate for recurring
       const result = await createFirstPayment.mutateAsync({
         amount: plan.price,
-        description: `HormoonBalans ${plan.name} - Eerste betaling + machtiging`,
+        description: `Perimenopauze Plan App - ${plan.name}`,
         redirectUrl: `${baseUrl}/subscription?status=complete`,
         metadata: { plan: plan.id },
       });
@@ -197,7 +197,7 @@ export default function SubscriptionPage() {
                         </div>
                         <Progress value={trialProgress} className="h-2" />
                         <p className="text-xs text-amber-600 mt-2">
-                          Na de trial wordt €4,50/maand automatisch afgeschreven
+                          Na de trial wordt €7,50/maand automatisch afgeschreven
                         </p>
                       </div>
                     );
@@ -273,7 +273,7 @@ export default function SubscriptionPage() {
                   </div>
                   <div>
                     <p className="text-2xl font-bold">7 dagen gratis</p>
-                    <p className="text-muted-foreground">Daarna €4,50 per maand</p>
+                    <p className="text-muted-foreground">Daarna €7,50 per maand</p>
                   </div>
                 </div>
                 

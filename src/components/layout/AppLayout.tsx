@@ -23,6 +23,10 @@ import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Footer } from './Footer';
+import { TrialLockout, TrialBanner } from '@/components/subscription/TrialLockout';
+
+// Pages that should NOT be locked when trial expires
+const UNLOCKED_PATHS = ['/subscription', '/account', '/settings', '/login', '/consent', '/terms', '/privacy'];
 
 interface NavItem {
   href: string;
@@ -59,6 +63,11 @@ export function AppLayout({ children }: AppLayoutProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isPremium = entitlements?.plan === 'premium' || entitlements?.plan === 'starter';
+  const isTrialExpired = entitlements?.is_trial_expired ?? false;
+  const trialDaysRemaining = entitlements?.trial_days_remaining ?? 0;
+  
+  // Check if current path should be locked
+  const shouldLockPage = isTrialExpired && !UNLOCKED_PATHS.some(path => location.pathname.startsWith(path));
 
   // Filter nav items based on admin status
   const navItems = useMemo(() => {
@@ -182,7 +191,16 @@ export function AppLayout({ children }: AppLayoutProps) {
         {/* Main content */}
         <main className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
           <div className="flex-1 container py-6 lg:py-8 max-w-5xl px-4 sm:px-6 overflow-x-hidden">
-            {children}
+            {shouldLockPage ? (
+              <TrialLockout isTrialExpired={true} trialDaysRemaining={0}>
+                {children}
+              </TrialLockout>
+            ) : (
+              <>
+                <TrialBanner daysRemaining={trialDaysRemaining} />
+                {children}
+              </>
+            )}
           </div>
           <Footer />
         </main>
