@@ -7,7 +7,12 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
-import { Clock, Globe, Shield, Download, Trash2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { 
+  Clock, Globe, Shield, Download, Trash2, Sparkles, 
+  Info, Lock, Database, FileText 
+} from 'lucide-react';
+import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 
 const timezones = [
   { value: 'Europe/Amsterdam', label: 'Amsterdam (CET)' },
@@ -28,17 +33,34 @@ export default function SettingsPage() {
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
   const [digestTime, setDigestTime] = useState('09:00');
   const [privacyMode, setPrivacyMode] = useState(false);
+  const { consent, updateConsent } = useConsent();
+
+  const handleAIToggle = (enabled: boolean) => {
+    updateConsent.mutate({
+      accepted_ai_processing: enabled,
+    });
+  };
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-2xl">
+      <div className="space-y-6 max-w-2xl bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Instellingen</h1>
+          <h1 className="text-2xl font-semibold text-gradient">Instellingen</h1>
           <p className="text-muted-foreground">Beheer je voorkeuren en privacy</p>
         </div>
 
+        {/* Transparency Info */}
+        <Alert className="glass border-primary/20">
+          <Info className="h-4 w-4 text-primary" />
+          <AlertDescription className="text-sm">
+            <strong>Zo gebruiken we je gegevens:</strong> Deze app ondersteunt je met inzicht in 
+            leefstijl en cyclus. We gebruiken je gegevens alleen om patronen zichtbaar te maken. 
+            AI wordt ingezet als hulpmiddel en ontvangt geen herleidbare persoonsgegevens.
+          </AlertDescription>
+        </Alert>
+
         {/* Preferences */}
-        <Card className="rounded-2xl">
+        <Card className="glass rounded-2xl">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
@@ -90,12 +112,49 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
+        {/* AI Settings */}
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI-ondersteuning
+            </CardTitle>
+            <CardDescription>Beheer hoe AI je helpt met inzichten</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>AI-analyse inschakelen</Label>
+                <p className="text-sm text-muted-foreground">
+                  AI analyseert geanonimiseerde statistieken voor tips
+                </p>
+              </div>
+              <Switch 
+                checked={consent?.accepted_ai_processing ?? false} 
+                onCheckedChange={handleAIToggle}
+                disabled={updateConsent.isPending}
+              />
+            </div>
+
+            <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+              <div className="flex items-center gap-2 text-sm">
+                <Lock className="h-4 w-4 text-success" />
+                <span>AI ontvangt alleen geanonimiseerde data</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <Shield className="h-4 w-4 text-success" />
+                <span>Geen namen, datums of herleidbare info</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Privacy */}
-        <Card className="rounded-2xl">
+        <Card className="glass rounded-2xl">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Shield className="h-5 w-5 text-primary" />
-              Privacy
+              Privacy & Data
             </CardTitle>
             <CardDescription>Beheer je gegevens en privacy instellingen</CardDescription>
           </CardHeader>
@@ -110,24 +169,40 @@ export default function SettingsPage() {
 
             <Separator />
 
+            {/* Data Retention Info */}
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Database className="h-4 w-4 text-muted-foreground" />
+                <span className="font-medium text-sm">Data retentie</span>
+              </div>
+              <ul className="text-sm text-muted-foreground space-y-1 ml-6">
+                <li>• Eetdagboeken: 12 maanden</li>
+                <li>• Cyclusdata & symptomen: 12 maanden</li>
+                <li>• AI-logs: 6 maanden</li>
+                <li>• Daarna automatisch verwijderd</li>
+              </ul>
+            </div>
+
+            <Separator />
+
             <div className="space-y-4">
               <div>
-                <h4 className="font-medium">Gegevens beheren</h4>
+                <h4 className="font-medium">Jouw rechten (AVG/GDPR)</h4>
                 <p className="text-sm text-muted-foreground mt-1">
-                  Exporteer of verwijder je gegevens via je accountpagina
+                  Je kunt op elk moment je gegevens inzien, downloaden of verwijderen.
                 </p>
               </div>
-              <div className="flex gap-3">
-                <Button variant="outline" asChild>
+              <div className="flex flex-wrap gap-3">
+                <Button variant="outline" asChild className="glass">
                   <Link to="/account">
                     <Download className="h-4 w-4 mr-2" />
-                    Exporteren
+                    Data downloaden
                   </Link>
                 </Button>
-                <Button variant="outline" asChild>
+                <Button variant="outline" asChild className="glass">
                   <Link to="/account">
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Verwijderen
+                    Account verwijderen
                   </Link>
                 </Button>
               </div>
@@ -135,16 +210,18 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Info */}
-        <Card className="rounded-2xl bg-muted/30">
+        {/* Consent Info */}
+        <Card className="glass rounded-2xl bg-muted/30">
           <CardContent className="pt-6">
-            <p className="text-sm text-muted-foreground text-center">
-              Je gegevens worden veilig opgeslagen en nooit gedeeld met derden.
-              <br />
+            <div className="flex items-center justify-between text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                <span>Consent versie {CONSENT_VERSION}</span>
+              </div>
               <Link to="/pricing" className="text-primary hover:underline">
-                Bekijk je abonnement
+                Bekijk abonnement
               </Link>
-            </p>
+            </div>
           </CardContent>
         </Card>
       </div>

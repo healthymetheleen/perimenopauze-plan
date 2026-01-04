@@ -5,7 +5,10 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// PRIVACY: AI ontvangt alleen een beschrijving van de maaltijd, geen persoonlijke data
 const systemPrompt = `Je bent een voedingsexpert die maaltijden analyseert. Analyseer de beschrijving of foto van een maaltijd en geef een schatting van de voedingswaarden.
+
+PRIVACY: Je ontvangt GEEN persoonlijke gegevens. Alleen een beschrijving of foto van een maaltijd.
 
 Antwoord ALLEEN met een JSON object in dit formaat (geen andere tekst):
 {
@@ -38,10 +41,12 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // Build message content
+    // PRIVACY: We sturen ALLEEN de maaltijdbeschrijving naar AI
+    // Geen user_id, geen timestamps, geen andere persoonsgegevens
     const userContent: any[] = [];
     
     if (description) {
+      // Alleen de maaltijdbeschrijving, geen context over de gebruiker
       userContent.push({
         type: 'text',
         text: `Analyseer deze maaltijd: ${description}`
@@ -67,9 +72,8 @@ serve(async (req) => {
       throw new Error('Geen beschrijving of foto ontvangen');
     }
 
-    console.log('Sending request to Lovable AI...');
+    console.log('Sending anonymized meal data to AI (no personal info)...');
     
-    // Use gpt-5-nano for speed and cost efficiency (maps to gemini-2.5-flash-lite)
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -108,12 +112,11 @@ serve(async (req) => {
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('AI response:', content);
+    console.log('AI response received (meal analysis only)');
 
     // Parse JSON from response
     let analysis;
     try {
-      // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
@@ -122,7 +125,6 @@ serve(async (req) => {
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
-      // Return a fallback response
       analysis = {
         description: description || 'Onbekende maaltijd',
         kcal: null,
