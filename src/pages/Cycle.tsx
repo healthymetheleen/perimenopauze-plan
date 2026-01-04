@@ -519,60 +519,66 @@ export default function CyclePage() {
           <CardContent className="pt-2">
             {/* Fixed 7-column grid */}
             {(() => {
-              const seasonBgColors: Record<string, string> = {
-                winter: 'bg-blue-100 dark:bg-blue-900/40 border-blue-200 dark:border-blue-800',
-                lente: 'bg-green-100 dark:bg-green-900/40 border-green-200 dark:border-green-800',
-                zomer: 'bg-amber-100 dark:bg-amber-900/40 border-amber-200 dark:border-amber-800',
-                herfst: 'bg-orange-100 dark:bg-orange-900/40 border-orange-200 dark:border-orange-800',
-                onbekend: 'bg-muted/50 border-border',
+              const seasonBgClasses: Record<string, string> = {
+                winter: 'season-surface-winter',
+                lente: 'season-surface-lente',
+                zomer: 'season-surface-zomer',
+                herfst: 'season-surface-herfst',
+                onbekend: 'season-surface-onbekend',
               };
 
-              const seasonTextColors: Record<string, string> = {
-                winter: 'text-blue-700 dark:text-blue-300',
-                lente: 'text-green-700 dark:text-green-300',
-                zomer: 'text-amber-700 dark:text-amber-300',
-                herfst: 'text-orange-700 dark:text-orange-300',
-                onbekend: 'text-muted-foreground',
+              const seasonTextClasses: Record<string, string> = {
+                winter: 'season-text-winter',
+                lente: 'season-text-lente',
+                zomer: 'season-text-zomer',
+                herfst: 'season-text-herfst',
+                onbekend: 'season-text-onbekend',
               };
 
-              // Find the single ovulation day (middle of ovulation window)
-              const ovulationDay = calendarDays.find(d => d.isOvulation)?.dateStr;
+              // Ovulatie: 1 dag (midden van venster)
+              const ovulationDay = (() => {
+                if (!prediction.ovulation_min || !prediction.ovulation_max) return undefined;
+                const min = parseISO(prediction.ovulation_min);
+                const max = parseISO(prediction.ovulation_max);
+                const mid = addDays(min, Math.floor(differenceInDays(max, min) / 2));
+                return format(mid, 'yyyy-MM-dd');
+              })();
 
               return (
                 <>
                   {/* Season legend */}
                   <div className="flex flex-wrap gap-2 mb-3 text-xs">
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-200 border border-blue-300" /><span className="text-muted-foreground">Winter</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-green-200 border border-green-300" /><span className="text-muted-foreground">Lente</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-200 border border-amber-300" /><span className="text-muted-foreground">Zomer</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-orange-200 border border-orange-300" /><span className="text-muted-foreground">Herfst</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-winter border border-border/30" /><span className="text-muted-foreground">Winter</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-lente border border-border/30" /><span className="text-muted-foreground">Lente</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-zomer border border-border/30" /><span className="text-muted-foreground">Zomer</span></div>
+                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-herfst border border-border/30" /><span className="text-muted-foreground">Herfst</span></div>
                   </div>
-                  
-                  <div className="grid grid-cols-7 gap-1">
-                    {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod, predictedSeason }) => {
+
+                  <div className="grid grid-cols-7 gap-0.5">
+                    {calendarDays.map((day, idx) => {
+                      const { date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod, predictedSeason } = day;
                       const season = predictedSeason || 'onbekend';
+                      const textClass = seasonTextClasses[season];
+
+                      const showSeasonLabel =
+                        idx === 0 || (calendarDays[idx - 1]?.predictedSeason || 'onbekend') !== season;
+
+                      // Staten als overlays (seizoen blijft altijd zichtbaar)
+                      const hasBleeding = !!bleeding;
+                      const showPredicted = !!isPredictedPeriod;
+                      const showFertile = !!isFertile;
                       const isOvulationDay = dateStr === ovulationDay;
-                      
-                      // Base season colors - always apply
-                      let baseBg = seasonBgColors[season];
-                      let textClass = seasonTextColors[season];
-                      let extraClass = '';
-                      
-                      // Overlays for special states (keep season visible)
-                      if (isToday) {
-                        extraClass = 'ring-2 ring-primary ring-offset-2';
-                      }
-                      if (bleeding) {
-                        baseBg = 'bg-red-400 border-red-500';
-                        textClass = 'text-white';
-                      } else if (isPredictedPeriod) {
-                        baseBg = 'bg-red-200/80 border-2 border-dashed border-red-400';
-                        textClass = 'text-red-700 dark:text-red-300';
-                      } else if (isFertile) {
-                        baseBg = 'bg-green-300 dark:bg-green-700/60 border-green-400';
-                        textClass = 'text-green-800 dark:text-green-200';
-                      }
-                      
+
+                      const stateBorder = hasBleeding
+                        ? 'border-2 border-destructive/60'
+                        : showPredicted
+                          ? 'border-2 border-dashed border-destructive/40'
+                          : showFertile
+                            ? 'border-2 border-accent/45'
+                            : 'border border-border/30';
+
+                      const stateRing = isToday ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : '';
+
                       return (
                         <button
                           key={dateStr}
@@ -580,15 +586,32 @@ export default function CyclePage() {
                             setSelectedDate(dateStr);
                             setShowDayLog(true);
                           }}
-                          className={`aspect-square min-h-[48px] rounded-lg border text-center transition-all hover:opacity-80 flex flex-col items-center justify-center p-1 ${baseBg} ${extraClass}`}
+                          className={`relative aspect-square min-h-[44px] rounded-md text-center transition-all hover:opacity-90 ${seasonBgClasses[season]} ${stateBorder} ${stateRing}`}
                         >
-                          <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
-                            {format(date, 'EE', { locale: nl })}
+                          {showSeasonLabel && season !== 'onbekend' && (
+                            <div className={`absolute top-1 left-1 text-[10px] font-medium leading-none ${textClass} opacity-80`}>
+                              {seasonLabels[season]}
+                            </div>
+                          )}
+
+                          <div className="h-full w-full flex flex-col items-center justify-center px-1">
+                            <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
+                              {format(date, 'EE', { locale: nl })}
+                            </div>
+                            <div className={`text-lg font-bold leading-none ${textClass}`}>
+                              {format(date, 'd')}
+                              {isOvulationDay && <span className="text-base ml-0.5">★</span>}
+                            </div>
                           </div>
-                          <div className={`text-base font-bold leading-tight ${textClass}`}>
-                            {format(date, 'd')}
-                            {isOvulationDay && <span className="text-sm ml-0.5">★</span>}
-                          </div>
+
+                          {/* Kleine markers zodat seizoen zichtbaar blijft */}
+                          {(hasBleeding || showFertile || showPredicted) && (
+                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1">
+                              {hasBleeding && <span className="h-1.5 w-1.5 rounded-full bg-destructive" />}
+                              {showFertile && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
+                              {showPredicted && <span className="h-1.5 w-1.5 rounded-full bg-destructive/50" />}
+                            </div>
+                          )}
                         </button>
                       );
                     })}

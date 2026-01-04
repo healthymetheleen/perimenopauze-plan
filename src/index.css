@@ -272,38 +272,104 @@
     );
   }
 
-  /* Season card backgrounds */
-  .season-winter {
+  /* Season surfaces (subtiel, voor kaarten/tegels) */
+  .season-surface-winter {
     background: linear-gradient(
       135deg,
-      hsl(210 60% 95%) 0%,
-      hsl(210 40% 90%) 100%
+      hsl(210 60% 97% / 0.92) 0%,
+      hsl(210 45% 92% / 0.72) 100%
     );
   }
 
-  .season-lente {
+  .season-surface-lente {
     background: linear-gradient(
       135deg,
-      hsl(120 40% 95%) 0%,
-      hsl(90 30% 90%) 100%
+      hsl(120 40% 97% / 0.92) 0%,
+      hsl(95 30% 92% / 0.72) 100%
     );
   }
 
-  .season-zomer {
+  .season-surface-zomer {
     background: linear-gradient(
       135deg,
-      hsl(45 80% 95%) 0%,
-      hsl(35 60% 90%) 100%
+      hsl(45 80% 97% / 0.92) 0%,
+      hsl(35 65% 92% / 0.72) 100%
     );
   }
 
-  .season-herfst {
+  .season-surface-herfst {
     background: linear-gradient(
       135deg,
-      hsl(25 60% 95%) 0%,
-      hsl(15 50% 90%) 100%
+      hsl(25 65% 97% / 0.92) 0%,
+      hsl(15 55% 92% / 0.72) 100%
     );
   }
+
+  .season-surface-onbekend {
+    background: linear-gradient(
+      135deg,
+      hsl(var(--muted) / 0.55) 0%,
+      hsl(var(--background) / 0.65) 100%
+    );
+  }
+
+  /* Season headers (iets rijker, maar nog zacht) */
+  .season-header-winter {
+    background: linear-gradient(90deg, hsl(210 70% 44% / 0.9), hsl(210 75% 34% / 0.9));
+  }
+  .season-header-lente {
+    background: linear-gradient(90deg, hsl(120 55% 38% / 0.9), hsl(150 55% 32% / 0.9));
+  }
+  .season-header-zomer {
+    background: linear-gradient(90deg, hsl(38 90% 48% / 0.9), hsl(25 85% 45% / 0.9));
+  }
+  .season-header-herfst {
+    background: linear-gradient(90deg, hsl(18 80% 45% / 0.9), hsl(350 55% 45% / 0.9));
+  }
+  .season-header-onbekend {
+    background: linear-gradient(90deg, hsl(210 10% 45% / 0.9), hsl(210 12% 35% / 0.9));
+  }
+
+  /* Season text helpers */
+  .season-text-winter { color: hsl(210 55% 33%); }
+  .season-text-lente { color: hsl(140 45% 28%); }
+  .season-text-zomer { color: hsl(35 80% 32%); }
+  .season-text-herfst { color: hsl(18 75% 32%); }
+  .season-text-onbekend { color: hsl(var(--muted-foreground)); }
+
+  .dark .season-surface-winter {
+    background: linear-gradient(
+      135deg,
+      hsl(210 30% 18% / 0.55) 0%,
+      hsl(210 25% 12% / 0.35) 100%
+    );
+  }
+  .dark .season-surface-lente {
+    background: linear-gradient(
+      135deg,
+      hsl(140 25% 18% / 0.55) 0%,
+      hsl(140 22% 12% / 0.35) 100%
+    );
+  }
+  .dark .season-surface-zomer {
+    background: linear-gradient(
+      135deg,
+      hsl(35 35% 18% / 0.55) 0%,
+      hsl(35 30% 12% / 0.35) 100%
+    );
+  }
+  .dark .season-surface-herfst {
+    background: linear-gradient(
+      135deg,
+      hsl(18 35% 18% / 0.55) 0%,
+      hsl(18 30% 12% / 0.35) 100%
+    );
+  }
+
+  .dark .season-text-winter { color: hsl(210 60% 78%); }
+  .dark .season-text-lente { color: hsl(140 45% 75%); }
+  .dark .season-text-zomer { color: hsl(35 80% 78%); }
+  .dark .season-text-herfst { color: hsl(18 75% 80%); }
 
   /* Hero banner gradient */
   .hero-gradient {
