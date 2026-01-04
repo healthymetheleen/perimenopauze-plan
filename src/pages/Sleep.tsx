@@ -17,6 +17,8 @@ import {
   calculateSleepScore,
   generateSleepAdvice,
 } from '@/hooks/useSleep';
+import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
+import { SleepInsightCard } from '@/components/insights';
 import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock } from 'lucide-react';
 import {
   Dialog,
@@ -25,20 +27,26 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Slider } from '@/components/ui/slider';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Label } from '@/components/ui/label';
 
 export default function SleepPage() {
   const { toast } = useToast();
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [qualityScore, setQualityScore] = useState([7]);
+  const [wakeFeeling, setWakeFeeling] = useState<string>('');
+  const [nightInterruptions, setNightInterruptions] = useState<string>('');
 
   const { data: sessions, isLoading } = useSleepSessions(7);
   const { data: activeSession, isLoading: activeLoading } = useActiveSleepSession();
+  const { data: prediction } = useLatestPrediction();
   const startSleep = useStartSleep();
   const endSleep = useEndSleep();
 
   const stats = sessions ? calculateSleepStats(sessions) : null;
   const sleepScore = sessions ? calculateSleepScore(sessions) : 0;
   const advice = sessions ? generateSleepAdvice(sessions) : [];
+  const currentSeason = prediction?.current_season || 'onbekend';
 
   const handleStartSleep = async () => {
     try {
@@ -271,6 +279,17 @@ export default function SleepPage() {
           </Card>
         )}
 
+        {/* AI Sleep Insight */}
+        {stats && stats.totalSessions > 0 && (
+          <SleepInsightCard
+            avgDuration={`${stats.avgDurationHours.toFixed(1)} uur`}
+            avgQuality={stats.avgQuality ? `${stats.avgQuality.toFixed(1)}/10` : 'onbekend'}
+            consistency={`${Math.round(stats.consistency)}%`}
+            interruptions={nightInterruptions || undefined}
+            cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
+          />
+        )}
+
         {/* Advice */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
@@ -338,29 +357,76 @@ export default function SleepPage() {
         </Card>
       </div>
 
-      {/* Quality Dialog */}
+      {/* Quality Dialog - Extended with sleep experience questions */}
       <Dialog open={showQualityDialog} onOpenChange={setShowQualityDialog}>
         <DialogContent className="sm:max-w-md max-w-[95vw]">
           <DialogHeader>
             <DialogTitle>Hoe heb je geslapen?</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
-            <div className="text-center">
-              <span className="text-4xl font-bold">{qualityScore[0]}</span>
-              <span className="text-muted-foreground">/10</span>
+            {/* Wake feeling */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Hoe voelde je je bij het wakker worden?</Label>
+              <RadioGroup value={wakeFeeling} onValueChange={setWakeFeeling} className="grid grid-cols-2 gap-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="uitgerust" id="uitgerust" />
+                  <Label htmlFor="uitgerust" className="text-sm">Uitgerust</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="oke" id="oke" />
+                  <Label htmlFor="oke" className="text-sm">Oké</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="onrustig" id="onrustig" />
+                  <Label htmlFor="onrustig" className="text-sm">Onrustig</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="uitgeput" id="uitgeput" />
+                  <Label htmlFor="uitgeput" className="text-sm">Uitgeput</Label>
+                </div>
+              </RadioGroup>
             </div>
-            <Slider
-              value={qualityScore}
-              onValueChange={setQualityScore}
-              min={1}
-              max={10}
-              step={1}
-              className="w-full"
-            />
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Slecht</span>
-              <span>Uitstekend</span>
+
+            {/* Night interruptions */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Nacht onderbroken?</Label>
+              <RadioGroup value={nightInterruptions} onValueChange={setNightInterruptions} className="grid grid-cols-3 gap-2">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="nee" id="nee" />
+                  <Label htmlFor="nee" className="text-sm">Nee</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="1-2" id="1-2" />
+                  <Label htmlFor="1-2" className="text-sm">1-2x</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="vaak" id="vaak" />
+                  <Label htmlFor="vaak" className="text-sm">Vaak</Label>
+                </div>
+              </RadioGroup>
             </div>
+
+            {/* Quality score slider */}
+            <div className="space-y-3">
+              <Label className="text-sm font-medium">Algemene slaapkwaliteit</Label>
+              <div className="text-center">
+                <span className="text-4xl font-bold">{qualityScore[0]}</span>
+                <span className="text-muted-foreground">/10</span>
+              </div>
+              <Slider
+                value={qualityScore}
+                onValueChange={setQualityScore}
+                min={1}
+                max={10}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>Slecht</span>
+                <span>Uitstekend</span>
+              </div>
+            </div>
+
             <Button
               className="w-full"
               onClick={handleConfirmWakeUp}

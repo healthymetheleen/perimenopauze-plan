@@ -13,6 +13,7 @@ import { ScoreBadge } from '@/components/ui/score-badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { ErrorState } from '@/components/ui/error-state';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DailyReflectionCard } from '@/components/insights';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
@@ -277,6 +278,13 @@ export default function DashboardPage() {
             )}
           </CardContent>
         </Card>
+
+        {/* Daily AI Reflection */}
+        <DailyReflectionCard
+          mealsCount={todayScore?.meals_count || 0}
+          sleepQuality={sleepStats?.avgQuality ? `${sleepStats.avgQuality.toFixed(1)}/10` : undefined}
+          cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
+        />
 
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-4">
