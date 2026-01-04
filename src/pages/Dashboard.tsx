@@ -4,6 +4,7 @@ import {
   CalendarDays, TrendingUp, ArrowRight, Plus, Briefcase,
   Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText, Heart
 } from 'lucide-react';
+import { SeasonDecorations } from '@/components/dashboard/SeasonDecorations';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -166,9 +167,12 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             {showSeasonBadge && (
-              <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${seasonAccent.accent} text-white`}>
-                {seasonIcons[currentSeason]}
-                <span>{seasonLabels[currentSeason]}</span>
+              <div className="relative inline-block">
+                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${seasonAccent.accent} text-white`}>
+                  {seasonIcons[currentSeason]}
+                  <span>{seasonLabels[currentSeason]}</span>
+                </div>
+                <SeasonDecorations season={currentSeason} />
               </div>
             )}
             <p className="text-lg font-medium text-foreground">
