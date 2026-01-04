@@ -69,7 +69,6 @@ export default function DiaryPage() {
   
   const todayScore = scores?.find(s => s.day_date === selectedDate);
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
-  const isPast = new Date(selectedDate) < new Date(format(new Date(), 'yyyy-MM-dd'));
 
   const handlePrevDay = () => {
     setSelectedDate(format(subDays(new Date(selectedDate), 1), 'yyyy-MM-dd'));
@@ -82,6 +81,7 @@ export default function DiaryPage() {
   };
 
   const handleAddMeal = async () => {
+    // Ensure day exists before opening dialog
     if (!diaryDay) {
       await createDay.mutateAsync();
     }

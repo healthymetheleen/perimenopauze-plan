@@ -1,5 +1,5 @@
-import { useState, useRef } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useState, useRef, useEffect } from 'react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
-import { useAIUsage, trackAIUsage } from '@/hooks/useAIUsage';
+import { useAIUsage } from '@/hooks/useAIUsage';
 import { useConsent } from '@/hooks/useConsent';
 import { Loader2, Type, Camera, Mic, Check, Edit2 } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
@@ -63,7 +63,7 @@ interface MealAnalysis {
   notes?: string;
 }
 
-export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateChange }: AddMealDialogProps) {
+export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selectedDate, onDateChange }: AddMealDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -72,11 +72,12 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
   // Input states
   const [inputMethod, setInputMethod] = useState<'text' | 'photo' | 'voice'>('text');
   const [description, setDescription] = useState('');
-  const [photoDescription, setPhotoDescription] = useState(''); // Extra beschrijving bij foto
+  const [photoDescription, setPhotoDescription] = useState('');
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mealDate, setMealDate] = useState(selectedDate);
+  const [currentDayId, setCurrentDayId] = useState(initialDayId);
 
   // Analysis result state
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null);
@@ -90,6 +91,16 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
+  // Update currentDayId when initialDayId changes
+  useEffect(() => {
+    setCurrentDayId(initialDayId);
+  }, [initialDayId]);
+
+  // Reset mealDate when selectedDate changes (dialog opens)
+  useEffect(() => {
+    setMealDate(selectedDate);
+  }, [selectedDate]);
+
   const resetForm = () => {
     setDescription('');
     setPhotoDescription('');
@@ -99,6 +110,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     setShowConfirmation(false);
     setTime(new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }));
     setMealDate(selectedDate);
+    setCurrentDayId(initialDayId);
   };
 
   const handleClose = () => {
@@ -106,9 +118,52 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     onOpenChange(false);
   };
 
-  const handleDateChange = (newDate: string) => {
+  // Get or create diary day for a specific date
+  const getOrCreateDayId = async (date: string): Promise<string> => {
+    if (!user) throw new Error('Not authenticated');
+    
+    // Check if day exists
+    const { data: existingDay } = await supabase
+      .from('diary_days')
+      .select('id')
+      .eq('owner_id', user.id)
+      .eq('day_date', date)
+      .maybeSingle();
+    
+    if (existingDay) {
+      return existingDay.id;
+    }
+    
+    // Create new day
+    const { data: newDay, error } = await supabase
+      .from('diary_days')
+      .insert([{
+        owner_id: user.id,
+        day_date: date,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      }])
+      .select('id')
+      .single();
+    
+    if (error) throw error;
+    return newDay.id;
+  };
+
+  const handleDateChange = async (newDate: string) => {
     setMealDate(newDate);
     onDateChange?.(newDate);
+    
+    // Get or create the day for the new date
+    try {
+      const dayId = await getOrCreateDayId(newDate);
+      setCurrentDayId(dayId);
+    } catch (error) {
+      toast({
+        title: 'Kon dag niet aanmaken',
+        description: 'Probeer het opnieuw',
+        variant: 'destructive',
+      });
+    }
   };
 
   const { data: aiUsage } = useAIUsage();
@@ -341,7 +396,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
         .from('meals')
         .insert([{
           owner_id: user.id,
-          day_id: dayId,
+          day_id: currentDayId,
           time_local: time,
           kcal: editableAnalysis.kcal,
           protein_g: editableAnalysis.protein_g,
@@ -357,8 +412,9 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     },
     onSuccess: () => {
       toast({ title: 'Maaltijd opgeslagen' });
-      queryClient.invalidateQueries({ queryKey: ['meals', dayId] });
+      queryClient.invalidateQueries({ queryKey: ['meals'] });
       queryClient.invalidateQueries({ queryKey: ['daily-scores'] });
+      queryClient.invalidateQueries({ queryKey: ['diary-day'] });
       handleClose();
     },
     onError: () => {
@@ -373,9 +429,9 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
   };
 
   const confidenceColors = {
-    high: 'bg-green-100 text-green-800',
-    medium: 'bg-yellow-100 text-yellow-800',
-    low: 'bg-red-100 text-red-800',
+    high: 'bg-success/20 text-success-foreground',
+    medium: 'bg-warning/20 text-warning-foreground',
+    low: 'bg-destructive/20 text-destructive-foreground',
   };
 
   return (
