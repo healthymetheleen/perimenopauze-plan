@@ -163,41 +163,42 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
-        {/* Season Header - Always at top with date */}
-        <div className={`rounded-2xl p-5 relative overflow-hidden ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
-          <div className="flex items-start justify-between">
-            <div className="flex-1">
-              <p className="text-sm text-muted-foreground">
-                {format(new Date(), "EEEE", { locale: nl })}
-              </p>
-              <p className="text-xl font-semibold text-foreground">
-                {format(new Date(), "d MMMM yyyy", { locale: nl })}
-              </p>
+        {/* Season Header - Compact on one line */}
+        <div className={`rounded-2xl p-4 relative overflow-hidden ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-wrap">
+              {/* Date */}
+              <div className="flex items-baseline gap-2">
+                <span className="text-lg font-semibold text-foreground">
+                  {format(new Date(), "EEEE d MMMM", { locale: nl })}
+                </span>
+              </div>
               
-              {/* Season badge - prominent display */}
+              {/* Season & Phase badges inline */}
               {showSeasonBadge && (
-                <div className="mt-3 flex flex-wrap items-center gap-2">
-                  <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-base font-bold ${seasonAccent.accent} text-white shadow-md`}>
+                <>
+                  <div className="h-5 w-px bg-border/50" />
+                  <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-sm font-semibold ${seasonAccent.accent} text-white`}>
                     {seasonIcons[currentSeason]}
                     <span>{seasonLabels[currentSeason]}</span>
                   </div>
+                  {currentPhase !== 'unknown' && (
+                    <span className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</span>
+                  )}
                   
-                  {/* Fertile badge */}
+                  {/* Fertile badge inline */}
                   {isTodayFertile && (
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-semibold bg-green-500 text-white shadow-md animate-pulse">
-                      <Heart className="h-4 w-4" />
+                    <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-green-500 text-white animate-pulse">
+                      <Heart className="h-3 w-3" />
                       <span>Vruchtbaar</span>
                     </div>
                   )}
-                </div>
-              )}
-              
-              {showSeasonBadge && currentPhase !== 'unknown' && (
-                <p className="text-sm text-muted-foreground mt-2">{phaseLabels[currentPhase]}</p>
+                </>
               )}
             </div>
+            
             {showSeasonBadge && (
-              <div className="relative">
+              <div className="relative shrink-0">
                 <SeasonDecorations season={currentSeason} />
               </div>
             )}
@@ -366,46 +367,6 @@ export default function DashboardPage() {
           </Card>
         </div>
 
-        {/* Phase-based Advice */}
-        {showSeasonBadge && currentAdvice && (
-          <Card className="glass-strong rounded-2xl card-premium">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                Advies voor {seasonLabels[currentSeason]}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="p-2 rounded-lg bg-accent/20 h-fit">
-                    <Dumbbell className="h-4 w-4 text-accent-foreground" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Sport & Beweging</p>
-                    <p className="text-sm text-muted-foreground">{currentAdvice.sport}</p>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <div className="p-2 rounded-lg bg-primary/20 h-fit">
-                    <Briefcase className="h-4 w-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Werk</p>
-                    <p className="text-sm text-muted-foreground">{currentAdvice.werk}</p>
-                  </div>
-                </div>
-              </div>
-              <Button variant="ghost" size="sm" asChild className="w-full">
-                <Link to="/bewegen">
-                  Bekijk trainingsschema
-                  <ArrowRight className="h-4 w-4 ml-1" />
-                </Link>
-              </Button>
-            </CardContent>
-          </Card>
-        )}
-
         {/* Daily AI Reflection */}
         <DailyReflectionCard
           mealsCount={todayScore?.meals_count || 0}
@@ -413,7 +374,7 @@ export default function DashboardPage() {
           cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
         />
 
-        {/* Movement & Focus Widget */}
+        {/* Movement Widget - contains both movement advice AND life tips */}
         {showSeasonBadge && <MovementWidget />}
 
         {/* Monthly Analysis CTA */}
