@@ -118,7 +118,7 @@ export default function SleepPage() {
         </div>
 
         {/* Sleep Score */}
-        <Card className="rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 border-indigo-100">
+        <Card className="rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/50 border-slate-100">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
@@ -167,7 +167,7 @@ export default function SleepPage() {
                 </p>
                 <Button
                   size="lg"
-                  className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  className="w-full bg-indigo-400/80 hover:bg-indigo-500/90 text-white"
                   onClick={handleStartSleep}
                   disabled={startSleep.isPending}
                 >

@@ -28,6 +28,7 @@ import MovementPage from "./pages/Movement";
 import MeditationPage from "./pages/Meditation";
 import CommunityPage from "./pages/Community";
 import CommunityPostPage from "./pages/CommunityPost";
+import InstallPage from "./pages/Install";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import IntendedUse from "./pages/IntendedUse";
@@ -95,6 +96,7 @@ function AppRoutes() {
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/install" element={<InstallPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />
       <Route path="/terms" element={<Terms />} />
