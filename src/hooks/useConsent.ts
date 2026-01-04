@@ -55,20 +55,23 @@ export function useConsent() {
       // Merge with existing consent data to avoid overwriting
       const existingConsent = query.data;
       
-      const { error } = await supabase.from('user_consents').upsert({
-        owner_id: user.id,
-        accepted_privacy: existingConsent?.accepted_privacy ?? false,
-        accepted_terms: existingConsent?.accepted_terms ?? false,
-        accepted_disclaimer: existingConsent?.accepted_disclaimer ?? false,
-        accepted_health_data_processing: existingConsent?.accepted_health_data_processing ?? false,
-        accepted_ai_processing: existingConsent?.accepted_ai_processing ?? false,
-        ...consentUpdate,
-        consent_version: CONSENT_VERSION,
-        privacy_policy_version: PRIVACY_POLICY_VERSION,
-        terms_version: TERMS_VERSION,
-        accepted_at: existingConsent?.accepted_at || new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      });
+      const { error } = await supabase.from('user_consents').upsert(
+        {
+          owner_id: user.id,
+          accepted_privacy: existingConsent?.accepted_privacy ?? false,
+          accepted_terms: existingConsent?.accepted_terms ?? false,
+          accepted_disclaimer: existingConsent?.accepted_disclaimer ?? false,
+          accepted_health_data_processing: existingConsent?.accepted_health_data_processing ?? false,
+          accepted_ai_processing: existingConsent?.accepted_ai_processing ?? false,
+          ...consentUpdate,
+          consent_version: CONSENT_VERSION,
+          privacy_policy_version: PRIVACY_POLICY_VERSION,
+          terms_version: TERMS_VERSION,
+          accepted_at: existingConsent?.accepted_at || new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'owner_id' }
+      );
       if (error) throw error;
     },
     onSuccess: () => {
