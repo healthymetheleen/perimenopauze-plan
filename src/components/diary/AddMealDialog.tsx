@@ -72,6 +72,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
   // Input states
   const [inputMethod, setInputMethod] = useState<'text' | 'photo' | 'voice'>('text');
   const [description, setDescription] = useState('');
+  const [photoDescription, setPhotoDescription] = useState(''); // Extra beschrijving bij foto
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [isRecording, setIsRecording] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -91,6 +92,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
 
   const resetForm = () => {
     setDescription('');
+    setPhotoDescription('');
     setImagePreview(null);
     setAnalysis(null);
     setEditableAnalysis(null);
@@ -175,14 +177,19 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Create preview
+    // Create preview but don't analyze yet
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
       setImagePreview(base64);
-      analyzeMeal(undefined, base64);
     };
     reader.readAsDataURL(file);
+  };
+
+  // Analyze photo with optional description
+  const handlePhotoAnalyze = () => {
+    if (!imagePreview) return;
+    analyzeMeal(photoDescription || undefined, imagePreview);
   };
 
   // Handle voice recording
@@ -386,17 +393,60 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
                 />
                 
                 {imagePreview ? (
-                  <div className="relative rounded-lg overflow-hidden">
-                    <img 
-                      src={imagePreview} 
-                      alt="Maaltijd preview" 
-                      className="w-full h-48 object-cover"
-                    />
-                    {isAnalyzing && (
-                      <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                        <Loader2 className="h-8 w-8 animate-spin text-white" />
-                      </div>
-                    )}
+                  <div className="space-y-4">
+                    <div className="relative rounded-lg overflow-hidden">
+                      <img 
+                        src={imagePreview} 
+                        alt="Maaltijd preview" 
+                        className="w-full h-48 object-cover"
+                      />
+                      {isAnalyzing && (
+                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                          <Loader2 className="h-8 w-8 animate-spin text-white" />
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Extra beschrijving veld */}
+                    <div className="space-y-2">
+                      <Label htmlFor="photo-description">Extra details (optioneel)</Label>
+                      <Input
+                        id="photo-description"
+                        placeholder="Bijv: volkoren brood, havermelk, biologisch"
+                        value={photoDescription}
+                        onChange={(e) => setPhotoDescription(e.target.value)}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
+                      </p>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setImagePreview(null);
+                          setPhotoDescription('');
+                        }}
+                        className="flex-1"
+                      >
+                        Andere foto
+                      </Button>
+                      <Button
+                        onClick={handlePhotoAnalyze}
+                        disabled={isAnalyzing}
+                        className="flex-1"
+                      >
+                        {isAnalyzing ? (
+                          <>
+                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                            Analyseren...
+                          </>
+                        ) : (
+                          'Analyseer'
+                        )}
+                      </Button>
+                    </div>
                   </div>
                 ) : (
                   <Button

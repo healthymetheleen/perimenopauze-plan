@@ -119,22 +119,12 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
-        {/* Header with logo and season badge */}
+        {/* Header with date and add button */}
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <img 
-              src="/favicon.svg" 
-              alt="Logo" 
-              className="h-10 w-10"
-            />
-            <div>
-              <h1 className="text-xl sm:text-2xl font-semibold text-gradient">
-                Perimenopauze Plan
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                {format(new Date(), "EEEE d MMMM", { locale: nl })}
-              </p>
-            </div>
+          <div>
+            <p className="text-lg font-medium text-foreground">
+              {format(new Date(), "EEEE d MMMM", { locale: nl })}
+            </p>
           </div>
           <Button asChild className="btn-gradient text-primary-foreground shadow-soft">
             <Link to="/diary">
