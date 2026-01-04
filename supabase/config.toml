@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.premium-insights]
 verify_jwt = false
+
+[functions.monthly-analysis]
+verify_jwt = false
+
+[functions.mollie-payments]
+verify_jwt = false
