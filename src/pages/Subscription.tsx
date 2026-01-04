@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { 
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
-  Loader2, ChevronRight, Building2, XCircle, Clock
+  Loader2, ChevronRight, XCircle, Clock
 } from 'lucide-react';
 import { differenceInDays, addDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -12,8 +12,6 @@ import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Progress } from '@/components/ui/progress';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -27,7 +25,6 @@ import {
 import { 
   useSubscription, 
   useCreateFirstPayment,
-  useIdealIssuers,
   SUBSCRIPTION_PLANS
 } from '@/hooks/useMollie';
 import { useToast } from '@/hooks/use-toast';
@@ -35,18 +32,14 @@ import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
 
 type PlanId = keyof typeof SUBSCRIPTION_PLANS;
-type PaymentMethodType = 'ideal' | 'other';
 
 export default function SubscriptionPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: subscription, isLoading: loadingSubscription } = useSubscription();
-  const { data: idealIssuers, isLoading: loadingIssuers } = useIdealIssuers();
   const createFirstPayment = useCreateFirstPayment();
 
   const [selectedPlan] = useState<PlanId>('monthly');
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('ideal');
-  const [selectedIssuer, setSelectedIssuer] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [isCancelling, setIsCancelling] = useState(false);
@@ -72,8 +65,6 @@ export default function SubscriptionPage() {
         description: `HormoonBalans ${plan.name} - Eerste betaling + machtiging`,
         redirectUrl: `${baseUrl}/subscription?status=complete`,
         metadata: { plan: plan.id },
-        method: paymentMethod === 'ideal' ? 'ideal' : undefined,
-        issuer: paymentMethod === 'ideal' ? selectedIssuer || undefined : undefined,
       });
 
       if (result.checkoutUrl) {
@@ -299,84 +290,6 @@ export default function SubscriptionPage() {
               </CardContent>
             </Card>
 
-            {/* Payment method selection */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Betaalmethode</h2>
-              
-              <RadioGroup 
-                value={paymentMethod} 
-                onValueChange={(v) => setPaymentMethod(v as PaymentMethodType)}
-                className="grid grid-cols-2 gap-4"
-              >
-                <Label
-                  htmlFor="ideal"
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod === 'ideal' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
-                  }`}
-                >
-                  <RadioGroupItem value="ideal" id="ideal" />
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    <span className="font-medium">iDEAL</span>
-                  </div>
-                </Label>
-                
-                <Label
-                  htmlFor="other"
-                  className={`flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all ${
-                    paymentMethod === 'other' ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/50'
-                  }`}
-                >
-                  <RadioGroupItem value="other" id="other" />
-                  <div className="flex items-center gap-2">
-                    <CreditCard className="h-5 w-5" />
-                    <span className="font-medium">Andere methode</span>
-                  </div>
-                </Label>
-              </RadioGroup>
-
-              {/* iDEAL bank selection */}
-              {paymentMethod === 'ideal' && (
-                <Card className="rounded-xl">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm">Selecteer je bank (optioneel)</CardTitle>
-                    <CardDescription className="text-xs">
-                      Of kies je bank in het volgende scherm
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {loadingIssuers ? (
-                      <div className="flex items-center gap-2 py-4">
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                        <span className="text-sm text-muted-foreground">Banken laden...</span>
-                      </div>
-                    ) : (
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <Button
-                          variant={selectedIssuer === '' ? 'default' : 'outline'}
-                          size="sm"
-                          className="justify-start"
-                          onClick={() => setSelectedIssuer('')}
-                        >
-                          Kies later
-                        </Button>
-                        {idealIssuers?.map((issuer) => (
-                          <Button
-                            key={issuer.id}
-                            variant={selectedIssuer === issuer.id ? 'default' : 'outline'}
-                            size="sm"
-                            className="justify-start text-xs"
-                            onClick={() => setSelectedIssuer(issuer.id)}
-                          >
-                            {issuer.name}
-                          </Button>
-                        ))}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              )}
-            </div>
 
             {/* Subscribe button */}
             <Button
