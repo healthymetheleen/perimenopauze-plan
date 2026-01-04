@@ -119,7 +119,7 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
-        {/* Header with date and add button */}
+        {/* Header with date and action buttons */}
         <div className="flex items-center justify-between">
           <div>
             <p className="text-lg font-medium text-foreground">
@@ -129,10 +129,28 @@ export default function DashboardPage() {
           <Button asChild className="btn-gradient text-primary-foreground shadow-soft">
             <Link to="/diary">
               <Plus className="h-4 w-4 mr-2" />
-              Registreren
+              Maaltijd
             </Link>
           </Button>
         </div>
+
+        {/* Daily Check-in Button */}
+        <Link to="/cycle">
+          <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-primary/20">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">Dagelijkse check-in</p>
+                <p className="text-sm text-muted-foreground">
+                  Log hoe je je voelt, energie, slaap & klachten
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Season Badge - Always visible if onboarding completed */}
         {showSeasonBadge && (
