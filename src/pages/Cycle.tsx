@@ -37,8 +37,17 @@ import {
   Dumbbell,
   Briefcase,
   Heart,
+  CalendarPlus,
 } from 'lucide-react';
 import { CycleDayLogDialog } from '@/components/cycle/CycleDayLogDialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 const seasonIcons: Record<string, React.ReactNode> = {
   winter: <Snowflake className="h-5 w-5" />,
@@ -199,6 +208,8 @@ export default function CyclePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [showDayLog, setShowDayLog] = useState(false);
+  const [showPeriodStart, setShowPeriodStart] = useState(false);
+  const [periodStartDate, setPeriodStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
 
   const { data: preferences, isLoading: prefsLoading } = useCyclePreferences();
@@ -258,6 +269,19 @@ export default function CyclePage() {
       toast({ title: 'Gelogd!' });
     } catch {
       toast({ title: 'Kon niet opslaan', variant: 'destructive' });
+    }
+  };
+
+  // Handle setting period start date manually
+  const handleSetPeriodStart = async () => {
+    try {
+      await startCycle.mutateAsync(periodStartDate);
+      // Also log bleeding for that date
+      await logBleeding.mutateAsync({ log_date: periodStartDate, intensity: 'normaal' });
+      setShowPeriodStart(false);
+      toast({ title: 'Cyclus gestart! 🩸', description: 'Je seizoen wordt berekend op basis van deze datum.' });
+    } catch {
+      toast({ title: 'Kon cyclus niet starten', variant: 'destructive' });
     }
   };
 
@@ -402,6 +426,19 @@ export default function CyclePage() {
                     {label}
                   </Button>
                 ))}
+              </div>
+              
+              {/* Quick set period start date */}
+              <div className="pt-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-muted-foreground"
+                  onClick={() => setShowPeriodStart(true)}
+                >
+                  <CalendarPlus className="h-4 w-4 mr-2" />
+                  Eerste dag menstruatie invoeren
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -643,6 +680,37 @@ export default function CyclePage() {
         onOpenChange={setShowDayLog}
         date={selectedDate}
       />
+
+      {/* Period Start Date Dialog */}
+      <Dialog open={showPeriodStart} onOpenChange={setShowPeriodStart}>
+        <DialogContent className="sm:max-w-md max-w-[95vw]">
+          <DialogHeader>
+            <DialogTitle>Eerste dag menstruatie</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <p className="text-sm text-muted-foreground">
+              Vul de eerste dag van je laatste menstruatie in. 
+              Hiermee berekenen we in welk seizoen je nu zit.
+            </p>
+            <div className="space-y-2">
+              <Label className="text-sm font-medium">Datum</Label>
+              <Input
+                type="date"
+                value={periodStartDate}
+                onChange={(e) => setPeriodStartDate(e.target.value)}
+                max={format(new Date(), 'yyyy-MM-dd')}
+              />
+            </div>
+            <Button
+              className="w-full"
+              onClick={handleSetPeriodStart}
+              disabled={startCycle.isPending || logBleeding.isPending}
+            >
+              Cyclus starten
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }

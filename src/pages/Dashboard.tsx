@@ -134,23 +134,25 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Daily Check-in Button */}
-        <Link to="/cycle">
-          <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-primary/20">
-                <Sparkles className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-semibold text-foreground">Dagelijkse check-in</p>
-                <p className="text-sm text-muted-foreground">
-                  Log hoe je je voelt, energie, slaap & klachten
-                </p>
-              </div>
-              <ArrowRight className="h-5 w-5 text-primary" />
-            </CardContent>
-          </Card>
-        </Link>
+        {/* Daily Check-in Button - with more spacing */}
+        <div className="pt-2">
+          <Link to="/cycle">
+            <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
+              <CardContent className="p-4 flex items-center gap-4">
+                <div className="p-3 rounded-full bg-primary/20">
+                  <Sparkles className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1">
+                  <p className="font-semibold text-foreground">Dagelijkse check-in</p>
+                  <p className="text-sm text-muted-foreground">
+                    Log hoe je je voelt, energie, slaap & klachten
+                  </p>
+                </div>
+                <ArrowRight className="h-5 w-5 text-primary" />
+              </CardContent>
+            </Card>
+          </Link>
+        </div>
 
         {/* Season Badge - Always visible if onboarding completed */}
         {showSeasonBadge && (
