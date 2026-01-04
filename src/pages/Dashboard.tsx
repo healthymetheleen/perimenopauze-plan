@@ -164,7 +164,7 @@ export default function DashboardPage() {
     <AppLayout>
       <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* Season Header - Always at top with date */}
-        <div className={`rounded-2xl p-5 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
+        <div className={`rounded-2xl p-5 mb-4 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
@@ -230,83 +230,50 @@ export default function DashboardPage() {
         {/* Trial Countdown */}
         <TrialCountdown />
 
-        {/* Scores Grid - Yesterday's eating and Today's food */}
-        <div className="grid grid-cols-2 gap-4">
-          {/* Yesterday's Eating Score */}
-          <Link to="/diary">
-            <Card className={`glass rounded-2xl h-full ${getScoreGradientClass(yesterdayScore?.day_score ?? null)}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Utensils className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">Eten gisteren</span>
-                </div>
-                {yesterdayScore ? (
-                  <div>
-                    <ScoreBadge score={yesterdayScore.day_score} size="lg" />
-                    <p className="text-xs text-muted-foreground mt-2">
-                      {yesterdayScore.meals_count} maaltijden
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Geen data</p>
+        {/* Today's Food - Single Card with Score + Macros */}
+        <Link to="/diary">
+          <Card className={`glass rounded-2xl ${getScoreGradientClass(todayScore?.day_score ?? null)}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <Utensils className="h-4 w-4 text-primary" />
+                <span className="text-sm font-medium">Eten vandaag</span>
+                {todayScore && (
+                  <span className="text-xs text-muted-foreground ml-auto">
+                    {todayScore.meals_count} maaltijden
+                  </span>
                 )}
-              </CardContent>
-            </Card>
-          </Link>
-
-          {/* Today's Food Summary */}
-          <Link to="/diary">
-            <Card className={`glass rounded-2xl h-full ${getScoreGradientClass(todayScore?.day_score ?? null)}`}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Utensils className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">Eten vandaag</span>
-                </div>
-                {todayScore ? (
-                  <div>
-                    <ScoreBadge score={todayScore.day_score} size="lg" />
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {todayScore.meals_count} maaltijden
-                    </p>
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">Nog niets</p>
-                )}
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
-
-        {/* Today's Macro Bar */}
-        {todayScore && (
-          <Link to="/diary">
-            <Card className="glass rounded-2xl">
-              <CardContent className="p-3">
-                <div className="flex items-center justify-between gap-2 text-xs">
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium">{Math.round(todayScore.kcal_total || 0)}</span>
-                    <span className="text-muted-foreground">kcal</span>
-                  </div>
-                  <div className="h-3 w-px bg-border" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium">{Math.round(todayScore.carbs_g || 0)}g</span>
-                    <span className="text-muted-foreground">koolh.</span>
-                  </div>
-                  <div className="h-3 w-px bg-border" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium">{Math.round(todayScore.protein_g || 0)}g</span>
-                    <span className="text-muted-foreground">eiwit</span>
-                  </div>
-                  <div className="h-3 w-px bg-border" />
-                  <div className="flex items-center gap-1.5">
-                    <span className="font-medium">{Math.round(todayScore.fiber_g || 0)}g</span>
-                    <span className="text-muted-foreground">vezels</span>
+              </div>
+              {todayScore ? (
+                <div className="space-y-3">
+                  <ScoreBadge score={todayScore.day_score} size="lg" />
+                  <div className="flex items-center justify-between gap-2 text-xs pt-2 border-t">
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{Math.round(todayScore.kcal_total || 0)}</span>
+                      <span className="text-muted-foreground">kcal</span>
+                    </div>
+                    <div className="h-3 w-px bg-border" />
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{Math.round(todayScore.carbs_g || 0)}g</span>
+                      <span className="text-muted-foreground">koolh</span>
+                    </div>
+                    <div className="h-3 w-px bg-border" />
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{Math.round(todayScore.protein_g || 0)}g</span>
+                      <span className="text-muted-foreground">eiwit</span>
+                    </div>
+                    <div className="h-3 w-px bg-border" />
+                    <div className="flex items-center gap-1">
+                      <span className="font-medium">{Math.round(todayScore.fiber_g || 0)}g</span>
+                      <span className="text-muted-foreground">vezels</span>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </Link>
-        )}
+              ) : (
+                <p className="text-sm text-muted-foreground">Nog niets gelogd</p>
+              )}
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Sleep Score - moved above monthly analysis */}
         <Link to="/slaap">

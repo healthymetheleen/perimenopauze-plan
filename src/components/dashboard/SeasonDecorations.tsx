@@ -11,23 +11,23 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
   const decorations = {
     winter: {
       icon: Snowflake,
-      count: 4,
-      colorClass: 'text-blue-300/60 dark:text-blue-400/40',
+      count: 5,
+      colorClass: 'text-blue-400 dark:text-blue-300',
     },
     lente: {
       icon: Leaf,
-      count: 3,
-      colorClass: 'text-green-300/60 dark:text-green-400/40',
+      count: 4,
+      colorClass: 'text-green-500 dark:text-green-400',
     },
     zomer: {
       icon: Sun,
-      count: 2,
-      colorClass: 'text-amber-300/60 dark:text-amber-400/40',
+      count: 3,
+      colorClass: 'text-amber-400 dark:text-amber-300',
     },
     herfst: {
       icon: Wind,
-      count: 4,
-      colorClass: 'text-orange-300/60 dark:text-orange-400/40',
+      count: 5,
+      colorClass: 'text-orange-400 dark:text-orange-300',
     },
   };
 
@@ -36,12 +36,13 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
 
   const Icon = config.icon;
 
-  // Position and animation variants for floating elements
+  // Position and animation variants for floating elements - spread around badge
   const positions = [
-    { top: '-2px', right: '-8px', delay: '0s', size: 'h-3 w-3' },
-    { top: '8px', right: '-20px', delay: '0.5s', size: 'h-2.5 w-2.5' },
-    { top: '-8px', right: '20px', delay: '1s', size: 'h-2 w-2' },
-    { top: '4px', right: '40px', delay: '1.5s', size: 'h-2 w-2' },
+    { top: '-12px', right: '-12px', delay: '0s', size: 'h-4 w-4', opacity: '0.8' },
+    { top: '4px', right: '-24px', delay: '0.7s', size: 'h-3 w-3', opacity: '0.6' },
+    { top: '-16px', right: '16px', delay: '1.4s', size: 'h-3 w-3', opacity: '0.7' },
+    { top: '8px', right: '32px', delay: '2.1s', size: 'h-2.5 w-2.5', opacity: '0.5' },
+    { top: '-8px', right: '48px', delay: '2.8s', size: 'h-2 w-2', opacity: '0.4' },
   ];
 
   return (
@@ -54,10 +55,11 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
             top: pos.top,
             right: pos.right,
             animationDelay: pos.delay,
-            animationDuration: `${3 + i * 0.5}s`,
+            animationDuration: `${3 + i * 0.4}s`,
+            opacity: pos.opacity,
           }}
         >
-          <Icon className={`${pos.size} ${config.colorClass}`} />
+          <Icon className={`${pos.size} ${config.colorClass} drop-shadow-sm`} />
         </div>
       ))}
     </div>
