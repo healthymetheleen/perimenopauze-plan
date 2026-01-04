@@ -19,7 +19,8 @@ import {
 } from '@/hooks/useSleep';
 import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
-import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -101,11 +102,19 @@ export default function SleepPage() {
     <AppLayout>
       <div className="space-y-6 overflow-x-hidden">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Slaap</h1>
-          <p className="text-muted-foreground">
-            Volg je slaappatroon en verbeter je nachtrust
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Slaap</h1>
+            <p className="text-muted-foreground">
+              Volg je slaappatroon en verbeter je nachtrust
+            </p>
+          </div>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/meditatie">
+              <Sparkles className="h-4 w-4 mr-2" />
+              Meditaties
+            </Link>
+          </Button>
         </div>
 
         {/* Sleep Score */}
@@ -353,6 +362,12 @@ export default function SleepPage() {
                 <span>Beweeg regelmatig, maar niet vlak voor het slapen</span>
               </li>
             </ul>
+            <Button asChild variant="outline" className="w-full mt-4">
+              <Link to="/meditatie">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Bekijk slaapmeditaties
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </div>

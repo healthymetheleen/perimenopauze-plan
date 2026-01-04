@@ -1,8 +1,8 @@
-import { format, subDays } from 'date-fns';
+import { format, subDays, differenceInMinutes } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   CalendarDays, TrendingUp, Activity, ArrowRight, Plus, 
-  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils 
+  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -18,7 +18,8 @@ import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
 import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors, phaseLabels } from '@/hooks/useCycle';
-import { useSleepSessions, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
+import { useSleepSessions, useActiveSleepSession, useStartSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
+import { useToast } from '@/hooks/use-toast';
 
 const seasonIcons: Record<string, React.ReactNode> = {
   winter: <Snowflake className="h-4 w-4" />,
@@ -62,11 +63,14 @@ const seasonToPhase: Record<string, string> = {
 
 export default function DashboardPage() {
   const { user } = useAuth();
+  const { toast } = useToast();
   const { data: scores, isLoading, error, refetch } = useDailyScores(7);
   const { data: entitlements } = useEntitlements();
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: sleepSessions } = useSleepSessions(7);
+  const { data: activeSession } = useActiveSleepSession();
+  const startSleep = useStartSleep();
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
@@ -82,6 +86,22 @@ export default function DashboardPage() {
   
   const phaseKey = seasonToPhase[currentSeason] || 'follicular';
   const currentAdvice = phaseAdvice[phaseKey];
+
+  // Calculate current sleep duration if sleeping
+  const currentSleepDuration = activeSession
+    ? differenceInMinutes(new Date(), new Date(activeSession.sleep_start))
+    : 0;
+  const currentSleepHours = Math.floor(currentSleepDuration / 60);
+  const currentSleepMins = currentSleepDuration % 60;
+
+  const handleStartSleep = async () => {
+    try {
+      await startSleep.mutateAsync();
+      toast({ title: 'Welterusten! 🌙', description: 'Je slaapsessie is gestart.' });
+    } catch {
+      toast({ title: 'Kon slaapsessie niet starten', variant: 'destructive' });
+    }
+  };
 
   const getScoreGradientClass = (score: number | null) => {
     if (!score) return '';
@@ -124,26 +144,72 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Season Badge Card */}
-        {showSeasonBadge && (
-          <Link to="/cycle">
-            <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
+        {/* Sleep Quick Action + Season Badge */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* Sleep Start/Stop Widget */}
+          {activeSession ? (
+            <Link to="/slaap">
+              <Card className="glass rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
+                    <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
+                    <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
+                      {currentSleepHours}u {currentSleepMins}m
+                    </p>
+                  </div>
+                  <Badge variant="secondary" className="bg-indigo-200 text-indigo-800">
+                    Tap om te stoppen
+                  </Badge>
+                </CardContent>
+              </Card>
+            </Link>
+          ) : (
+            <Card className="glass rounded-2xl overflow-hidden">
               <CardContent className="p-4 flex items-center gap-4">
-                <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
-                  {seasonIcons[currentSeason]}
+                <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                  <Moon className="h-5 w-5 text-indigo-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Huidige fase</p>
-                  <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
-                  {currentPhase !== 'unknown' && (
-                    <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
-                  )}
+                  <p className="text-sm text-muted-foreground">Slaap</p>
+                  <p className="font-medium">Klaar om te slapen?</p>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                <Button 
+                  size="sm" 
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                  onClick={handleStartSleep}
+                  disabled={startSleep.isPending}
+                >
+                  <Moon className="h-4 w-4 mr-1" />
+                  Start
+                </Button>
               </CardContent>
             </Card>
-          </Link>
-        )}
+          )}
+
+          {/* Season Badge Card */}
+          {showSeasonBadge && (
+            <Link to="/cycle">
+              <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
+                    {seasonIcons[currentSeason]}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm text-muted-foreground">Huidige fase</p>
+                    <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
+                    {currentPhase !== 'unknown' && (
+                      <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
+                    )}
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
+                </CardContent>
+              </Card>
+            </Link>
+          )}
+        </div>
 
         {/* Scores Grid */}
         <div className="grid grid-cols-2 gap-4">
