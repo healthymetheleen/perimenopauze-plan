@@ -23,21 +23,21 @@
     --popover: 20 40% 98%;
     --popover-foreground: 340 30% 20%;
 
-    /* Primary: accent 1 #C396AC - dusty rose */
-    --primary: 324 30% 68%;
+    /* Primary: warmer, richer dusty rose with better contrast */
+    --primary: 324 38% 58%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: accent 2 #85576D - deeper mauve */
-    --secondary: 336 22% 43%;
+    /* Secondary: deeper mauve for strong contrast */
+    --secondary: 336 32% 38%;
     --secondary-foreground: 0 0% 100%;
 
-    /* Muted: accent 4 #DBE1D4 - soft sage */
-    --muted: 84 19% 85%;
-    --muted-foreground: 340 20% 35%;
+    /* Muted: lighter sage for subtle backgrounds */
+    --muted: 90 15% 90%;
+    --muted-foreground: 340 25% 30%;
 
-    /* Accent: accent 3 #A1B88B - fresh green */
-    --accent: 90 24% 63%;
-    --accent-foreground: 340 30% 15%;
+    /* Accent: richer fresh green for better contrast */
+    --accent: 95 35% 50%;
+    --accent-foreground: 0 0% 100%;
 
     /* Destructive */
     --destructive: 0 72% 51%;
