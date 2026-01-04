@@ -156,8 +156,19 @@ serve(async (req) => {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', errorText);
-      throw new Error(`OpenAI API error: ${errorText}`);
+      console.error('OpenAI API error:', response.status, errorText);
+      
+      if (response.status === 429) {
+        return new Response(JSON.stringify({ 
+          error: 'rate_limit',
+          message: 'Te veel verzoeken. Probeer het later opnieuw.' 
+        }), {
+          status: 429,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error('AI service unavailable');
     }
 
     const result = await response.json();
@@ -170,9 +181,12 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Voice-to-text error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    // Return generic error message to client, never expose internal details
     return new Response(
-      JSON.stringify({ error: errorMessage }),
+      JSON.stringify({ 
+        error: 'service_error',
+        message: 'Er ging iets mis bij de spraakherkenning. Probeer het later opnieuw.' 
+      }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
