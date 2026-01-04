@@ -127,34 +127,26 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
 
     setIsAnalyzing(true);
     try {
-      // Track usage before making the call
-      const tracked = await trackAIUsage('analyze-meal');
-      if (!tracked) {
-        throw new Error('Kon AI gebruik niet tracken');
+      // Use supabase.functions.invoke which automatically includes auth header
+      const { data: result, error } = await supabase.functions.invoke('analyze-meal', {
+        body: {
+          description: text,
+          imageBase64: imageBase64,
+          hasAIConsent: hasAIConsent,
+        },
+      });
+
+      if (error) {
+        throw new Error(error.message || 'Analyse mislukt');
       }
 
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/analyze-meal`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-          },
-          body: JSON.stringify({
-            description: text,
-            imageBase64: imageBase64,
-            hasAIConsent: hasAIConsent,
-          }),
+      if (result.error) {
+        if (result.error === 'limit_exceeded') {
+          throw new Error(result.message || 'Dagelijkse AI-limiet bereikt');
         }
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Analyse mislukt');
+        throw new Error(result.message || result.error);
       }
 
-      const result: MealAnalysis = await response.json();
       setAnalysis(result);
       setEditableAnalysis(result);
       setShowConfirmation(true);
@@ -216,24 +208,22 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
           
           setIsAnalyzing(true);
           try {
-            const response = await fetch(
-              `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/voice-to-text`,
-              {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'apikey': import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY,
-                },
-                body: JSON.stringify({ audio: base64Audio }),
-              }
-            );
+            // Use supabase.functions.invoke which automatically includes auth header
+            const { data: result, error } = await supabase.functions.invoke('voice-to-text', {
+              body: { audio: base64Audio },
+            });
             
-            if (!response.ok) {
-              const error = await response.json();
-              throw new Error(error.error || 'Transcriptie mislukt');
+            if (error) {
+              throw new Error(error.message || 'Transcriptie mislukt');
             }
             
-            const result = await response.json();
+            if (result.error) {
+              if (result.error === 'limit_exceeded') {
+                throw new Error(result.message || 'Dagelijkse AI-limiet bereikt');
+              }
+              throw new Error(result.error);
+            }
+            
             if (result.text) {
               setDescription(result.text);
               // Auto-analyze the transcribed text
