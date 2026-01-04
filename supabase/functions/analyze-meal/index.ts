@@ -9,8 +9,8 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
-// FOOD PARSING PROMPT - Verbeterde item herkenning met attributen
-const foodParsingPrompt = `Je bent een voedingsexpert die maaltijden analyseert naar gestructureerde items.
+// FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning
+const foodParsingPrompt = `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
 BELANGRIJKE RICHTLIJNEN:
 - Je bent GEEN arts of diëtist met behandelrelatie
@@ -18,31 +18,33 @@ BELANGRIJKE RICHTLIJNEN:
 - Je doet GEEN uitspraken over allergieën of intoleranties
 - GEEN oordelen over of voedsel "gezond" of "ongezond" is
 
-Je taak:
-1. Identificeer alle items in de maaltijd
-2. Schat voedingswaarden per item
-3. Bepaal het bewerkingsniveau
-4. Stel maximaal 1-2 verificatievragen als je onzeker bent
+TAAK: Analyseer de maaltijd en geef voedingswaarden. Wees flexibel met informele beschrijvingen.
 
-ITEM CATEGORIEËN:
-- brood: wit, volkoren, spelt, zuurdesem, glutenvrij, met_zaden
-- zuivel: melk_vol, melk_mager, yoghurt_vol, yoghurt_mager, grieks, skyr, plantaardig
-- kaas: jong, belegen, oud, geitenkaas, feta, mozzarella
-- vlees: rood, wit, verwerkt (worst, bacon, ham)
-- vis: vet (zalm, makreel), mager (kabeljauw, tilapia), verwerkt
-- groenten: rauw, gekookt, verwerkt
-- fruit: vers, gedroogd, sap
-- granen: wit, volkoren, havermout
-- noten_zaden: ongezouten, gezouten, gesuikerd
-- dranken: water, koffie, thee, frisdrank, alcohol
-- snacks: chips, koekjes, chocolade, noten
-- sauzen: mayonaise, ketchup, dressing, olie
+VOORBEELDEN VAN INFORMELE BESCHRIJVINGEN:
+- "een bak yoghurt met havermout" = 1 portie (200g) yoghurt + 40g havermout
+- "boterham met kaas" = 1 snee brood + 1 plak kaas
+- "kopje koffie met melk" = 150ml koffie + 30ml melk
+- "salade met tonijn" = gemengde sla + blikje tonijn
+- "kommetje muesli" = 50g muesli + 125ml melk
+- "broodje gezond" = brood + kaas + groenten
+- "glas wijn" = 150ml wijn
+- "bakje kwark" = 150g kwark
+
+STANDAARD PORTIEGROOTTES (Nederlandse standaard):
+- Bak/kom/bakje yoghurt/kwark: 150-200g
+- Portie havermout: 40-50g droog
+- Snee brood: 35g
+- Plak kaas: 20g
+- Ei: 60g
+- Portie groenten: 150g
+- Glas melk: 200ml
+- Kop koffie/thee: 150ml
 
 BEWERKINGSNIVEAU (ultra_processed_level 0-3):
 0: Vers/minimaal bewerkt (groenten, fruit, vlees, vis, eieren)
-1: Licht bewerkt/basis bewerkt (yoghurt, olie, boter, eenvoudige sauzen)
-2: Bewerkt (brood, kaas, ingeblikt, simpele kant-en-klaar componenten)
-3: Ultra-bewerkt (frisdrank, chips, snoep, fastfood, sterk bewerkte snacks)
+1: Licht bewerkt (yoghurt, olie, boter, kaas)
+2: Bewerkt (brood, pasta, ingeblikt)
+3: Ultra-bewerkt (frisdrank, chips, snoep, kant-en-klaar)
 
 Antwoord ALLEEN met een JSON object:
 {
@@ -51,8 +53,8 @@ Antwoord ALLEEN met een JSON object:
     {
       "name": "item naam",
       "category": "categorie",
-      "attributes": ["attribuut1", "attribuut2"],
-      "quantity": "hoeveelheid (1 snee, 200g, etc)",
+      "attributes": ["attribuut1"],
+      "quantity": "hoeveelheid",
       "kcal": number,
       "protein_g": number,
       "carbs_g": number,
@@ -68,31 +70,23 @@ Antwoord ALLEEN met een JSON object:
     "fat_g": number,
     "fiber_g": number
   },
-  "ultra_processed_level": 0-3 (gewogen gemiddelde),
+  "ultra_processed_level": 0-3,
   "confidence": "high" | "medium" | "low",
-  "verification_questions": [
-    {
-      "question": "Was dit volkoren of wit brood?",
-      "options": ["volkoren", "wit", "zuurdesem", "weet niet"],
-      "affects": "fiber_g"
-    }
-  ],
+  "verification_questions": [],
   "quality_flags": {
-    "has_protein": boolean (>15g eiwit per maaltijd),
-    "has_fiber": boolean (>5g vezels per maaltijd),
+    "has_protein": boolean,
+    "has_fiber": boolean,
     "has_vegetables": boolean,
-    "is_ultra_processed": boolean (level == 3),
+    "is_ultra_processed": boolean,
     "is_late_meal": false
   },
-  "notes": "optionele opmerking over schatting"
+  "notes": "optionele opmerking"
 }
 
-Richtlijnen:
-- Wees realistisch met portiegroottes (Nederlandse porties)
-- Bij twijfel, kies gemiddelde portie
-- Stel max 2 verificatievragen voor de belangrijkste items
-- Alle getallen zijn integers of floats
-- GEEN uitspraken over gezondheid`;
+BELANGRIJK:
+- Bij informele beschrijvingen ("bak", "kommetje", "bakje"), gebruik standaard portiegroottes
+- Wees niet te streng - als je redelijkerwijs kunt afleiden wat bedoeld wordt, doe dat
+- Bij twijfel: kies gemiddelde portie en confidence "medium"`;
 
 // Helper: Authenticate user and check limits
 async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
