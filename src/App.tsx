@@ -34,6 +34,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import Terms from "./pages/Terms";
 import IntendedUse from "./pages/IntendedUse";
 import MonthlyAnalysisPage from "./pages/MonthlyAnalysis";
+import SubscriptionPage from "./pages/Subscription";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -207,6 +208,11 @@ function AppRoutes() {
       <Route path="/analyse" element={
         <ProtectedRoute>
           <MonthlyAnalysisPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/subscription" element={
+        <ProtectedRoute>
+          <SubscriptionPage />
         </ProtectedRoute>
       } />
       

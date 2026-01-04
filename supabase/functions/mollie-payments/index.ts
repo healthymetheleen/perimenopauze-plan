@@ -53,7 +53,7 @@ serve(async (req) => {
           });
         }
 
-        const { amount, description, redirectUrl, webhookUrl, metadata } = body;
+        const { amount, description, redirectUrl, webhookUrl, metadata, method } = body;
 
         if (!amount || !description || !redirectUrl) {
           return new Response(JSON.stringify({ error: 'Missing required fields' }), {
@@ -62,7 +62,26 @@ serve(async (req) => {
           });
         }
 
-        console.log(`Creating Mollie payment for user ${user.id}: €${amount}`);
+        console.log(`Creating Mollie payment for user ${user.id}: €${amount} (method: ${method || 'any'})`);
+
+        const paymentBody: Record<string, unknown> = {
+          amount: {
+            currency: 'EUR',
+            value: amount.toFixed(2),
+          },
+          description,
+          redirectUrl,
+          webhookUrl: webhookUrl || `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+          metadata: {
+            ...metadata,
+            user_id: user.id,
+          },
+        };
+
+        // Add specific payment method if requested (e.g., 'ideal')
+        if (method) {
+          paymentBody.method = method;
+        }
 
         const response = await fetch(`${MOLLIE_API_URL}/payments`, {
           method: 'POST',
@@ -70,19 +89,7 @@ serve(async (req) => {
             'Authorization': `Bearer ${mollieApiKey}`,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            amount: {
-              currency: 'EUR',
-              value: amount.toFixed(2),
-            },
-            description,
-            redirectUrl,
-            webhookUrl: webhookUrl || `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
-            metadata: {
-              ...metadata,
-              user_id: user.id,
-            },
-          }),
+          body: JSON.stringify(paymentBody),
         });
 
         if (!response.ok) {
@@ -99,9 +106,153 @@ serve(async (req) => {
 
         return new Response(JSON.stringify({
           id: payment.id,
-          checkoutUrl: payment._links.checkout.href,
+          checkoutUrl: payment._links.checkout?.href || payment._links.dashboard?.href,
           status: payment.status,
         }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'get-methods': {
+        // Get available payment methods
+        const response = await fetch(`${MOLLIE_API_URL}/methods?include=issuers`, {
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+          },
+        });
+
+        if (!response.ok) {
+          return new Response(JSON.stringify({ error: 'Failed to fetch methods' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const data = await response.json();
+        const methods = data._embedded?.methods?.map((m: any) => ({
+          id: m.id,
+          description: m.description,
+          image: m.image?.svg,
+          issuers: m.issuers?._embedded?.issuers || [],
+        })) || [];
+
+        return new Response(JSON.stringify({ methods }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'create-ideal-payment': {
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { amount, description, redirectUrl, webhookUrl, metadata, issuer } = body;
+
+        if (!amount || !description || !redirectUrl) {
+          return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        console.log(`Creating iDEAL payment for user ${user.id}: €${amount}`);
+
+        const paymentBody: Record<string, unknown> = {
+          amount: {
+            currency: 'EUR',
+            value: amount.toFixed(2),
+          },
+          description,
+          redirectUrl,
+          webhookUrl: webhookUrl || `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+          method: 'ideal',
+          metadata: {
+            ...metadata,
+            user_id: user.id,
+          },
+        };
+
+        // Add specific bank issuer if selected
+        if (issuer) {
+          paymentBody.issuer = issuer;
+        }
+
+        const response = await fetch(`${MOLLIE_API_URL}/payments`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentBody),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Mollie API error:', response.status, errorText);
+          return new Response(JSON.stringify({ error: 'Failed to create iDEAL payment' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const payment = await response.json();
+        console.log(`iDEAL payment created: ${payment.id}`);
+
+        return new Response(JSON.stringify({
+          id: payment.id,
+          checkoutUrl: payment._links.checkout?.href,
+          status: payment.status,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'get-ideal-issuers': {
+        // Get iDEAL bank issuers
+        const response = await fetch(`${MOLLIE_API_URL}/methods/ideal?include=issuers`, {
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+          },
+        });
+
+        if (!response.ok) {
+          return new Response(JSON.stringify({ error: 'Failed to fetch iDEAL issuers' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const data = await response.json();
+        const issuers = data.issuers?._embedded?.issuers?.map((i: any) => ({
+          id: i.id,
+          name: i.name,
+          image: i.image?.svg,
+        })) || [];
+
+        return new Response(JSON.stringify({ issuers }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'get-subscription': {
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Get subscription from database
+        const { data: subscription } = await supabase
+          .from('subscriptions')
+          .select('*')
+          .eq('owner_id', user.id)
+          .single();
+
+        return new Response(JSON.stringify({ subscription: subscription || null }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
