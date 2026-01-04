@@ -8,10 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Clock, Globe, Shield, Download, Trash2, Sparkles, 
-  Info, Lock, Database, FileText 
+import {
+  Clock, Globe, Shield, Download, Trash2, Sparkles,
+  Info, Lock, Database, FileText
 } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 
 const timezones = [
@@ -30,15 +31,26 @@ const digestTimes = [
 ];
 
 export default function SettingsPage() {
+  const { toast } = useToast();
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
   const [digestTime, setDigestTime] = useState('09:00');
   const [privacyMode, setPrivacyMode] = useState(false);
   const { consent, updateConsent } = useConsent();
 
-  const handleAIToggle = (enabled: boolean) => {
-    updateConsent.mutate({
-      accepted_ai_processing: enabled,
-    });
+  const handleAIToggle = async (enabled: boolean) => {
+    try {
+      await updateConsent.mutateAsync({
+        accepted_ai_processing: enabled,
+      });
+      toast({
+        title: enabled ? 'AI-analyse ingeschakeld' : 'AI-analyse uitgeschakeld',
+      });
+    } catch {
+      toast({
+        title: 'Kon AI-instelling niet opslaan',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -124,13 +136,14 @@ export default function SettingsPage() {
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>AI-analyse inschakelen</Label>
+                <Label htmlFor="ai-analysis">AI-analyse inschakelen</Label>
                 <p className="text-sm text-muted-foreground">
                   AI analyseert geanonimiseerde statistieken voor tips
                 </p>
               </div>
-              <Switch 
-                checked={consent?.accepted_ai_processing ?? false} 
+              <Switch
+                id="ai-analysis"
+                checked={consent?.accepted_ai_processing ?? false}
                 onCheckedChange={handleAIToggle}
                 disabled={updateConsent.isPending}
               />
