@@ -151,9 +151,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
   const handleDateChange = async (newDate: string) => {
     setMealDate(newDate);
-    onDateChange?.(newDate);
-    
-    // Get or create the day for the new date
+    // Don't call onDateChange here - it would reset the parent and lose our data
+    // Only update the dayId for the selected date
     try {
       const dayId = await getOrCreateDayId(newDate);
       setCurrentDayId(dayId);
