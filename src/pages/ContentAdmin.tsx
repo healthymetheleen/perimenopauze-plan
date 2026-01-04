@@ -12,6 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { LoadingState } from '@/components/ui/loading-state';
+import { sanitizeImageUrl } from '@/lib/sanitize';
 import { 
   Plus, Pencil, Trash2, Moon, Wind, Sun, Leaf, 
   Dumbbell, Image, Upload, Sparkles
@@ -207,8 +208,8 @@ function MeditationFormDialog({
               </Button>
             </label>
           </div>
-          {formData.image_url && (
-            <img src={formData.image_url} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
+          {sanitizeImageUrl(formData.image_url) && (
+            <img src={sanitizeImageUrl(formData.image_url)} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
           )}
         </div>
         
@@ -430,8 +431,8 @@ function ExerciseFormDialog({
               </Button>
             </label>
           </div>
-          {formData.image_url && (
-            <img src={formData.image_url} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
+          {sanitizeImageUrl(formData.image_url) && (
+            <img src={sanitizeImageUrl(formData.image_url)} alt="Preview" className="w-full h-32 object-cover rounded-lg mt-2" />
           )}
         </div>
         

@@ -1,7 +1,7 @@
 import { cn } from '@/lib/utils';
 
 interface ScoreBadgeProps {
-  score: number;
+  score: number | null | undefined;
   size?: 'sm' | 'md' | 'lg';
   showLabel?: boolean;
   className?: string;
@@ -13,6 +13,11 @@ export function ScoreBadge({
   showLabel = false,
   className 
 }: ScoreBadgeProps) {
+  // Handle null/undefined score
+  if (score === null || score === undefined) {
+    return null;
+  }
+
   const getScoreColor = (score: number) => {
     if (score >= 7) return 'bg-score-high text-accent-foreground';
     if (score >= 4) return 'bg-score-medium text-warning-foreground';
