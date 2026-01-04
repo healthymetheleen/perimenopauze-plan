@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useConsent, CONSENT_VERSION, PRIVACY_POLICY_VERSION, TERMS_VERSION } from '@/hooks/useConsent';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { LoadingPage } from '@/components/ui/loading-state';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, FileText, AlertTriangle, Heart, Loader2, Sparkles, Info } from 'lucide-react';
+import { Shield, FileText, AlertTriangle, Heart, Loader2, Sparkles, Info, ExternalLink } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ConsentItem {
@@ -16,6 +16,7 @@ interface ConsentItem {
   title: string;
   description: string;
   required: boolean;
+  linkTo?: string;
 }
 
 const consentItems: ConsentItem[] = [
@@ -25,6 +26,7 @@ const consentItems: ConsentItem[] = [
     title: 'Privacybeleid',
     description: 'Je gegevens worden veilig opgeslagen in de EU en nooit verkocht aan derden.',
     required: true,
+    linkTo: '/privacy',
   },
   {
     key: 'accepted_terms',
@@ -32,6 +34,7 @@ const consentItems: ConsentItem[] = [
     title: 'Algemene voorwaarden',
     description: 'Je gaat akkoord met de gebruiksvoorwaarden van Perimenopauze Plan.',
     required: true,
+    linkTo: '/terms',
   },
   {
     key: 'accepted_disclaimer',
@@ -39,6 +42,7 @@ const consentItems: ConsentItem[] = [
     title: 'Medische disclaimer',
     description: 'Deze app vervangt geen medisch advies. Raadpleeg altijd een zorgverlener voor medische vragen.',
     required: true,
+    linkTo: '/intended-use',
   },
   {
     key: 'accepted_health_data_processing',
@@ -153,6 +157,16 @@ export default function ConsentPage() {
                   {item.required && <span className="text-destructive">*</span>}
                   {!item.required && (
                     <span className="text-xs text-muted-foreground">(optioneel)</span>
+                  )}
+                  {item.linkTo && (
+                    <Link 
+                      to={item.linkTo} 
+                      target="_blank" 
+                      className="text-primary hover:text-primary/80"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </Link>
                   )}
                 </Label>
                 <p className="text-sm text-muted-foreground mt-1">{item.description}</p>
