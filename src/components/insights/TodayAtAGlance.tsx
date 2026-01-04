@@ -20,31 +20,31 @@ const seasonIcons: Record<string, React.ReactNode> = {
   onbekend: <Sparkles className="h-5 w-5" />,
 };
 
-// Subtiele gradient achtergronden per seizoen
+// Subtiele gradient achtergronden per seizoen (via design tokens in index.css)
 const seasonGradients: Record<string, string> = {
-  winter: 'bg-gradient-to-br from-blue-100/80 via-slate-50 to-blue-50/60 dark:from-blue-950/50 dark:via-slate-900/40 dark:to-blue-900/30',
-  lente: 'bg-gradient-to-br from-green-100/80 via-emerald-50/60 to-teal-50/50 dark:from-green-950/50 dark:via-emerald-900/40 dark:to-teal-900/30',
-  zomer: 'bg-gradient-to-br from-amber-100/80 via-yellow-50/60 to-orange-50/50 dark:from-amber-950/50 dark:via-yellow-900/40 dark:to-orange-900/30',
-  herfst: 'bg-gradient-to-br from-orange-100/80 via-amber-50/60 to-rose-50/50 dark:from-orange-950/50 dark:via-amber-900/40 dark:to-rose-900/30',
-  onbekend: 'bg-gradient-to-br from-gray-100/80 via-slate-50 to-gray-50/60 dark:from-gray-950/50 dark:via-slate-900/40 dark:to-gray-900/30',
+  winter: 'season-surface-winter',
+  lente: 'season-surface-lente',
+  zomer: 'season-surface-zomer',
+  herfst: 'season-surface-herfst',
+  onbekend: 'season-surface-onbekend',
 };
 
-// Subtiele header kleuren
+// Subtiele header kleuren (via design tokens in index.css)
 const seasonHeaderColors: Record<string, string> = {
-  winter: 'bg-gradient-to-r from-blue-500/90 to-blue-600/90',
-  lente: 'bg-gradient-to-r from-green-500/90 to-emerald-600/90',
-  zomer: 'bg-gradient-to-r from-amber-500/90 to-orange-500/90',
-  herfst: 'bg-gradient-to-r from-orange-500/90 to-rose-500/90',
-  onbekend: 'bg-gradient-to-r from-gray-500/90 to-slate-600/90',
+  winter: 'season-header-winter',
+  lente: 'season-header-lente',
+  zomer: 'season-header-zomer',
+  herfst: 'season-header-herfst',
+  onbekend: 'season-header-onbekend',
 };
 
-// Tekst kleuren per seizoen
+// Tekst kleuren per seizoen (via design tokens in index.css)
 const seasonTextColors: Record<string, string> = {
-  winter: 'text-blue-700 dark:text-blue-300',
-  lente: 'text-green-700 dark:text-green-300',
-  zomer: 'text-amber-700 dark:text-amber-300',
-  herfst: 'text-orange-700 dark:text-orange-300',
-  onbekend: 'text-gray-700 dark:text-gray-300',
+  winter: 'season-text-winter',
+  lente: 'season-text-lente',
+  zomer: 'season-text-zomer',
+  herfst: 'season-text-herfst',
+  onbekend: 'season-text-onbekend',
 };
 
 // Beweging tips per seizoen
@@ -116,10 +116,10 @@ export function TodayAtAGlance() {
                 {seasonIcons[currentSeason]}
               </div>
               <div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <h2 className="text-lg font-bold">{seasonLabels[currentSeason]}</h2>
                   {isFertileToday && (
-                    <Badge className="bg-white/25 text-white border-0 text-xs">
+                    <Badge className="bg-white/25 text-white border-0 text-xs px-2 py-0.5">
                       <Heart className="h-3 w-3 mr-1" />
                       Vruchtbaar
                     </Badge>
