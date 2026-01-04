@@ -40,6 +40,7 @@ const navItems: NavItem[] = [
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
+  { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" /> },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
 ];
