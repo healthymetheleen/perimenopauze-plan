@@ -391,9 +391,15 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       
       console.log('Saving meal with dayId:', dayIdToUse, 'date:', mealDate);
       
+      const safeUltraProcessedLevel =
+        typeof editableAnalysis.ultra_processed_level === 'number'
+          ? Math.min(3, Math.max(0, editableAnalysis.ultra_processed_level))
+          : null;
+
       const qualityFlags = {
         ai_description: editableAnalysis.description,
         ai_confidence: editableAnalysis.confidence,
+        ai_ultra_processed_level_raw: editableAnalysis.ultra_processed_level ?? null,
         items: editableAnalysis.items || [],
         has_protein: editableAnalysis.quality_flags?.has_protein ?? false,
         has_fiber: editableAnalysis.quality_flags?.has_fiber ?? false,
@@ -401,22 +407,24 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
         is_ultra_processed: editableAnalysis.quality_flags?.is_ultra_processed ?? false,
         is_late_meal: editableAnalysis.quality_flags?.is_late_meal ?? false,
       };
-      
+
       const { error } = await supabase
         .from('meals')
-        .insert([{
-          owner_id: user.id,
-          day_id: dayIdToUse,
-          time_local: time,
-          kcal: editableAnalysis.kcal,
-          protein_g: editableAnalysis.protein_g,
-          carbs_g: editableAnalysis.carbs_g,
-          fat_g: editableAnalysis.fat_g,
-          fiber_g: editableAnalysis.fiber_g,
-          ultra_processed_level: editableAnalysis.ultra_processed_level ?? null,
-          source: 'ai',
-          quality_flags: qualityFlags as unknown as Json,
-        }]);
+        .insert([
+          {
+            owner_id: user.id,
+            day_id: dayIdToUse,
+            time_local: time,
+            kcal: editableAnalysis.kcal,
+            protein_g: editableAnalysis.protein_g,
+            carbs_g: editableAnalysis.carbs_g,
+            fat_g: editableAnalysis.fat_g,
+            fiber_g: editableAnalysis.fiber_g,
+            ultra_processed_level: safeUltraProcessedLevel,
+            source: 'ai',
+            quality_flags: qualityFlags as unknown as Json,
+          },
+        ]);
       
       if (error) {
         console.error('Error saving meal:', error);

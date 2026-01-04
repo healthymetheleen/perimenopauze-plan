@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction, seasonLabels, seasonColors } from '@/hooks/useCycle';
 
 interface Meditation {
   id: string;
@@ -136,6 +136,7 @@ export default function MeditationPage() {
   const [isPlaying, setIsPlaying] = useState(false);
   
   const currentSeason = prediction?.current_season || 'lente';
+  const colors = seasonColors[currentSeason] ?? seasonColors.onbekend;
   
   // Get recommended meditation based on cycle
   const cycleRecommendation = meditations.find(m => {
@@ -162,14 +163,14 @@ export default function MeditationPage() {
 
         {/* Cycle-based recommendation */}
         {cycleRecommendation && (
-          <Card className={`glass-strong rounded-2xl overflow-hidden season-${currentSeason}`}>
+          <Card className={`glass-strong rounded-2xl overflow-hidden ${colors.bg}`}>
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-card/50">
+                <div className={`p-3 rounded-full ${colors.accent} text-white`}>
                   <Sparkles className="h-5 w-5" />
                 </div>
                 <div className="flex-1">
-                  <Badge variant="secondary" className="mb-2">
+                  <Badge variant="secondary" className={`mb-2 text-white ${colors.accent}`}>
                     Aanbevolen voor {seasonLabels[currentSeason]}
                   </Badge>
                   <h2 className="font-semibold text-lg">{cycleRecommendation.title}</h2>

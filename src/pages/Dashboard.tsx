@@ -101,18 +101,6 @@ export default function DashboardPage() {
       end: parseISO(prediction.fertile_window_end),
     });
 
-  // Get season-based background class
-  const getSeasonBackgroundClass = () => {
-    if (!showSeasonBadge) return 'bg-gradient-subtle';
-    switch (currentSeason) {
-      case 'winter': return 'bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50 dark:from-blue-950/30 dark:via-slate-950/30 dark:to-indigo-950/30';
-      case 'lente': return 'bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-lime-950/30';
-      case 'zomer': return 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/30 dark:to-orange-950/30';
-      case 'herfst': return 'bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-red-950/30';
-      default: return 'bg-gradient-subtle';
-    }
-  };
-
   // Calculate current sleep duration if sleeping
   const currentSleepDuration = activeSession
     ? differenceInMinutes(new Date(), new Date(activeSession.sleep_start))
@@ -154,7 +142,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
+      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
         {/* Header with date and action buttons */}
         <div className="flex items-center justify-between">
           <div>
