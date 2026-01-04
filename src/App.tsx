@@ -35,6 +35,7 @@ import Terms from "./pages/Terms";
 import IntendedUse from "./pages/IntendedUse";
 import MonthlyAnalysisPage from "./pages/MonthlyAnalysis";
 import SubscriptionPage from "./pages/Subscription";
+import NutritionAdminPage from "./pages/NutritionAdmin";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -213,6 +214,11 @@ function AppRoutes() {
       <Route path="/subscription" element={
         <ProtectedRoute>
           <SubscriptionPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/voeding-beheer" element={
+        <ProtectedRoute>
+          <NutritionAdminPage />
         </ProtectedRoute>
       } />
       

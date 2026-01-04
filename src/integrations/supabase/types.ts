@@ -770,6 +770,51 @@ export type Database = {
         }
         Relationships: []
       }
+      nutrition_settings: {
+        Row: {
+          created_at: string
+          diet_vision: string | null
+          id: string
+          important_points: Json | null
+          less_important_points: Json | null
+          no_go_items: Json | null
+          target_carbs_g: number | null
+          target_fat_g: number | null
+          target_fiber_g: number | null
+          target_kcal: number | null
+          target_protein_g: number | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          diet_vision?: string | null
+          id?: string
+          important_points?: Json | null
+          less_important_points?: Json | null
+          no_go_items?: Json | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_fiber_g?: number | null
+          target_kcal?: number | null
+          target_protein_g?: number | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          diet_vision?: string | null
+          id?: string
+          important_points?: Json | null
+          less_important_points?: Json | null
+          no_go_items?: Json | null
+          target_carbs_g?: number | null
+          target_fat_g?: number | null
+          target_fiber_g?: number | null
+          target_kcal?: number | null
+          target_protein_g?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
