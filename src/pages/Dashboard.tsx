@@ -144,72 +144,26 @@ export default function DashboardPage() {
           </Button>
         </div>
 
-        {/* Sleep Quick Action + Season Badge */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {/* Sleep Start/Stop Widget */}
-          {activeSession ? (
-            <Link to="/slaap">
-              <Card className="glass rounded-2xl overflow-hidden bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30 border-indigo-200 dark:border-indigo-800">
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
-                    <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
-                    <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
-                      {currentSleepHours}u {currentSleepMins}m
-                    </p>
-                  </div>
-                  <Badge variant="secondary" className="bg-indigo-200 text-indigo-800">
-                    Tap om te stoppen
-                  </Badge>
-                </CardContent>
-              </Card>
-            </Link>
-          ) : (
-            <Card className="glass rounded-2xl overflow-hidden">
+        {/* Season Badge - Always visible if onboarding completed */}
+        {showSeasonBadge && (
+          <Link to="/cycle">
+            <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
               <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                  <Moon className="h-5 w-5 text-indigo-600" />
+                <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
+                  {seasonIcons[currentSeason]}
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Slaap</p>
-                  <p className="font-medium">Klaar om te slapen?</p>
+                  <p className="text-sm text-muted-foreground">Huidige fase</p>
+                  <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
+                  {currentPhase !== 'unknown' && (
+                    <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
+                  )}
                 </div>
-                <Button 
-                  size="sm" 
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                  onClick={handleStartSleep}
-                  disabled={startSleep.isPending}
-                >
-                  <Moon className="h-4 w-4 mr-1" />
-                  Start
-                </Button>
+                <ArrowRight className="h-5 w-5 text-muted-foreground" />
               </CardContent>
             </Card>
-          )}
-
-          {/* Season Badge Card */}
-          {showSeasonBadge && (
-            <Link to="/cycle">
-              <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
-                <CardContent className="p-4 flex items-center gap-4">
-                  <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
-                    {seasonIcons[currentSeason]}
-                  </div>
-                  <div className="flex-1">
-                    <p className="text-sm text-muted-foreground">Huidige fase</p>
-                    <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
-                    {currentPhase !== 'unknown' && (
-                      <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
-                    )}
-                  </div>
-                  <ArrowRight className="h-5 w-5 text-muted-foreground" />
-                </CardContent>
-              </Card>
-            </Link>
-          )}
-        </div>
+          </Link>
+        )}
 
         {/* Scores Grid */}
         <div className="grid grid-cols-2 gap-4">
@@ -352,6 +306,47 @@ export default function DashboardPage() {
           cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
         />
 
+        {/* Sleep Quick Action */}
+        <Card className="glass rounded-2xl overflow-hidden">
+          {activeSession ? (
+            <Link to="/slaap">
+              <CardContent className="p-4 flex items-center gap-4 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30">
+                <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
+                  <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
+                  <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
+                    {currentSleepHours}u {currentSleepMins}m
+                  </p>
+                </div>
+                <Badge variant="secondary" className="bg-indigo-200 text-indigo-800">
+                  Tap om te stoppen
+                </Badge>
+              </CardContent>
+            </Link>
+          ) : (
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                <Moon className="h-5 w-5 text-indigo-600" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-muted-foreground">Slaap</p>
+                <p className="font-medium">Klaar om te slapen?</p>
+              </div>
+              <Button 
+                size="sm" 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={handleStartSleep}
+                disabled={startSleep.isPending}
+              >
+                <Moon className="h-4 w-4 mr-1" />
+                Start slaap
+              </Button>
+            </CardContent>
+          )}
+        </Card>
+
         {/* Quick actions */}
         <div className="grid grid-cols-2 gap-4">
           <Card className="glass rounded-2xl hover:shadow-soft transition-all">
@@ -365,11 +360,6 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 Bekijk je voortgang over tijd
               </p>
-              {!entitlements?.can_use_trends && (
-                <Badge variant="secondary" className="mt-2">
-                  Premium
-                </Badge>
-              )}
             </Link>
           </Card>
 
@@ -384,11 +374,6 @@ export default function DashboardPage() {
               <p className="text-sm text-muted-foreground">
                 Ontdek verbanden
               </p>
-              {!entitlements?.can_use_patterns && (
-                <Badge variant="secondary" className="mt-2">
-                  Premium
-                </Badge>
-              )}
             </Link>
           </Card>
         </div>

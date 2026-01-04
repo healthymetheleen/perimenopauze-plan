@@ -38,11 +38,12 @@ export function useEntitlements() {
 
 export function useFeatureAccess(feature: 'trends' | 'patterns' | 'export') {
   const { data: entitlements, isLoading } = useEntitlements();
+  // Trends and Patterns are now free for everyone during beta
   const hasAccess = (() => {
-    if (!entitlements) return false;
+    if (!entitlements) return true; // Default to true for free access
     switch (feature) {
-      case 'trends': return entitlements.can_use_trends;
-      case 'patterns': return entitlements.can_use_patterns;
+      case 'trends': return true; // Free during beta
+      case 'patterns': return true; // Free during beta
       case 'export': return entitlements.can_use_trends;
       default: return false;
     }
