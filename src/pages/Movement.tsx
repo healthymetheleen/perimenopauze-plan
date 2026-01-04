@@ -20,7 +20,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors } from '@/hooks/useCycle';
 import { 
   phaseWorkouts, 
   getWorkoutForSeason, 
@@ -113,6 +113,7 @@ export default function MovementPage() {
   const [prefsDialogOpen, setPrefsDialogOpen] = useState(false);
 
   const currentSeason = prediction?.current_season || 'lente';
+  const colors = seasonColors[currentSeason] ?? seasonColors.onbekend;
   const currentWorkout = getWorkoutForSeason(currentSeason);
   const weeklySchedule = generatePersonalizedSchedule(currentSeason, trainingPrefs);
   
@@ -206,19 +207,22 @@ export default function MovementPage() {
 
         {/* Current Phase Summary */}
         {currentWorkout && (
-          <Card className={`glass-strong rounded-2xl overflow-hidden season-${currentSeason}`}>
+          <Card className={`glass-strong rounded-2xl overflow-hidden ${colors.bg}`}>
             <CardContent className="p-5">
               <div className="flex items-start gap-4">
-                <div className="p-3 rounded-full bg-card/50">
+                <div className={`p-3 rounded-full ${colors.accent} text-white`}>
                   {seasonIcons[currentSeason]}
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
-                    <h2 className="font-semibold text-lg">{currentWorkout.phaseDutch}</h2>
+                    <Badge variant="secondary" className={`text-white ${colors.accent}`}>
+                      {seasonLabels[currentSeason]}
+                    </Badge>
                     <Badge className={intensityColors[currentWorkout.intensity]}>
                       {intensityLabels[currentWorkout.intensity]}
                     </Badge>
                   </div>
+                  <h2 className={`font-semibold text-lg ${colors.text}`}>{currentWorkout.phaseDutch}</h2>
                   <p className="text-sm text-muted-foreground mb-3">
                     {currentWorkout.description}
                   </p>
