@@ -260,6 +260,18 @@ async function trackUsage(supabase: any, userId: string, functionName: string) {
   }
 }
 
+// Helper: Generate hash of input data
+function hashData(data: object): string {
+  const str = JSON.stringify(data);
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) {
+    const char = str.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return hash.toString(16);
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -273,7 +285,7 @@ serve(async (req) => {
     }
     const { user, supabase } = authResult;
 
-    const { type, data, hasAIConsent } = await req.json();
+    const { type, data, hasAIConsent, forceRefresh } = await req.json();
 
     // CONSENT CHECK - verify consent server-side
     const { data: consent } = await supabase
@@ -290,6 +302,31 @@ serve(async (req) => {
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
+    }
+
+    const today = new Date().toISOString().split('T')[0];
+    const inputHash = hashData(data);
+
+    // CHECK CACHE FIRST - insights are cached for 1 day
+    if (!forceRefresh) {
+      const { data: cachedInsight } = await supabase
+        .from('ai_insights_cache')
+        .select('insight_data, input_hash')
+        .eq('owner_id', user.id)
+        .eq('insight_type', type)
+        .eq('insight_date', today)
+        .single();
+
+      // Return cached if exists and input hasn't changed significantly
+      if (cachedInsight && cachedInsight.input_hash === inputHash) {
+        console.log(`Returning cached ${type} insight for user ${user.id}`);
+        return new Response(JSON.stringify({
+          ...cachedInsight.insight_data,
+          cached: true
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
     }
 
     // Use OpenAI API key from Supabase secrets
@@ -413,6 +450,25 @@ Geef een cyclus-lens inzicht.`;
 
     // Add disclaimer
     result.disclaimer = 'Deze inzichten zijn informatief en geen medisch advies.';
+
+    // CACHE THE RESULT - upsert to handle existing entries
+    const { error: cacheError } = await supabase
+      .from('ai_insights_cache')
+      .upsert({
+        owner_id: user.id,
+        insight_type: type,
+        insight_date: today,
+        insight_data: result,
+        input_hash: inputHash,
+      }, {
+        onConflict: 'owner_id,insight_type,insight_date'
+      });
+
+    if (cacheError) {
+      console.error('Failed to cache insight:', cacheError);
+    } else {
+      console.log(`Cached ${type} insight for user ${user.id}`);
+    }
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
