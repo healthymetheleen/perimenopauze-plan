@@ -200,10 +200,10 @@ serve(async (req) => {
       }
     }
     
-    // Use Lovable AI Gateway
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    // Use OpenAI API key from Supabase secrets
+    const openAIKey = Deno.env.get('ChatGPT');
+    if (!openAIKey) {
+      console.error('OpenAI API key not configured');
       throw new Error('AI service is niet geconfigureerd');
     }
 
@@ -239,26 +239,27 @@ serve(async (req) => {
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'analyze-meal');
 
-    console.log('Sending meal data to Lovable AI for analysis (user:', user.id, ')');
+    console.log('Sending meal data to OpenAI for analysis (user:', user.id, ')');
     
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${openAIKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: foodParsingPrompt },
           { role: 'user', content: userContent }
         ],
+        max_tokens: 1000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -270,23 +271,13 @@ serve(async (req) => {
         });
       }
       
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'payment_required',
-          message: 'AI-credits zijn op.' 
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      throw new Error(`AI error: ${response.status}`);
+      throw new Error(`OpenAI error: ${response.status}`);
     }
 
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('AI meal analysis received');
+    console.log('OpenAI meal analysis received');
 
     let analysis;
     try {

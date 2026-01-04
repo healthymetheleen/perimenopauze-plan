@@ -267,9 +267,10 @@ serve(async (req) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    // Use OpenAI API key from Supabase secrets
+    const openAIKey = Deno.env.get('ChatGPT');
+    if (!openAIKey) {
+      console.error('OpenAI API key not configured');
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
         ...getDefaultResponse(type)
@@ -320,26 +321,27 @@ Geef een cyclus-lens inzicht.`;
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, `premium-insights-${type}`);
 
-    console.log(`Generating ${type} insight with Lovable AI (user: ${user.id})`);
+    console.log(`Generating ${type} insight with OpenAI (user: ${user.id})`);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${openAIKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPromptForType },
           { role: 'user', content: context }
         ],
+        max_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -352,24 +354,13 @@ Geef een cyclus-lens inzicht.`;
         });
       }
       
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'payment_required',
-          message: 'AI-credits zijn op.',
-          ...getDefaultResponse(type)
-        }), {
-          status: 402,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      throw new Error(`AI error: ${response.status}`);
+      throw new Error(`OpenAI error: ${response.status}`);
     }
 
     const aiResponse = await response.json();
     const content = aiResponse.choices?.[0]?.message?.content;
     
-    console.log(`${type} insight generated successfully`);
+    console.log(`${type} insight generated successfully via OpenAI`);
 
     let result;
     try {
