@@ -25,7 +25,7 @@ serve(async (req) => {
 
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
-    const body = req.method !== 'GET' ? await req.json() : {};
+    const body = req.method !== 'GET' ? await req.json().catch(() => ({})) : {};
 
     // Create Supabase client for auth
     const authHeader = req.headers.get('authorization');
@@ -137,6 +137,111 @@ serve(async (req) => {
         })) || [];
 
         return new Response(JSON.stringify({ methods }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'create-first-payment': {
+        // Create a "first" payment that establishes a mandate for recurring payments
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { amount, description, redirectUrl, webhookUrl, metadata, method, issuer } = body;
+
+        if (!amount || !description || !redirectUrl) {
+          return new Response(JSON.stringify({ error: 'Missing required fields' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // First, create or get customer
+        console.log(`Creating customer for first payment, user ${user.id}`);
+        
+        const customerResponse = await fetch(`${MOLLIE_API_URL}/customers`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: user.email,
+            metadata: { user_id: user.id },
+          }),
+        });
+
+        if (!customerResponse.ok) {
+          const errorText = await customerResponse.text();
+          console.error('Failed to create customer:', errorText);
+          return new Response(JSON.stringify({ error: 'Failed to create customer' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const customer = await customerResponse.json();
+        console.log(`Customer created: ${customer.id}`);
+
+        // Create first payment with sequenceType to establish mandate
+        const paymentBody: Record<string, unknown> = {
+          amount: {
+            currency: 'EUR',
+            value: amount.toFixed(2),
+          },
+          description,
+          redirectUrl,
+          webhookUrl: webhookUrl || `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+          customerId: customer.id,
+          sequenceType: 'first', // Important: establishes mandate for recurring
+          metadata: {
+            ...metadata,
+            user_id: user.id,
+            customer_id: customer.id,
+            is_first_payment: true,
+          },
+        };
+
+        // Add specific payment method if requested
+        if (method) {
+          paymentBody.method = method;
+        }
+        if (issuer) {
+          paymentBody.issuer = issuer;
+        }
+
+        console.log(`Creating first payment for recurring: €${amount}`);
+
+        const response = await fetch(`${MOLLIE_API_URL}/payments`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentBody),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('Mollie API error:', response.status, errorText);
+          return new Response(JSON.stringify({ error: 'Failed to create first payment' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const payment = await response.json();
+        console.log(`First payment created: ${payment.id}, customer: ${customer.id}`);
+
+        return new Response(JSON.stringify({
+          id: payment.id,
+          customerId: customer.id,
+          checkoutUrl: payment._links.checkout?.href,
+          status: payment.status,
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -424,30 +529,81 @@ serve(async (req) => {
 
         const payment = await response.json();
         const userId = payment.metadata?.user_id;
+        const customerId = payment.metadata?.customer_id;
+        const isFirstPayment = payment.metadata?.is_first_payment;
+        const plan = payment.metadata?.plan;
 
-        console.log(`Payment ${paymentId} status: ${payment.status}`);
+        console.log(`Payment ${paymentId} status: ${payment.status}, isFirst: ${isFirstPayment}`);
 
         // Update subscription status if payment is successful
         if (payment.status === 'paid' && userId) {
           const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
           const adminClient = createClient(supabaseUrl, serviceRoleKey);
 
-          // Update or create subscription
-          const { error } = await adminClient
-            .from('subscriptions')
-            .upsert({
-              owner_id: userId,
-              plan: payment.metadata?.plan || 'premium',
-              status: 'active',
-            }, {
-              onConflict: 'owner_id'
-            });
+          // If this is a first payment, create recurring subscription
+          if (isFirstPayment && customerId) {
+            console.log(`Creating recurring subscription for customer ${customerId}`);
+            
+            // Calculate start date (7 days from now for trial, or immediately)
+            const startDate = new Date();
+            startDate.setDate(startDate.getDate() + 7); // 7-day trial
+            
+            const subscriptionResponse = await fetch(
+              `${MOLLIE_API_URL}/customers/${customerId}/subscriptions`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${mollieApiKey}`,
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  amount: {
+                    currency: 'EUR',
+                    value: '4.50',
+                  },
+                  interval: '1 month',
+                  description: 'HormoonBalans Premium Maandelijks',
+                  startDate: startDate.toISOString().split('T')[0],
+                  webhookUrl: `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+                  metadata: {
+                    user_id: userId,
+                  },
+                }),
+              }
+            );
 
-          if (error) {
-            console.error('Failed to update subscription:', error);
+            if (subscriptionResponse.ok) {
+              const subscription = await subscriptionResponse.json();
+              console.log(`Recurring subscription created: ${subscription.id}`);
+              
+              // Store subscription ID in database
+              await adminClient
+                .from('subscriptions')
+                .upsert({
+                  owner_id: userId,
+                  plan: 'premium_monthly',
+                  status: 'active',
+                }, {
+                  onConflict: 'owner_id'
+                });
+            } else {
+              const errorText = await subscriptionResponse.text();
+              console.error('Failed to create recurring subscription:', errorText);
+            }
           } else {
-            console.log(`Subscription activated for user ${userId}`);
+            // Regular recurring payment
+            await adminClient
+              .from('subscriptions')
+              .upsert({
+                owner_id: userId,
+                plan: plan || 'premium',
+                status: 'active',
+              }, {
+                onConflict: 'owner_id'
+              });
           }
+
+          console.log(`Subscription activated for user ${userId}`);
 
           // Update entitlements
           await adminClient

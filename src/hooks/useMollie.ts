@@ -96,6 +96,22 @@ export function useCreatePayment() {
   });
 }
 
+// Create first payment for recurring (establishes mandate)
+export function useCreateFirstPayment() {
+  return useMutation({
+    mutationFn: async (params: CreateIdealPaymentParams): Promise<PaymentResponse & { customerId: string }> => {
+      const { data, error } = await supabase.functions.invoke('mollie-payments/create-first-payment', {
+        body: params,
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      return data;
+    },
+  });
+}
+
 // Create iDEAL payment specifically
 export function useCreateIdealPayment() {
   return useMutation({
