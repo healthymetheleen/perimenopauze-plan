@@ -24,6 +24,9 @@ import RecipeDetailPage from "./pages/RecipeDetail";
 import RecipeAdminPage from "./pages/RecipeAdmin";
 import SleepPage from "./pages/Sleep";
 import MovementPage from "./pages/Movement";
+import PrivacyPolicy from "./pages/PrivacyPolicy";
+import Terms from "./pages/Terms";
+import IntendedUse from "./pages/IntendedUse";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -89,6 +92,9 @@ function AppRoutes() {
       {/* Public routes */}
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/pricing" element={<PricingPage />} />
+      <Route path="/privacy" element={<PrivacyPolicy />} />
+      <Route path="/terms" element={<Terms />} />
+      <Route path="/intended-use" element={<IntendedUse />} />
       
       {/* Auth routes */}
       <Route path="/login" element={
