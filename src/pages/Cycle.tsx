@@ -285,6 +285,30 @@ export default function CyclePage() {
     }
   };
 
+  // Calculate predicted season for a given date based on cycle phase
+  const getPredictedSeason = (date: Date): string | null => {
+    if (!prediction.avg_cycle_length || !cycles?.length) return null;
+    
+    const latestCycle = cycles[0];
+    if (!latestCycle) return null;
+    
+    const cycleStart = parseISO(latestCycle.start_date);
+    const daysSinceStart = Math.floor((date.getTime() - cycleStart.getTime()) / (1000 * 60 * 60 * 24));
+    const avgCycleLength = prediction.avg_cycle_length || 28;
+    const dayInCycle = ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
+    
+    // Calculate phases based on average cycle
+    const periodLength = preferences?.avg_period_length || 5;
+    const follicularEnd = Math.floor(avgCycleLength * 0.35);
+    const ovulatoryEnd = Math.floor(avgCycleLength * 0.5);
+    const lutealEnd = avgCycleLength;
+    
+    if (dayInCycle < periodLength) return 'winter';
+    if (dayInCycle < follicularEnd) return 'lente';
+    if (dayInCycle < ovulatoryEnd) return 'zomer';
+    return 'herfst';
+  };
+
   // Generate calendar strip data - 35 days to show full cycle
   const calendarDays = Array.from({ length: 35 }, (_, i) => {
     const date = addDays(new Date(), i - 7);
@@ -315,6 +339,9 @@ export default function CyclePage() {
         start: parseISO(prediction.next_period_start_min),
         end: addDays(parseISO(prediction.next_period_start_max), 4), // Show 5 days of predicted period
       });
+    
+    // Get predicted season for future dates
+    const predictedSeason = getPredictedSeason(date);
 
     return {
       date,
@@ -324,6 +351,7 @@ export default function CyclePage() {
       isFertile,
       isOvulation,
       isPredictedPeriod: isPredictedPeriod && !bleeding, // Only show prediction if no actual bleeding logged
+      predictedSeason,
     };
   });
 
@@ -480,45 +508,73 @@ export default function CyclePage() {
             </div>
           </CardHeader>
           <CardContent className="pt-2">
+            {/* Legend for seasons */}
+            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-3 pb-2 border-b">
+              <span className="font-medium">Seizoen:</span>
+              <div className="flex items-center gap-1">
+                <Snowflake className="h-3 w-3 text-blue-500" />
+                <span>Winter</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Leaf className="h-3 w-3 text-green-500" />
+                <span>Lente</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Sun className="h-3 w-3 text-amber-500" />
+                <span>Zomer</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Wind className="h-3 w-3 text-orange-500" />
+                <span>Herfst</span>
+              </div>
+            </div>
             <div className="flex gap-1 overflow-x-auto pb-2">
-              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod }) => (
-                <button
-                  key={dateStr}
-                  onClick={() => {
-                    setSelectedDate(dateStr);
-                    setShowDayLog(true);
-                  }}
-                  className={`flex-shrink-0 w-10 p-1.5 rounded-lg text-center transition-colors ${
-                    isToday ? 'bg-primary text-primary-foreground' : 
-                    isPredictedPeriod ? 'bg-red-50 border border-dashed border-red-200' :
-                    isFertile ? 'bg-green-50' : 
-                    isOvulation ? 'bg-purple-50' : 'hover:bg-muted'
-                  }`}
-                >
-                  <div className={`text-[10px] ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                    {format(date, 'EEE', { locale: nl })}
-                  </div>
-                  <div className="text-sm font-medium">{format(date, 'd')}</div>
-                  <div className="h-2 flex justify-center gap-0.5 mt-0.5">
-                    {bleeding && (
-                      <div className={`w-1.5 h-1.5 rounded-full ${
-                        bleeding === 'hevig' ? 'bg-red-500' :
-                        bleeding === 'normaal' ? 'bg-red-400' :
-                        bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
-                      }`} />
-                    )}
-                    {isPredictedPeriod && !bleeding && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-red-200 border border-red-400" />
-                    )}
-                    {isFertile && !isOvulation && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
-                    )}
-                    {isOvulation && (
-                      <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
-                    )}
-                  </div>
-                </button>
-              ))}
+              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason }) => {
+                const seasonBorderColor = predictedSeason === 'winter' ? 'border-blue-300' :
+                  predictedSeason === 'lente' ? 'border-green-300' :
+                  predictedSeason === 'zomer' ? 'border-amber-300' :
+                  predictedSeason === 'herfst' ? 'border-orange-300' : '';
+                
+                return (
+                  <button
+                    key={dateStr}
+                    onClick={() => {
+                      setSelectedDate(dateStr);
+                      setShowDayLog(true);
+                    }}
+                    className={`flex-shrink-0 w-10 p-1.5 rounded-lg text-center transition-colors border-2 ${
+                      isToday ? 'bg-primary text-primary-foreground border-primary' : 
+                      isPredictedPeriod ? `bg-red-50 border-dashed border-red-200` :
+                      isFertile ? `bg-green-50 ${seasonBorderColor}` : 
+                      isOvulation ? `bg-purple-50 ${seasonBorderColor}` : 
+                      `hover:bg-muted ${seasonBorderColor}`
+                    }`}
+                  >
+                    <div className={`text-[10px] ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
+                      {format(date, 'EEE', { locale: nl })}
+                    </div>
+                    <div className="text-sm font-medium">{format(date, 'd')}</div>
+                    <div className="h-2 flex justify-center gap-0.5 mt-0.5">
+                      {bleeding && (
+                        <div className={`w-1.5 h-1.5 rounded-full ${
+                          bleeding === 'hevig' ? 'bg-red-500' :
+                          bleeding === 'normaal' ? 'bg-red-400' :
+                          bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
+                        }`} />
+                      )}
+                      {isPredictedPeriod && !bleeding && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-red-200 border border-red-400" />
+                      )}
+                      {isFertile && !isOvulation && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
+                      )}
+                      {isOvulation && (
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
             </div>
           </CardContent>
         </Card>

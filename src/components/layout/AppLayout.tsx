@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   Home,
@@ -21,6 +21,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Footer } from './Footer';
 
 interface NavItem {
@@ -28,9 +29,10 @@ interface NavItem {
   label: string;
   icon: ReactNode;
   premium?: boolean;
+  adminOnly?: boolean;
 }
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
   { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
@@ -40,7 +42,7 @@ const navItems: NavItem[] = [
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
-  { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" /> },
+  { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
 ];
@@ -53,9 +55,15 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const { signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
+  const { data: isAdmin } = useIsAdmin();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isPremium = entitlements?.plan === 'premium' || entitlements?.plan === 'starter';
+
+  // Filter nav items based on admin status
+  const navItems = useMemo(() => {
+    return baseNavItems.filter(item => !item.adminOnly || isAdmin);
+  }, [isAdmin]);
 
   return (
     <div className="min-h-screen bg-background flex flex-col">

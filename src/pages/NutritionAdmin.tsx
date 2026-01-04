@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { useToast } from '@/hooks/use-toast';
 import { useNutritionSettings, useUpdateNutritionSettings } from '@/hooks/useNutritionSettings';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { 
   Target, 
   AlertTriangle, 
@@ -17,12 +19,12 @@ import {
   Plus, 
   X, 
   Save,
-  Utensils,
   FileText
 } from 'lucide-react';
 
 export default function NutritionAdminPage() {
   const { toast } = useToast();
+  const { data: isAdmin, isLoading: adminLoading } = useIsAdmin();
   const { data: settings, isLoading } = useNutritionSettings();
   const updateSettings = useUpdateNutritionSettings();
 
@@ -92,7 +94,12 @@ export default function NutritionAdminPage() {
     setList(list.filter(i => i !== item));
   };
 
-  if (isLoading) {
+  // Redirect non-admins
+  if (!adminLoading && !isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  if (isLoading || adminLoading) {
     return (
       <AppLayout>
         <LoadingState message="Instellingen laden..." />
