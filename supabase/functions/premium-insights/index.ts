@@ -354,7 +354,18 @@ Geef een cyclus-lens inzicht.`;
         });
       }
       
-      throw new Error(`OpenAI error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'service_unavailable',
+          message: 'De AI-service is tijdelijk niet beschikbaar.',
+          ...getDefaultResponse(type)
+        }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error('AI service unavailable');
     }
 
     const aiResponse = await response.json();
@@ -384,8 +395,11 @@ Geef een cyclus-lens inzicht.`;
 
   } catch (error) {
     console.error('Error in premium-insights:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
+    // Return generic error message to client, never expose internal details
+    return new Response(JSON.stringify({ 
+      error: 'service_error',
+      message: 'Er ging iets mis bij het genereren van inzichten. Probeer het later opnieuw.' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

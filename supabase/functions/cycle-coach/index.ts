@@ -309,13 +309,26 @@ Verwijs bij twijfel naar een zorgverlener.`;
       console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(JSON.stringify({ error: 'Te veel verzoeken. Probeer het later opnieuw.' }), {
+        return new Response(JSON.stringify({ 
+          error: 'rate_limit',
+          message: 'Te veel verzoeken. Probeer het later opnieuw.' 
+        }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
       
-      throw new Error(`OpenAI error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'service_unavailable',
+          message: 'De AI-service is tijdelijk niet beschikbaar.' 
+        }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error('AI service unavailable');
     }
 
     const data = await response.json();
@@ -359,8 +372,11 @@ Verwijs bij twijfel naar een zorgverlener.`;
 
   } catch (error) {
     console.error('Error in cycle-coach:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
+    // Return generic error message to client, never expose internal details
+    return new Response(JSON.stringify({ 
+      error: 'service_error',
+      message: 'Er ging iets mis. Probeer het later opnieuw.' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });

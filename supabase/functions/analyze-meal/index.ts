@@ -271,7 +271,17 @@ serve(async (req) => {
         });
       }
       
-      throw new Error(`OpenAI error: ${response.status}`);
+      if (response.status === 402) {
+        return new Response(JSON.stringify({ 
+          error: 'service_unavailable',
+          message: 'De AI-service is tijdelijk niet beschikbaar.' 
+        }), {
+          status: 503,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+      
+      throw new Error('AI service unavailable');
     }
 
     const data = await response.json();
@@ -341,8 +351,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in analyze-meal:', error);
-    const message = error instanceof Error ? error.message : 'Unknown error';
-    return new Response(JSON.stringify({ error: message }), {
+    // Return generic error message to client, never expose internal details
+    return new Response(JSON.stringify({ 
+      error: 'service_error',
+      message: 'Er ging iets mis bij de analyse. Probeer het later opnieuw.' 
+    }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
