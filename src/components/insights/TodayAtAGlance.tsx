@@ -2,7 +2,7 @@ import { format, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   Sparkles, Utensils, Dumbbell, Heart, AlertCircle,
-  Snowflake, Leaf, Sun, Wind, ChevronRight
+  Snowflake, Leaf, Sun, Wind, ChevronRight, Check, X, Pill
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLatestPrediction, seasonLabels, useCyclePreferences, phaseLabels } from '@/hooks/useCycle';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useNutritionCoach } from '@/hooks/useNutritionCoach';
+import { useDailyAnalysis } from '@/hooks/useDailyAnalysis';
 import { getWorkoutForSeason } from '@/hooks/useMovement';
 
 const seasonIcons: Record<string, React.ReactNode> = {
@@ -78,6 +79,7 @@ export function TodayAtAGlance() {
   const { data: preferences } = useCyclePreferences();
   const { data: scores } = useDailyScores(2);
   const { data: coaching } = useNutritionCoach();
+  const { data: dailyAnalysis } = useDailyAnalysis();
   
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayScore = scores?.find(s => s.day_date === today);
@@ -144,8 +146,74 @@ export function TodayAtAGlance() {
           </div>
         )}
 
-        {/* AI Coaching section */}
-        {coachingTips.length > 0 && (
+        {/* Yesterday's Analysis - Orthomolecular advice */}
+        {dailyAnalysis?.hasYesterdayData && (
+          <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
+            <div className="flex items-start gap-2 mb-2">
+              <Pill className={`h-4 w-4 ${seasonTextColors[currentSeason]} mt-0.5`} />
+              <span className="text-sm font-semibold text-foreground">Gisteren & Advies</span>
+            </div>
+            
+            {dailyAnalysis.yesterdaySummary && (
+              <p className="text-xs text-muted-foreground mb-2">{dailyAnalysis.yesterdaySummary}</p>
+            )}
+
+            {/* Highlights */}
+            {dailyAnalysis.highlights.length > 0 && (
+              <div className="space-y-1 mb-2">
+                {dailyAnalysis.highlights.map((h, i) => (
+                  <div key={i} className="flex items-center gap-1.5 text-xs text-success-foreground">
+                    <Check className="h-3 w-3" />
+                    <span>{h.replace('✓ ', '')}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Improvements */}
+            {dailyAnalysis.improvements.length > 0 && (
+              <div className="space-y-1 mb-3">
+                {dailyAnalysis.improvements.slice(0, 2).map((imp, i) => (
+                  <div key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
+                    <X className="h-3 w-3 text-destructive mt-0.5" />
+                    <span>{imp}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Orthomolecular tips */}
+            {dailyAnalysis.orthomolecular && currentSeason !== 'onbekend' && (
+              <div className="pt-2 border-t border-border/20">
+                <p className="text-xs font-medium text-foreground mb-1">
+                  💊 Orthomoleculair voor {seasonLabels[currentSeason].toLowerCase()}:
+                </p>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>
+                    <p className="text-muted-foreground font-medium">Mineralen:</p>
+                    <p className={seasonTextColors[currentSeason]}>
+                      {dailyAnalysis.orthomolecular.minerals.slice(0, 2).join(', ')}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-muted-foreground font-medium">Voeding:</p>
+                    <p className={seasonTextColors[currentSeason]}>
+                      {dailyAnalysis.orthomolecular.foods[0]?.split(',')[0]}
+                    </p>
+                  </div>
+                </div>
+                {dailyAnalysis.orthomolecular.avoid.length > 0 && (
+                  <p className="text-xs text-destructive/80 mt-1">
+                    ⚠️ Vermijd: {dailyAnalysis.orthomolecular.avoid[0]}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* AI Coaching section - only show if no daily analysis */}
+        {coachingTips.length > 0 && !dailyAnalysis?.hasYesterdayData && (
           <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
             <div className="flex items-start gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-primary mt-0.5" />

@@ -14,7 +14,8 @@ serve(async (req) => {
   try {
     const authHeader = req.headers.get('authorization');
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.log('No auth header provided');
+      return new Response(JSON.stringify({ error: 'Unauthorized', tips: [] }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -29,26 +30,33 @@ serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabase.auth.getUser();
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.log('Auth error:', authError?.message);
+      return new Response(JSON.stringify({ error: 'Unauthorized', tips: [] }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    console.log('Fetching nutrition data for user:', user.id);
 
     // Get last 7 days of nutrition data
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
     const startDate = sevenDaysAgo.toISOString().split('T')[0];
 
-    const { data: scores } = await supabase
+    const { data: scores, error: scoresError } = await supabase
       .from('v_daily_scores')
       .select('*')
       .eq('owner_id', user.id)
       .gte('day_date', startDate)
       .order('day_date', { ascending: false });
 
+    if (scoresError) {
+      console.log('Scores query error:', scoresError.message);
+    }
+
     // Get cycle prediction
-    const { data: prediction } = await supabase
+    const { data: prediction, error: predError } = await supabase
       .from('cycle_predictions')
       .select('current_season, current_phase')
       .eq('owner_id', user.id)
@@ -56,9 +64,15 @@ serve(async (req) => {
       .limit(1)
       .maybeSingle();
 
+    if (predError) {
+      console.log('Prediction query error:', predError.message);
+    }
+
     // Generate coaching tips based on data
     const tips: string[] = [];
     const currentSeason = prediction?.current_season || 'onbekend';
+
+    console.log('Scores found:', scores?.length || 0, 'Season:', currentSeason);
 
     if (!scores || scores.length === 0) {
       tips.push('Start met het loggen van je maaltijden voor persoonlijke coaching');
@@ -119,6 +133,8 @@ serve(async (req) => {
         break;
     }
 
+    console.log('Returning tips:', tips.length);
+
     return new Response(JSON.stringify({ 
       tips: tips.slice(0, 5), // Max 5 tips
       currentSeason,
@@ -136,9 +152,10 @@ serve(async (req) => {
     console.error('Nutrition coach error:', error);
     return new Response(JSON.stringify({ 
       error: 'Er ging iets mis',
-      tips: [] 
+      tips: [],
+      currentSeason: 'onbekend'
     }), {
-      status: 500,
+      status: 200, // Return 200 with empty tips instead of 500
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
