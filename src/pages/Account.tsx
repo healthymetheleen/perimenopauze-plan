@@ -127,11 +127,13 @@ export default function AccountPage() {
                 {isPremium && <Crown className="h-4 w-4 text-primary" />}
               </div>
             </div>
-            {!isPremium && (
-              <Button variant="outline" onClick={() => navigate('/pricing')}>
-                Upgrade naar Premium
-              </Button>
-            )}
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/subscription')}
+              className="mt-2"
+            >
+              {isPremium ? 'Beheer abonnement' : 'Start 7 dagen gratis'}
+            </Button>
           </CardContent>
         </Card>
 

@@ -322,8 +322,9 @@ export default function DashboardPage() {
         {/* Movement & Focus Widget */}
         {showSeasonBadge && <MovementWidget />}
 
-        {/* Monthly Analysis CTA */}
+        {/* Monthly Analysis CTA - with spacing */}
         {canGenerateMonthly && (
+          <div className="mt-6">
           <Link to="/analyse">
             <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-rose-500/10 hover:shadow-soft transition-all">
               <CardContent className="p-4 flex items-center gap-4">
@@ -340,9 +341,10 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
+          </div>
         )}
 
-
+        {/* Sleep Card */}
         <Card className="glass rounded-2xl overflow-hidden">
           {activeSession ? (
             <Link to="/slaap">

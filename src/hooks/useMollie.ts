@@ -195,34 +195,22 @@ export function usePaymentStatus(paymentId: string | null) {
   });
 }
 
-// Subscription pricing
+// Subscription pricing - €4.50/month with 7-day free trial
 export const SUBSCRIPTION_PLANS = {
   monthly: {
     id: 'monthly',
     name: 'Maandelijks',
-    price: 9.99,
+    price: 4.50,
     interval: '1 month',
-    description: 'Premium toegang - maandelijks opzegbaar',
+    description: 'Na 7 dagen gratis proberen',
+    trialDays: 7,
     features: [
+      '7 dagen gratis uitproberen',
       'Onbeperkte maaltijdanalyses',
       'AI-inzichten & reflecties',
       'Maandelijkse totaalanalyse',
       'Alle bewegingsoefeningen',
       'Patronen & trends',
-    ],
-  },
-  yearly: {
-    id: 'yearly',
-    name: 'Jaarlijks',
-    price: 79.99,
-    interval: '1 year',
-    description: 'Premium toegang - 33% korting',
-    savings: '40€ besparing',
-    features: [
-      'Alles van Maandelijks',
-      '2 maanden gratis',
-      'Prioriteit support',
-      'Exclusieve content',
     ],
   },
 } as const;

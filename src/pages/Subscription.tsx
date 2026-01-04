@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { 
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
-  Loader2, ChevronRight, Building2, ExternalLink
+  Loader2, ChevronRight, Building2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { 
@@ -16,8 +16,7 @@ import {
   useCreatePayment, 
   useCreateIdealPayment,
   useIdealIssuers,
-  SUBSCRIPTION_PLANS,
-  PAYMENT_METHOD_ICONS
+  SUBSCRIPTION_PLANS
 } from '@/hooks/useMollie';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
@@ -35,7 +34,7 @@ export default function SubscriptionPage() {
   const createPayment = useCreatePayment();
   const createIdealPayment = useCreateIdealPayment();
 
-  const [selectedPlan, setSelectedPlan] = useState<PlanId>('yearly');
+  const [selectedPlan] = useState<PlanId>('monthly');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('ideal');
   const [selectedIssuer, setSelectedIssuer] = useState<string>('');
   const [isProcessing, setIsProcessing] = useState(false);
@@ -196,60 +195,31 @@ export default function SubscriptionPage() {
         {/* Upgrade section - only show if not premium */}
         {!isPremium && (
           <>
-            {/* Plan selection */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Kies je plan</h2>
-              
-              <div className="grid gap-4">
-                {Object.entries(SUBSCRIPTION_PLANS).map(([id, plan]) => (
-                  <Card 
-                    key={id}
-                    className={`cursor-pointer transition-all rounded-2xl ${
-                      selectedPlan === id 
-                        ? 'ring-2 ring-primary bg-primary/5' 
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => setSelectedPlan(id as PlanId)}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-3">
-                          <div className={`mt-1 w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                            selectedPlan === id ? 'border-primary bg-primary' : 'border-muted-foreground'
-                          }`}>
-                            {selectedPlan === id && <Check className="h-3 w-3 text-primary-foreground" />}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-2">
-                              <p className="font-semibold">{plan.name}</p>
-                              {'savings' in plan && (
-                                <Badge variant="secondary" className="text-xs bg-success/20 text-success">
-                                  {plan.savings}
-                                </Badge>
-                              )}
-                            </div>
-                            <p className="text-sm text-muted-foreground">{plan.description}</p>
-                            <ul className="mt-2 space-y-1">
-                              {plan.features.map((feature, i) => (
-                                <li key={i} className="text-xs text-muted-foreground flex items-center gap-1">
-                                  <Check className="h-3 w-3 text-success" /> {feature}
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-2xl font-bold">€{plan.price}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {id === 'monthly' ? '/maand' : '/jaar'}
-                          </p>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
+            {/* Trial info and pricing */}
+            <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="p-3 rounded-full bg-primary/20">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">7 dagen gratis</p>
+                    <p className="text-muted-foreground">Daarna €4,50 per maand</p>
+                  </div>
+                </div>
+                
+                <Separator className="my-4" />
+                
+                <ul className="space-y-2">
+                  {SUBSCRIPTION_PLANS.monthly.features.map((feature, i) => (
+                    <li key={i} className="flex items-center gap-2 text-sm">
+                      <Check className="h-4 w-4 text-success flex-shrink-0" /> 
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+              </CardContent>
+            </Card>
 
             {/* Payment method selection */}
             <div className="space-y-4">
