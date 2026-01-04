@@ -1,10 +1,10 @@
 import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  Home, 
-  CalendarDays, 
-  TrendingUp, 
-  Activity, 
+import {
+  Home,
+  CalendarDays,
+  TrendingUp,
+  Activity,
   User,
   Settings,
   LogOut,
@@ -14,7 +14,7 @@ import {
   ChefHat,
   Moon,
   Dumbbell,
-  HeartPulse,
+  Sparkles,
   Users,
 } from 'lucide-react';
 import { useState } from 'react';
@@ -37,7 +37,7 @@ const navItems: NavItem[] = [
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
   { href: '/slaap', label: 'Slaap', icon: <Moon className="h-5 w-5" /> },
   { href: '/bewegen', label: 'Bewegen', icon: <Dumbbell className="h-5 w-5" /> },
-  { href: '/meditatie', label: 'Meditaties', icon: <HeartPulse className="h-5 w-5" /> },
+  { href: '/meditatie', label: 'Meditaties', icon: <Sparkles className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" /> },
@@ -61,10 +61,16 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Mobile header */}
-      <header className="sticky top-0 z-50 lg:hidden bg-card border-b border-border">
+      <header className="sticky top-0 z-50 lg:hidden border-b border-border bg-gradient-to-r from-primary/10 via-background to-accent/10">
         <div className="flex items-center justify-between px-4 h-16">
-          <Link to="/dashboard" className="text-xl font-semibold text-foreground">
-            Perimenopauze Plan
+          <Link to="/dashboard" className="flex items-center gap-2">
+            <img
+              src="/favicon.svg"
+              alt="Perimenopauze Plan"
+              className="h-7 w-7"
+              loading="eager"
+            />
+            <span className="text-lg font-semibold text-primary">Perimenopauze Plan</span>
           </Link>
           <Button
             variant="ghost"

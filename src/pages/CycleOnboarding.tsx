@@ -7,7 +7,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/hooks/use-toast';
-import { useCyclePreferences } from '@/hooks/useCycle';
+import { useCyclePreferences, useStartCycle } from '@/hooks/useCycle';
 import { Loader2, ChevronRight, ChevronLeft, Flower2 } from 'lucide-react';
 
 interface OnboardingData {
@@ -17,6 +17,7 @@ interface OnboardingData {
   recently_pregnant: boolean;
   perimenopause: boolean;
   pcos: boolean;
+  last_period_start: string;
   avg_cycle_length: string;
   avg_period_length: string;
   show_fertile_days: boolean;
@@ -27,6 +28,7 @@ export default function CycleOnboardingPage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { upsertPreferences } = useCyclePreferences();
+  const startCycle = useStartCycle();
   const [step, setStep] = useState(1);
   const [data, setData] = useState<OnboardingData>({
     hormonal_contraception: false,
@@ -35,6 +37,7 @@ export default function CycleOnboardingPage() {
     recently_pregnant: false,
     perimenopause: false,
     pcos: false,
+    last_period_start: '',
     avg_cycle_length: '',
     avg_period_length: '',
     show_fertile_days: false,
@@ -58,6 +61,11 @@ export default function CycleOnboardingPage() {
         reminders_enabled: data.reminders_enabled,
         onboarding_completed: true,
       });
+
+      if (data.last_period_start) {
+        await startCycle.mutateAsync(data.last_period_start);
+      }
+
       toast({ title: 'Instellingen opgeslagen' });
       navigate('/cycle');
     } catch {
@@ -112,9 +120,22 @@ export default function CycleOnboardingPage() {
           {step === 2 && (
             <div className="space-y-6">
               <p className="text-sm text-muted-foreground">
-                Als je het weet, vul je gemiddelde cycluslengte en menstruatieduur in. Niet zeker? Laat leeg.
+                Als je het weet, vul je laatste menstruatiedag en gemiddelden in. Niet zeker? Laat leeg.
               </p>
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="lastPeriod">Eerste dag van laatste menstruatie</Label>
+                  <Input
+                    id="lastPeriod"
+                    type="date"
+                    value={data.last_period_start}
+                    onChange={(e) => setData({ ...data, last_period_start: e.target.value })}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Hiermee kunnen we meteen je huidige cyclus inschatten.
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="cycleLength">Gemiddelde cycluslengte (dagen)</Label>
                   <Input

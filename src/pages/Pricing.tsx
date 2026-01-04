@@ -156,8 +156,8 @@ export default function PricingPage() {
         <div className="mt-12 text-center">
           <p className="text-sm text-muted-foreground">
             Vragen? Neem contact op via{' '}
-            <a href="mailto:support@hormoonbalans.nl" className="text-primary hover:underline">
-              support@hormoonbalans.nl
+            <a href="mailto:healthymetheleen@gmail.com" className="text-primary hover:underline">
+              healthymetheleen@gmail.com
             </a>
           </p>
         </div>
