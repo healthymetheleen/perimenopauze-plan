@@ -109,16 +109,21 @@ export default function PrivacyPolicy() {
 
             {/* 5. AI-verwerking */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground">5. AI-verwerking</h2>
+              <h2 className="text-lg font-semibold text-foreground">5. AI-verwerking en internationale doorgifte</h2>
               <p className="text-muted-foreground">
                 Indien je toestemming geeft voor AI-ondersteuning:
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
-                <li>AI ontvangt alleen geanonimiseerde, geaggregeerde statistieken</li>
-                <li>Geen herleidbare persoonsgegevens worden naar AI gestuurd</li>
-                <li>AI-verwerking gebeurt via beveiligde servers (OpenAI API via Supabase Edge Functions)</li>
-                <li>Je kunt AI-toestemming op elk moment intrekken</li>
+                <li><strong>Wat we versturen:</strong> Alleen geanonimiseerde, geaggregeerde statistieken (bijv. "cycluslengte: gemiddeld", "hoofdpijn: regelmatig")</li>
+                <li><strong>Wat we NIET versturen:</strong> Naam, e-mailadres, exacte datums, of andere herleidbare persoonsgegevens</li>
+                <li><strong>AI-verwerker:</strong> OpenAI (VS) en Google Gemini, via beveiligde API-verbindingen</li>
+                <li><strong>Dataretentie:</strong> OpenAI kan API-verzoeken tot 30 dagen bewaren voor misbruikdetectie. Data wordt niet gebruikt voor modeltraining.</li>
+                <li><strong>Doorgifte EU→VS:</strong> Via Standard Contractual Clauses (SCC's) conform AVG Art. 46</li>
+                <li><strong>Intrekken:</strong> Je kunt AI-toestemming op elk moment intrekken via Instellingen</li>
               </ul>
+              <p className="text-muted-foreground mt-2">
+                Met OpenAI is een verwerkersovereenkomst (DPA) afgesloten conform AVG-vereisten.
+              </p>
             </section>
 
             {/* 6. Bewaartermijnen */}
@@ -189,12 +194,15 @@ export default function PrivacyPolicy() {
               <h2 className="text-lg font-semibold text-foreground">10. Subverwerkers</h2>
               <p className="text-muted-foreground">We gebruiken de volgende dienstverleners:</p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
-                <li><strong>Supabase (EU)</strong> – Database, authenticatie, bestandsopslag</li>
-                <li><strong>Lovable (hosting)</strong> – Frontend hosting</li>
-                <li><strong>OpenAI</strong> – AI-analyse (alleen met toestemming, geanonimiseerde data)</li>
+                <li><strong>Supabase (EU)</strong> – Database, authenticatie, backend functies</li>
+                <li><strong>Lovable (EU)</strong> – Frontend hosting, AI-gateway</li>
+                <li><strong>OpenAI (VS)</strong> – AI-analyse voor gepersonaliseerde inzichten (alleen met toestemming, geanonimiseerde data, via SCC's)</li>
+                <li><strong>Google Cloud (EU/VS)</strong> – Gemini AI voor inzichten (alleen met toestemming, via SCC's)</li>
+                <li><strong>Sentry (EU)</strong> – Foutrapportage (geen gezondheidsdata)</li>
               </ul>
               <p className="text-muted-foreground mt-2">
-                Met alle subverwerkers zijn verwerkersovereenkomsten afgesloten.
+                Met alle subverwerkers zijn verwerkersovereenkomsten (DPA's) afgesloten conform AVG-vereisten. 
+                Doorgifte naar VS gebeurt via Standard Contractual Clauses.
               </p>
             </section>
 
