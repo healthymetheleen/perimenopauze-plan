@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { useConsent } from '@/hooks/useConsent';
 import { trackAIUsage } from '@/hooks/useAIUsage';
+import { useFeatureAccess } from '@/hooks/useEntitlements';
 
 export interface DailyInsight {
   pattern: string;
@@ -61,6 +62,7 @@ interface InsightData {
 export function useAIInsight<T>(type: InsightType, data: InsightData, enabled: boolean = true) {
   const { user } = useAuth();
   const { consent } = useConsent();
+  const { hasAccess: hasPremiumAccess } = useFeatureAccess('ai');
   const hasAIConsent = consent?.accepted_ai_processing === true;
 
   // Generate a date-based cache key to ensure insights are only fetched once per day
@@ -84,7 +86,7 @@ export function useAIInsight<T>(type: InsightType, data: InsightData, enabled: b
       if (error) throw error;
       return result as T;
     },
-    enabled: enabled && !!user && hasAIConsent && Object.keys(data).length > 0,
+    enabled: enabled && !!user && hasAIConsent && hasPremiumAccess && Object.keys(data).length > 0,
     staleTime: 24 * 60 * 60 * 1000, // 24 hours - insights are cached for a full day
     gcTime: 24 * 60 * 60 * 1000, // Keep in cache for 24 hours
     retry: false,

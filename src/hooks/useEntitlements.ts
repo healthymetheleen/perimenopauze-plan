@@ -36,17 +36,19 @@ export function useEntitlements() {
   });
 }
 
-export function useFeatureAccess(feature: 'trends' | 'patterns' | 'export') {
+export function useFeatureAccess(feature: 'trends' | 'patterns' | 'export' | 'ai') {
   const { data: entitlements, isLoading } = useEntitlements();
-  // Trends and Patterns are now free for everyone during beta
+  const isPremium = entitlements?.plan === 'premium' && entitlements?.status === 'active';
+  
   const hasAccess = (() => {
-    if (!entitlements) return true; // Default to true for free access
+    if (!entitlements) return false;
     switch (feature) {
-      case 'trends': return true; // Free during beta
-      case 'patterns': return true; // Free during beta
-      case 'export': return entitlements.can_use_trends;
+      case 'trends': return isPremium;
+      case 'patterns': return isPremium;
+      case 'export': return isPremium;
+      case 'ai': return isPremium;
       default: return false;
     }
   })();
-  return { hasAccess, isLoading, entitlements };
+  return { hasAccess, isLoading, entitlements, isPremium };
 }
