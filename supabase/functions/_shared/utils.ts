@@ -292,34 +292,115 @@ export function successResponse(data: unknown): Response {
 }
 
 /**
- * Strip PII from data before sending to AI
- * Returns anonymized version safe for AI prompts
+ * STRICT ALLOWLIST for AI prompts
+ * Only these fields may be sent to external AI services
+ * Everything else is stripped by default
  */
-export function anonymizeForAI(data: Record<string, unknown>): Record<string, unknown> {
-  const piiFields = [
-    'id', 'user_id', 'owner_id', 'email', 'name', 'display_name',
-    'created_at', 'updated_at', 'ip_address', 'user_agent'
-  ];
+const AI_ALLOWLIST_FIELDS = new Set([
+  // Aggregated/statistical data (no PII)
+  'mealsCount', 'avgDuration', 'avgQuality', 'consistency',
+  'patterns', 'totals', 'averages', 'counts',
   
+  // Categorical data (no identifying info)
+  'cycleSeason', 'cyclePhase', 'phase', 'season',
+  'sleepQuality', 'stressLevel', 'energy', 'mood',
+  'movement', 'interruptions',
+  
+  // Numeric scores (anonymized)
+  'score', 'level', 'count', 'total', 'average',
+  
+  // Content descriptors (not user-generated text)
+  'category', 'type', 'status',
+]);
+
+/**
+ * BLOCKLIST for PII fields - these are NEVER sent to AI
+ */
+const AI_BLOCKLIST_FIELDS = new Set([
+  'id', 'user_id', 'owner_id', 'email', 'name', 'display_name',
+  'created_at', 'updated_at', 'ip_address', 'user_agent',
+  'phone', 'address', 'location', 'employer', 'job_title',
+  'birthday', 'birthdate', 'age', 'gender',
+]);
+
+/**
+ * Strip PII from data before sending to AI
+ * Uses ALLOWLIST approach: only explicitly allowed fields pass through
+ * 
+ * @param data - Raw data object
+ * @param mode - 'strict' (only allowlist) or 'redact' (remove blocklist)
+ * @returns Anonymized data safe for AI prompts
+ */
+export function anonymizeForAI(
+  data: Record<string, unknown>, 
+  mode: 'strict' | 'redact' = 'strict'
+): Record<string, unknown> {
   const result: Record<string, unknown> = {};
   
   for (const [key, value] of Object.entries(data)) {
-    // Skip PII fields
-    if (piiFields.includes(key.toLowerCase())) continue;
+    const keyLower = key.toLowerCase();
+    
+    // Always block these fields
+    if (AI_BLOCKLIST_FIELDS.has(key) || AI_BLOCKLIST_FIELDS.has(keyLower)) {
+      continue;
+    }
+    
+    // In strict mode, only allow explicitly listed fields
+    if (mode === 'strict' && !AI_ALLOWLIST_FIELDS.has(key) && !AI_ALLOWLIST_FIELDS.has(keyLower)) {
+      continue;
+    }
     
     // Recursively anonymize nested objects
     if (value && typeof value === 'object' && !Array.isArray(value)) {
-      result[key] = anonymizeForAI(value as Record<string, unknown>);
+      const nested = anonymizeForAI(value as Record<string, unknown>, mode);
+      if (Object.keys(nested).length > 0) {
+        result[key] = nested;
+      }
     } else if (Array.isArray(value)) {
-      result[key] = value.map(item => 
-        typeof item === 'object' ? anonymizeForAI(item as Record<string, unknown>) : item
-      );
+      const filtered = value
+        .map(item => typeof item === 'object' && item !== null 
+          ? anonymizeForAI(item as Record<string, unknown>, mode) 
+          : item)
+        .filter(item => typeof item !== 'object' || Object.keys(item as object).length > 0);
+      if (filtered.length > 0) {
+        result[key] = filtered;
+      }
     } else {
       result[key] = value;
     }
   }
   
   return result;
+}
+
+/**
+ * Redact potential PII from free-text fields
+ * Use this for user-generated text that must be included
+ * 
+ * WARNING: This is a best-effort filter, not a guarantee
+ * Consider whether you truly need to send user text to AI
+ */
+export function redactPIIFromText(text: string): string {
+  if (!text || typeof text !== 'string') return '';
+  
+  let redacted = text;
+  
+  // Email addresses
+  redacted = redacted.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
+  
+  // Phone numbers (various formats)
+  redacted = redacted.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{2,4}[-.\s]?\d{2,4}/g, '[PHONE]');
+  
+  // Dutch postcodes
+  redacted = redacted.replace(/\b\d{4}\s?[A-Z]{2}\b/gi, '[POSTCODE]');
+  
+  // Names after common prefixes (Dutch/English)
+  redacted = redacted.replace(/\b(mijn naam is|ik ben|my name is|i am|ik heet)\s+[A-Z][a-z]+/gi, '$1 [NAME]');
+  
+  // Common Dutch names followed by patterns that suggest they're names
+  // This is imperfect but helps
+  
+  return redacted;
 }
 
 /**

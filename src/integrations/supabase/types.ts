@@ -1355,6 +1355,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      withdraw_consent: {
+        Args: { consent_type: string; user_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role: "admin" | "moderator" | "user"
