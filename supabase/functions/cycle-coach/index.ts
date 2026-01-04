@@ -5,49 +5,78 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// PRIVACY: AI ontvangt alleen geanonimiseerde statistieken, geen herleidbare data
-const systemPrompt = `Je bent CycleCoach, een warme en nuchtere begeleider voor vrouwen in de perimenopauze. 
-Je geeft evidence-informed advies gebaseerd op kPNI en orthomoleculaire principes.
+// COMPLIANCE SYSTEM PROMPT - Strikte richtlijnen voor veilige, niet-medische output
+const systemPrompt = `Je bent een ondersteunende gezondheidsapp voor vrouwen in de perimenopauze.
 
-PRIVACY: Je ontvangt ALLEEN geanonimiseerde statistieken:
-- Gemiddelde cycluslengte en variabiliteit
-- Symptoomfrequenties (niet de exacte datums)
-- Huidige cyclusfase
-- Geen namen, geen user IDs, geen exacte datums
+BELANGRIJKE RICHTLIJNEN (ALTIJD GELDEN):
 
-KERNREGELS:
-- Nooit oordelen of moraliseren
-- Geen medische claims, wel praktische tips
-- Bij alarmsignalen (extreem bloedverlies, duizeligheid): adviseer contact met huisarts
-- Wees kort, praktisch en warm
+Je bent GEEN arts, GEEN behandelaar en GEEN medisch systeem.
+
+Je mag NOOIT:
+• medische diagnoses stellen
+• medische claims doen
+• ziektes benoemen als vaststaand feit
+• behandelplannen of therapieën voorschrijven
+• voorspellingen doen over gezondheid of hormonen
+• uitspraken doen over medicatie, doseringen of medische ingrepen
+
+Alle output:
+• is informatief en ondersteunend
+• is algemeen en niet persoonlijk medisch
+• gebruikt voorzichtige taal zoals "kan", "vaak", "mogelijk"
+• verwijst bij twijfel naar een arts of zorgverlener
+
+CYCLUS ALS METAFOOR (niet medisch):
+• menstruatie = winter (rust, herstel)
+• folliculair = lente (groei, energie)
+• ovulatie = zomer (piek, verbinding)
+• luteaal = herfst (reflectie, afronding)
+
+Gebruik woorden als "vaak", "gemiddeld", "bij sommige vrouwen"
+Geen uitspraken over hormoonspiegels of voorspellingen.
+
+Je taak:
+• Patronen benoemen
+• Inzicht geven
+• Rust en overzicht creëren
+
+OUTPUTREGELS:
+• Maximaal 120 woorden totaal
+• Nederlands
+• Warm, rustig, professioneel
+• Geen diagnoses of conclusies
+• Geen exacte getallen herhalen
 
 Geef output ALLEEN als valide JSON in dit formaat:
 {
   "seasonNow": "winter" | "lente" | "zomer" | "herfst",
   "phaseNow": "menstruatie" | "folliculair" | "ovulatie" | "luteaal",
   "confidence": 0-100,
-  "confidenceExplanation": "1 korte zin",
+  "confidenceExplanation": "1 korte zin met voorzichtige taal",
   "todayTips": {
-    "voedingTip": "1-2 zinnen over eten",
-    "trainingTip": "1-2 zinnen over bewegen",
-    "werkTip": "1-2 zinnen over focus/productiviteit",
-    "herstelTip": "1-2 zinnen over rust/stress"
+    "voedingTip": "1 zin, geen medisch advies",
+    "trainingTip": "1 zin, uitnodigend",
+    "werkTip": "1 zin over energie/focus",
+    "herstelTip": "1 zin over rust"
   },
-  "watchouts": ["max 2 signalen die aandacht vragen"],
-  "insight": "1 observatie over patronen"
-}`;
+  "watchouts": ["max 2 observaties, geen diagnoses"],
+  "insight": "1 patroon, voorzichtige taal"
+}
 
-// Helper: anonimiseer data door alleen statistieken te berekenen
+Als de input onvoldoende is, geef generieke, ondersteunende tips.`;
+
+// Helper: anonimiseer data - ALLEEN statistieken, geen herleidbare info
 function anonymizeData(input: {
   cycles?: any[];
   bleedingLogs?: any[];
   symptomLogs?: any[];
   preferences?: any;
   baselinePrediction?: any;
+  hasAIConsent?: boolean;
 }) {
   const { cycles, bleedingLogs, symptomLogs, preferences, baselinePrediction } = input;
   
-  // Bereken statistieken zonder exacte datums door te geven
+  // Bereken ALLEEN samenvattende statistieken
   const cycleLengths = (cycles || [])
     .filter(c => c.computed_cycle_length)
     .map(c => c.computed_cycle_length);
@@ -56,45 +85,53 @@ function anonymizeData(input: {
     ? Math.round(cycleLengths.reduce((a, b) => a + b, 0) / cycleLengths.length)
     : null;
   
+  // Categoriseer variabiliteit (niet exact getal)
   const cycleVariability = cycleLengths.length > 1
-    ? Math.round(Math.max(...cycleLengths) - Math.min(...cycleLengths))
+    ? Math.max(...cycleLengths) - Math.min(...cycleLengths)
     : null;
+  const variabilityCategory = cycleVariability === null ? 'onbekend' 
+    : cycleVariability <= 3 ? 'regelmatig'
+    : cycleVariability <= 7 ? 'licht wisselend'
+    : 'wisselend';
 
-  // Tel symptomen zonder exacte datums
-  const symptomCounts: Record<string, number> = {};
-  (symptomLogs || []).forEach((log: any) => {
-    const symptoms = ['headache', 'bloating', 'anxiety', 'irritability', 'breast_tender', 'hot_flashes'];
-    symptoms.forEach(s => {
-      if (log[s]) {
-        symptomCounts[s] = (symptomCounts[s] || 0) + 1;
-      }
-    });
+  // Tel symptomen - alleen frequentiecategorieën
+  const symptomCounts: Record<string, string> = {};
+  const symptoms = ['headache', 'bloating', 'anxiety', 'irritability', 'breast_tender', 'hot_flashes'];
+  symptoms.forEach(s => {
+    const count = (symptomLogs || []).filter((log: any) => log[s]).length;
+    symptomCounts[s] = count === 0 ? 'niet gelogd' 
+      : count <= 3 ? 'incidenteel' 
+      : count <= 7 ? 'regelmatig' 
+      : 'frequent';
   });
 
-  // Bloedingspatroon zonder datums
-  const bleedingIntensities = (bleedingLogs || []).map((b: any) => b.intensity);
-  const hasHeavyBleeding = bleedingIntensities.includes('heavy') || bleedingIntensities.includes('very_heavy');
+  // Bloedingspatroon - categorisch
+  const bleedingCount = (bleedingLogs || []).length;
+  const bleedingCategory = bleedingCount === 0 ? 'geen data'
+    : bleedingCount <= 3 ? 'weinig dagen'
+    : bleedingCount <= 7 ? 'gemiddeld'
+    : 'veel dagen';
   
-  // Alleen relevante profileringen, geen IDs
   return {
     stats: {
-      avgCycleLength,
-      cycleVariability,
-      totalCyclesTracked: cycleLengths.length,
-      symptomCounts,
-      hasHeavyBleeding,
-      bleedingDaysLast30: bleedingLogs?.length || 0,
+      avgCycleLengthCategory: avgCycleLength === null ? 'onbekend'
+        : avgCycleLength < 25 ? 'kort'
+        : avgCycleLength <= 35 ? 'gemiddeld'
+        : 'lang',
+      variabilityCategory,
+      dataVolume: cycleLengths.length === 0 ? 'geen'
+        : cycleLengths.length <= 2 ? 'beperkt'
+        : 'voldoende',
+      symptomPatterns: symptomCounts,
+      bleedingCategory,
     },
     profile: {
-      perimenopause: preferences?.perimenopause || false,
-      pcos: preferences?.pcos || false,
-      hormonalContraception: preferences?.hormonal_contraception || false,
-      lutealPhaseLength: preferences?.luteal_phase_length || 13,
+      perimenopauze: preferences?.perimenopause ? 'ja' : 'onbekend',
+      hormonaleAnticonceptie: preferences?.hormonal_contraception ? 'ja' : 'nee',
     },
     currentPhase: {
       phase: baselinePrediction?.current_phase || 'unknown',
       season: baselinePrediction?.current_season || 'unknown',
-      confidence: baselinePrediction?.next_period_confidence || 50,
     }
   };
 }
@@ -107,41 +144,64 @@ serve(async (req) => {
   try {
     const inputData = await req.json();
     
+    // CONSENT CHECK - geen AI zonder toestemming
+    if (!inputData.hasAIConsent) {
+      return new Response(JSON.stringify({
+        error: 'consent_required',
+        message: 'Om deze functie te gebruiken is toestemming nodig voor het verwerken van gezondheidsgegevens en AI-ondersteuning.',
+        seasonNow: inputData.baselinePrediction?.current_season || 'onbekend',
+        phaseNow: inputData.baselinePrediction?.current_phase || 'onbekend',
+        confidence: 0,
+        confidenceExplanation: 'Geen AI-analyse zonder toestemming.',
+        todayTips: {
+          voedingTip: 'Schakel AI-ondersteuning in bij Instellingen voor gepersonaliseerde tips.',
+          trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
+          werkTip: 'Plan je dag flexibel en neem voldoende pauzes.',
+          herstelTip: 'Rust is belangrijk. Gun jezelf momenten van ontspanning.',
+        },
+        watchouts: [],
+        insight: 'Schakel AI in bij Instellingen voor persoonlijke inzichten.',
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY is not configured');
     }
 
-    // PRIVACY: Anonimiseer alle data voordat het naar AI gaat
+    // PRIVACY: Anonimiseer naar categorieën, geen exacte waarden
     const anonymized = anonymizeData(inputData);
     
-    console.log('Sending anonymized stats to AI (no personal identifiers):', JSON.stringify(anonymized.stats));
+    console.log('Sending anonymized feature categories to AI (no identifiable data)');
 
-    // Bouw context met ALLEEN geanonimiseerde data
+    // Context met ALLEEN categorische kenmerken
     const context = `
-GEANONIMISEERDE CYCLUS STATISTIEKEN:
-- Gemiddelde cycluslengte: ${anonymized.stats.avgCycleLength || 'onbekend'} dagen
-- Variabiliteit: ±${anonymized.stats.cycleVariability || 'onbekend'} dagen
-- Aantal getrackte cycli: ${anonymized.stats.totalCyclesTracked}
-- Bloedingsdagen afgelopen 30 dagen: ${anonymized.stats.bleedingDaysLast30}
-- Zwaar bloedverlies recent: ${anonymized.stats.hasHeavyBleeding ? 'ja' : 'nee'}
+GEANONIMISEERDE KENMERKEN (geen exacte waarden, geen persoonsgegevens):
 
-SYMPTOOM FREQUENTIES (aantal keer gelogd):
-${Object.entries(anonymized.stats.symptomCounts).map(([k, v]) => `- ${k}: ${v}x`).join('\n') || '- Geen symptomen gelogd'}
+CYCLUSPATROON:
+- Gemiddelde lengte: ${anonymized.stats.avgCycleLengthCategory}
+- Regelmaat: ${anonymized.stats.variabilityCategory}
+- Beschikbare data: ${anonymized.stats.dataVolume}
+- Bloedingspatroon: ${anonymized.stats.bleedingCategory}
+
+SYMPTOOMPATRONEN (frequentie, niet exacte aantallen):
+${Object.entries(anonymized.stats.symptomPatterns)
+  .filter(([_, v]) => v !== 'niet gelogd')
+  .map(([k, v]) => `- ${k}: ${v}`)
+  .join('\n') || '- Geen symptomen gelogd'}
 
 PROFIEL:
-- Perimenopauze: ${anonymized.profile.perimenopause ? 'ja' : 'onbekend'}
-- PCOS: ${anonymized.profile.pcos ? 'ja' : 'nee'}
-- Hormonale anticonceptie: ${anonymized.profile.hormonalContraception ? 'ja' : 'nee'}
-- Luteale fase lengte: ${anonymized.profile.lutealPhaseLength} dagen
+- Perimenopauze: ${anonymized.profile.perimenopauze}
+- Hormonale anticonceptie: ${anonymized.profile.hormonaleAnticonceptie}
 
-HUIDIGE FASE:
-- Fase: ${anonymized.currentPhase.phase}
+HUIDIGE FASE (inschatting):
 - Seizoen: ${anonymized.currentPhase.season}
-- Confidence: ${anonymized.currentPhase.confidence}%
+- Fase: ${anonymized.currentPhase.phase}
 
-Geef gepersonaliseerde tips gebaseerd op deze geanonimiseerde statistieken.
-`;
+Geef ondersteunende, niet-medische inzichten. Gebruik voorzichtige taal.
+Verwijs bij twijfel naar een zorgverlener.`;
 
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -150,7 +210,7 @@ Geef gepersonaliseerde tips gebaseerd op deze geanonimiseerde statistieken.
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
@@ -181,7 +241,7 @@ Geef gepersonaliseerde tips gebaseerd op deze geanonimiseerde statistieken.
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('CycleCoach response received (based on anonymized data)');
+    console.log('CycleCoach response received');
 
     let result;
     try {
@@ -193,21 +253,25 @@ Geef gepersonaliseerde tips gebaseerd op deze geanonimiseerde statistieken.
       }
     } catch (parseError) {
       console.error('Failed to parse AI response:', parseError);
+      // Fallback met veilige, niet-medische content
       result = {
         seasonNow: anonymized.currentPhase.season || 'onbekend',
         phaseNow: anonymized.currentPhase.phase || 'onbekend',
-        confidence: anonymized.currentPhase.confidence || 50,
-        confidenceExplanation: 'Gebaseerd op je recente logs.',
+        confidence: 50,
+        confidenceExplanation: 'Gebaseerd op beperkte gegevens.',
         todayTips: {
-          voedingTip: 'Focus op gevarieerd eten met voldoende eiwit en groenten.',
-          trainingTip: 'Beweeg op een manier die goed voelt voor jou vandaag.',
-          werkTip: 'Luister naar je energie en plan je taken flexibel.',
-          herstelTip: 'Zorg voor voldoende rust en momenten van ontspanning.',
+          voedingTip: 'Gevarieerd eten met voldoende eiwit en groenten kan je energie ondersteunen.',
+          trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
+          werkTip: 'Neem regelmatig pauzes en plan je energie flexibel in.',
+          herstelTip: 'Rust en ontspanning zijn belangrijk voor je welzijn.',
         },
         watchouts: [],
-        insight: 'Log meer dagen om persoonlijke patronen te ontdekken.',
+        insight: 'Log meer dagen om patronen zichtbaar te maken. Deze app geeft geen medisch advies.',
       };
     }
+
+    // Voeg altijd disclaimer toe
+    result.disclaimer = 'Deze inzichten zijn informatief en geen medisch advies. Raadpleeg bij klachten altijd een zorgverlener.';
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

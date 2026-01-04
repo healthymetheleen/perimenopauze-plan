@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { useAIUsage, trackAIUsage } from '@/hooks/useAIUsage';
+import { useConsent } from '@/hooks/useConsent';
 import { Loader2, Type, Camera, Mic, Check, Edit2 } from 'lucide-react';
 
 interface AddMealDialogProps {
@@ -77,6 +78,8 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
   };
 
   const { data: aiUsage } = useAIUsage();
+  const { consent } = useConsent();
+  const hasAIConsent = consent?.accepted_ai_processing ?? false;
 
   // Analyze meal with AI
   const analyzeMeal = async (text?: string, imageBase64?: string) => {
@@ -109,6 +112,7 @@ export function AddMealDialog({ open, onOpenChange, dayId, selectedDate, onDateC
           body: JSON.stringify({
             description: text,
             imageBase64: imageBase64,
+            hasAIConsent: hasAIConsent,
           }),
         }
       );
