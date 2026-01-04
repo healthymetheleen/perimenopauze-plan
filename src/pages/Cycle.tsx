@@ -481,97 +481,129 @@ export default function CyclePage() {
           </CardContent>
         </Card>
 
-        {/* Calendar strip */}
+        {/* Calendar with season groups */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-400" />
-                <span>Menstruatie</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <div className="w-2 h-2 rounded-full bg-red-200 border border-dashed border-red-400" />
-                <span>Verwacht</span>
-              </div>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-primary" />
+              Cyclusagenda
+            </CardTitle>
+            {/* Legend */}
+            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-2">
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400" /><span>Menstruatie</span></div>
+              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-200 border border-dashed border-red-400" /><span>Verwacht</span></div>
               {preferences?.show_fertile_days && (
                 <>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-green-400" />
-                    <span>Vruchtbaar</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 rounded-full bg-purple-400" />
-                    <span>Ovulatie</span>
-                  </div>
+                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-300" /><span>Vruchtbaar</span></div>
+                  <div className="flex items-center gap-1"><span>★</span><span>Ovulatie</span></div>
                 </>
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-2">
-            {/* Calendar Grid - 7 columns, flowing rows with season backgrounds */}
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason }) => {
-                // Season background colors
-                const seasonBg = predictedSeason === 'winter' ? 'bg-blue-50 dark:bg-blue-950/30' :
-                  predictedSeason === 'lente' ? 'bg-green-50 dark:bg-green-950/30' :
-                  predictedSeason === 'zomer' ? 'bg-amber-50 dark:bg-amber-950/30' :
-                  predictedSeason === 'herfst' ? 'bg-orange-50 dark:bg-orange-950/30' : 'bg-muted/30';
-                
-                // Determine cell styling priority: today > bleeding > predicted period > ovulation (with star) > fertile > season
-                let cellClass = seasonBg;
-                let textClass = 'text-foreground';
-                let showStar = false;
-                
-                if (isToday) {
-                  cellClass = 'bg-primary ring-2 ring-primary ring-offset-1';
-                  textClass = 'text-primary-foreground';
-                } else if (bleeding) {
-                  cellClass = bleeding === 'hevig' ? 'bg-red-500' : bleeding === 'normaal' ? 'bg-red-400' : 'bg-red-300';
-                  textClass = 'text-white';
-                } else if (isPredictedPeriod) {
-                  cellClass = 'bg-red-100 border-2 border-dashed border-red-300 dark:bg-red-900/30';
-                  textClass = 'text-red-700 dark:text-red-300';
-                } else if (isOvulation) {
-                  // Ovulation day gets star, but stays in fertile green
-                  cellClass = 'bg-green-400 dark:bg-green-600';
-                  textClass = 'text-white';
-                  showStar = true;
-                } else if (isFertile) {
-                  cellClass = 'bg-green-200 dark:bg-green-800/50';
-                  textClass = 'text-green-800 dark:text-green-200';
+          <CardContent className="pt-2 space-y-2">
+            {/* Group days by season and render as blocks */}
+            {(() => {
+              // Group consecutive days by season
+              const seasonGroups: { season: string; days: typeof calendarDays }[] = [];
+              let currentGroup: { season: string; days: typeof calendarDays } | null = null;
+              
+              calendarDays.forEach(day => {
+                const season = day.predictedSeason || 'onbekend';
+                if (!currentGroup || currentGroup.season !== season) {
+                  currentGroup = { season, days: [day] };
+                  seasonGroups.push(currentGroup);
+                } else {
+                  currentGroup.days.push(day);
                 }
-                
-                return (
-                  <button
-                    key={dateStr}
-                    onClick={() => {
-                      setSelectedDate(dateStr);
-                      setShowDayLog(true);
-                    }}
-                    className={`w-full p-1 rounded-md text-center transition-all hover:opacity-80 ${cellClass}`}
-                  >
-                    <div className={`text-[8px] leading-tight opacity-70 ${textClass}`}>
-                      {format(date, 'EEE', { locale: nl })}
-                    </div>
-                    <div className={`text-xs font-semibold ${textClass}`}>
-                      {format(date, 'd')}
-                      {showStar && <span className="ml-0.5">★</span>}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-            {/* Compact legend */}
-            <div className="flex flex-wrap gap-x-3 gap-y-1 text-[10px] text-muted-foreground mt-3 pt-2 border-t">
-              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-red-400" /><span>Menstruatie</span></div>
-              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-red-100 border border-dashed border-red-300" /><span>Verwacht</span></div>
-              {preferences?.show_fertile_days && (
+              });
+
+              const seasonBgColors: Record<string, string> = {
+                winter: 'bg-blue-100 dark:bg-blue-900/40',
+                lente: 'bg-green-100 dark:bg-green-900/40',
+                zomer: 'bg-amber-100 dark:bg-amber-900/40',
+                herfst: 'bg-orange-100 dark:bg-orange-900/40',
+                onbekend: 'bg-muted/50',
+              };
+
+              const seasonTextColors: Record<string, string> = {
+                winter: 'text-blue-700 dark:text-blue-300',
+                lente: 'text-green-700 dark:text-green-300',
+                zomer: 'text-amber-700 dark:text-amber-300',
+                herfst: 'text-orange-700 dark:text-orange-300',
+                onbekend: 'text-muted-foreground',
+              };
+
+              const seasonIconsSmall: Record<string, React.ReactNode> = {
+                winter: <Snowflake className="h-3 w-3" />,
+                lente: <Leaf className="h-3 w-3" />,
+                zomer: <Sun className="h-3 w-3" />,
+                herfst: <Wind className="h-3 w-3" />,
+                onbekend: null,
+              };
+
+              // Find the single ovulation day (middle of ovulation window)
+              const ovulationDay = calendarDays.find(d => d.isOvulation)?.dateStr;
+
+              return (
                 <>
-                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-green-200" /><span>Vruchtbaar</span></div>
-                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded bg-green-400" /><span>Ovulatie ★</span></div>
+                  {seasonGroups.map((group, groupIndex) => (
+                    <div key={groupIndex} className={`rounded-lg p-2 ${seasonBgColors[group.season]}`}>
+                      {/* Season header */}
+                      <div className={`flex items-center gap-1.5 text-xs font-medium mb-1.5 ${seasonTextColors[group.season]}`}>
+                        {seasonIconsSmall[group.season]}
+                        <span>{seasonLabels[group.season]}</span>
+                        <span className="text-[10px] font-normal opacity-70 ml-1">
+                          {format(group.days[0].date, 'd MMM', { locale: nl })} - {format(group.days[group.days.length - 1].date, 'd MMM', { locale: nl })}
+                        </span>
+                      </div>
+                      {/* Days grid - 7 columns */}
+                      <div className="grid grid-cols-7 gap-0.5">
+                        {group.days.map(({ date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod }) => {
+                          // Ovulation is only the single estimated day
+                          const isOvulationDay = dateStr === ovulationDay;
+                          
+                          let cellClass = 'bg-white/50 dark:bg-white/10';
+                          let textClass = 'text-foreground';
+                          
+                          if (isToday) {
+                            cellClass = 'bg-primary ring-1 ring-primary';
+                            textClass = 'text-primary-foreground';
+                          } else if (bleeding) {
+                            cellClass = 'bg-red-400';
+                            textClass = 'text-white';
+                          } else if (isPredictedPeriod) {
+                            cellClass = 'bg-red-200/80 border border-dashed border-red-300';
+                            textClass = 'text-red-700';
+                          } else if (isFertile) {
+                            cellClass = 'bg-green-200 dark:bg-green-700/50';
+                            textClass = 'text-green-800 dark:text-green-200';
+                          }
+                          
+                          return (
+                            <button
+                              key={dateStr}
+                              onClick={() => {
+                                setSelectedDate(dateStr);
+                                setShowDayLog(true);
+                              }}
+                              className={`p-0.5 rounded text-center transition-all hover:opacity-80 ${cellClass}`}
+                            >
+                              <div className={`text-[7px] leading-tight opacity-60 ${textClass}`}>
+                                {format(date, 'EE', { locale: nl })}
+                              </div>
+                              <div className={`text-[10px] font-semibold leading-tight ${textClass}`}>
+                                {format(date, 'd')}
+                                {isOvulationDay && <span className="text-[8px]">★</span>}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
                 </>
-              )}
-            </div>
+              );
+            })()}
           </CardContent>
         </Card>
 

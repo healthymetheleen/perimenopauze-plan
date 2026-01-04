@@ -164,8 +164,8 @@ export default function DashboardPage() {
     <AppLayout>
       <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* Season Header - Always at top with date */}
-        <div className={`rounded-2xl p-5 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
-          <div className="flex items-center justify-between">
+        <div className={`rounded-2xl p-5 relative overflow-hidden ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
+          <div className="flex items-start justify-between">
             <div>
               <p className="text-sm text-muted-foreground">
                 {format(new Date(), "EEEE", { locale: nl })}
@@ -173,20 +173,22 @@ export default function DashboardPage() {
               <p className="text-xl font-semibold text-foreground">
                 {format(new Date(), "d MMMM yyyy", { locale: nl })}
               </p>
-            </div>
-            {showSeasonBadge && (
-              <div className="relative">
-                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${seasonAccent.accent} text-white`}>
+              {showSeasonBadge && (
+                <div className={`inline-flex items-center gap-2 mt-2 px-3 py-1.5 rounded-full text-sm font-semibold ${seasonAccent.accent} text-white`}>
                   {seasonIcons[currentSeason]}
                   <span>{seasonLabels[currentSeason]}</span>
                 </div>
+              )}
+              {showSeasonBadge && currentPhase !== 'unknown' && (
+                <p className="text-sm text-muted-foreground mt-1">{phaseLabels[currentPhase]}</p>
+              )}
+            </div>
+            {showSeasonBadge && (
+              <div className="relative">
                 <SeasonDecorations season={currentSeason} />
               </div>
             )}
           </div>
-          {showSeasonBadge && currentPhase !== 'unknown' && (
-            <p className="text-sm text-muted-foreground mt-1">{phaseLabels[currentPhase]}</p>
-          )}
         </div>
 
         {/* Fertility Banner - only for users with child wish (show_fertile_days enabled) */}
@@ -283,24 +285,25 @@ export default function DashboardPage() {
           </Link>
         </div>
 
-        {/* Sleep Score - moved above monthly analysis */}
+        {/* Sleep Score + Start Sleep combined */}
         <div>
-          <Link to="/slaap">
-            <Card className={`glass rounded-2xl ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
-              <CardContent className="p-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
+          <Card className={`glass rounded-2xl ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
+            <CardContent className="p-4 space-y-3">
+              {/* Sleep score row */}
+              <Link to="/slaap" className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
                   <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
                     <Moon className="h-5 w-5 text-indigo-600" />
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Slaap 7 dagen</p>
                     {sleepStats && sleepStats.totalSessions > 0 ? (
-                      <div className="flex items-center gap-3">
-                        <span className={`text-2xl font-bold ${getSleepScoreColor(sleepScore)}`}>
+                      <div className="flex items-center gap-2">
+                        <span className={`text-xl font-bold ${getSleepScoreColor(sleepScore)}`}>
                           {sleepScore}
                         </span>
-                        <span className="text-sm text-muted-foreground">
-                          Gem. {sleepStats.avgDurationHours.toFixed(1)}u
+                        <span className="text-xs text-muted-foreground">
+                          gem. {sleepStats.avgDurationHours.toFixed(1)}u
                         </span>
                       </div>
                     ) : (
@@ -308,10 +311,46 @@ export default function DashboardPage() {
                     )}
                   </div>
                 </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              </CardContent>
-            </Card>
-          </Link>
+                <ArrowRight className="h-4 w-4 text-muted-foreground" />
+              </Link>
+              
+              {/* Sleep action */}
+              <div className="pt-2 border-t">
+                {activeSession ? (
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
+                      <p className="font-semibold text-indigo-900 dark:text-indigo-100">
+                        {currentSleepHours}u {currentSleepMins}m
+                      </p>
+                    </div>
+                    <Button 
+                      size="sm" 
+                      className="bg-amber-500 hover:bg-amber-600 text-white"
+                      onClick={handleStopSleep}
+                      disabled={endSleep.isPending}
+                    >
+                      <Sun className="h-4 w-4 mr-1" />
+                      Stop
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">Klaar om te slapen?</p>
+                    <Button 
+                      size="sm" 
+                      className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                      onClick={handleStartSleep}
+                      disabled={startSleep.isPending}
+                    >
+                      <Moon className="h-4 w-4 mr-1" />
+                      Start slaap
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Phase-based Advice */}
@@ -366,68 +405,25 @@ export default function DashboardPage() {
 
         {/* Monthly Analysis CTA */}
         {canGenerateMonthly && (
-          <Link to="/analyse">
-            <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-rose-500/10 hover:shadow-soft transition-all">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-full bg-purple-500/20">
-                  <FileText className="h-5 w-5 text-purple-600" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-foreground">Maandelijkse Analyse klaar</p>
-                  <p className="text-sm text-muted-foreground">
-                    Uitgebreide analyse met hormoon- en voedingsinzichten
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-purple-600" />
-              </CardContent>
-            </Card>
-          </Link>
+          <div>
+            <Link to="/analyse">
+              <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-rose-500/10 hover:shadow-soft transition-all">
+                <CardContent className="p-4 flex items-center gap-4">
+                  <div className="p-3 rounded-full bg-purple-500/20">
+                    <FileText className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">Maandelijkse Analyse klaar</p>
+                    <p className="text-sm text-muted-foreground">
+                      Uitgebreide analyse met hormoon- en voedingsinzichten
+                    </p>
+                  </div>
+                  <ArrowRight className="h-5 w-5 text-purple-600" />
+                </CardContent>
+              </Card>
+            </Link>
+          </div>
         )}
-
-        {/* Sleep Card - Active sleep or start button */}
-        <Card className="glass rounded-2xl overflow-hidden">
-          {activeSession ? (
-            <CardContent className="p-4 flex items-center gap-4 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30">
-              <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
-                <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
-                <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
-                  {currentSleepHours}u {currentSleepMins}m
-                </p>
-              </div>
-              <Button 
-                size="sm" 
-                className="bg-amber-500 hover:bg-amber-600 text-white"
-                onClick={handleStopSleep}
-                disabled={endSleep.isPending}
-              >
-                <Sun className="h-4 w-4 mr-1" />
-                Stop slaap
-              </Button>
-            </CardContent>
-          ) : (
-            <CardContent className="p-4 flex items-center gap-4">
-              <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                <Moon className="h-5 w-5 text-indigo-600" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground">Slaap</p>
-                <p className="font-medium">Klaar om te slapen?</p>
-              </div>
-              <Button 
-                size="sm" 
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={handleStartSleep}
-                disabled={startSleep.isPending}
-              >
-                <Moon className="h-4 w-4 mr-1" />
-                Start slaap
-              </Button>
-            </CardContent>
-          )}
-        </Card>
 
         {/* Quick actions - Trends */}
         <Card className="glass rounded-2xl hover:shadow-soft transition-all">
