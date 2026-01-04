@@ -20,6 +20,7 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { Footer } from './Footer';
 
 interface NavItem {
   href: string;
@@ -54,7 +55,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   const isPremium = entitlements?.plan === 'premium' || entitlements?.plan === 'starter';
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background flex flex-col">
       {/* Mobile header */}
       <header className="sticky top-0 z-50 lg:hidden bg-card border-b border-border">
         <div className="flex items-center justify-between px-4 h-16">
@@ -114,7 +115,7 @@ export function AppLayout({ children }: AppLayoutProps) {
         )}
       </header>
 
-      <div className="flex">
+      <div className="flex flex-1">
         {/* Desktop sidebar */}
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-border">
           <div className="p-6">
@@ -162,10 +163,11 @@ export function AppLayout({ children }: AppLayoutProps) {
         </aside>
 
         {/* Main content */}
-        <main className="flex-1 min-h-screen overflow-x-hidden">
-          <div className="container py-6 lg:py-8 max-w-5xl px-4 sm:px-6 overflow-x-hidden">
+        <main className="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+          <div className="flex-1 container py-6 lg:py-8 max-w-5xl px-4 sm:px-6 overflow-x-hidden">
             {children}
           </div>
+          <Footer />
         </main>
       </div>
     </div>

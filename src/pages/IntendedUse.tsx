@@ -25,13 +25,35 @@ export default function IntendedUse() {
           </CardHeader>
 
           <CardContent className="prose prose-sm max-w-none pt-6 space-y-8">
+            {/* Official Intended Use Statement */}
+            <section className="bg-primary/5 border border-primary/20 rounded-lg p-4">
+              <h2 className="text-lg font-semibold text-foreground mt-0">
+                Beoogd gebruik (Intended Use)
+              </h2>
+              <p className="text-muted-foreground mb-2">
+                Deze app is bedoeld om gebruikers inzicht te geven in leefstijl- en cyclusgerelateerde 
+                patronen, zoals voeding, welzijn en ervaren klachten.
+              </p>
+              <p className="text-muted-foreground mb-2">
+                De app ondersteunt zelfobservatie en bewustwording en is gericht op preventie en leefstijl.
+              </p>
+              <p className="text-muted-foreground mb-2">
+                De app stelt geen medische diagnoses, doet geen prognoses en biedt geen ondersteuning 
+                bij medische behandelingen of therapiekeuzes.
+              </p>
+              <p className="text-muted-foreground mb-0">
+                De informatie en inzichten die de app biedt zijn niet bedoeld ter vervanging van 
+                professioneel medisch advies.
+              </p>
+            </section>
+
             {/* MDR Classification */}
             <section className="bg-success/10 border border-success/30 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mt-0">
                 <FileText className="h-5 w-5 text-success" />
                 MDR/IVDR Classificatie
               </h2>
-              <p className="text-foreground font-medium mb-0">
+              <p className="text-foreground font-medium mb-2">
                 Perimenopauze Plan is <strong>GEEN medisch hulpmiddel</strong> in de zin van de 
                 EU Verordening Medische Hulpmiddelen (MDR 2017/745).
               </p>

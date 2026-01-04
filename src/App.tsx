@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { useConsent } from "@/hooks/useConsent";
 import { LoadingPage } from "@/components/ui/loading-state";
+import { CookieBanner } from "@/components/layout/CookieBanner";
 
 // Pages
 import LoginPage from "./pages/Login";
@@ -191,6 +192,7 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <AppRoutes />
+          <CookieBanner />
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>

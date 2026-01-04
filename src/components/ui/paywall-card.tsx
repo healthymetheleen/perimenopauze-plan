@@ -30,14 +30,14 @@ export function PaywallCard({ feature, description, benefits = [] }: PaywallCard
             ))}
           </ul>
         )}
-        <Button asChild className="w-full" size="lg">
+        <Button asChild className="w-full btn-gradient" size="lg">
           <Link to="/pricing">
             <Sparkles className="h-4 w-4 mr-2" />
             Upgrade naar Premium
           </Link>
         </Button>
         <p className="text-xs text-center text-muted-foreground">
-          7 dagen gratis proberen
+          Krijg meer inzicht in je leefstijl- en welzijnspatronen · 7 dagen gratis
         </p>
       </CardContent>
     </Card>

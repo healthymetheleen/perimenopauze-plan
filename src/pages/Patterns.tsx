@@ -63,10 +63,11 @@ export default function PatternsPage() {
         <div className="max-w-md mx-auto py-12">
           <PaywallCard
             feature="Patroonherkenning"
-            description="Ontdek verbanden tussen je eetpatroon en hoe je je voelt."
+            description="Ontdek mogelijke samenhang tussen je eetpatroon en hoe je je voelt, op basis van je eigen observaties."
             benefits={[
-              'Correlatie tussen voeding en symptomen',
-              'Inzicht in triggers',
+              'Inzicht in voeding en lichamelijke signalen',
+              'Zie hoe voeding en klachten samen kunnen voorkomen',
+              'Zicht op mogelijke persoonlijke triggers',
               'Persoonlijke observaties',
             ]}
           />
@@ -81,7 +82,7 @@ export default function PatternsPage() {
         <div>
           <h1 className="text-2xl font-semibold text-foreground">Patronen</h1>
           <p className="text-muted-foreground">
-            Mogelijke verbanden tussen je eetpatroon en symptomen (14 dagen)
+            Mogelijke samenhang tussen je eetpatroon en klachten (14 dagen)
           </p>
         </div>
 
