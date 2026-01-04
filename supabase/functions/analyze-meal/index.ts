@@ -38,12 +38,11 @@ ITEM CATEGORIEËN:
 - snacks: chips, koekjes, chocolade, noten
 - sauzen: mayonaise, ketchup, dressing, olie
 
-BEWERKINGSNIVEAU (ultra_processed_level 0-10):
-0-2: Vers/minimaal bewerkt (groenten, fruit, vlees, vis, eieren)
-3-4: Bewerkte ingrediënten (olie, boter, suiker, bloem)
-5-6: Bewerkte voeding (kaas, brood, ingeblikt)
-7-8: Ultra-bewerkt (frisdrank, chips, kant-en-klaar)
-9-10: Zeer ultra-bewerkt (fast food, energiedranken)
+BEWERKINGSNIVEAU (ultra_processed_level 0-3):
+0: Vers/minimaal bewerkt (groenten, fruit, vlees, vis, eieren)
+1: Licht bewerkt/basis bewerkt (yoghurt, olie, boter, eenvoudige sauzen)
+2: Bewerkt (brood, kaas, ingeblikt, simpele kant-en-klaar componenten)
+3: Ultra-bewerkt (frisdrank, chips, snoep, fastfood, sterk bewerkte snacks)
 
 Antwoord ALLEEN met een JSON object:
 {
@@ -59,7 +58,7 @@ Antwoord ALLEEN met een JSON object:
       "carbs_g": number,
       "fat_g": number,
       "fiber_g": number,
-      "processing_level": 0-10
+      "processing_level": 0-3
     }
   ],
   "totals": {
@@ -69,7 +68,7 @@ Antwoord ALLEEN met een JSON object:
     "fat_g": number,
     "fiber_g": number
   },
-  "ultra_processed_level": 0-10 (gewogen gemiddelde),
+  "ultra_processed_level": 0-3 (gewogen gemiddelde),
   "confidence": "high" | "medium" | "low",
   "verification_questions": [
     {
@@ -82,7 +81,7 @@ Antwoord ALLEEN met een JSON object:
     "has_protein": boolean (>15g eiwit per maaltijd),
     "has_fiber": boolean (>5g vezels per maaltijd),
     "has_vegetables": boolean,
-    "is_ultra_processed": boolean (level >= 7),
+    "is_ultra_processed": boolean (level == 3),
     "is_late_meal": false
   },
   "notes": "optionele opmerking over schatting"
