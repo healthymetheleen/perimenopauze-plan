@@ -336,4 +336,20 @@
     box-shadow: 0 0 20px hsl(var(--primary) / 0.15),
                 0 0 40px hsl(var(--primary) / 0.05);
   }
+
+  /* Floating animation for season decorations */
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0) rotate(0deg);
+      opacity: 0.6;
+    }
+    50% {
+      transform: translateY(-6px) rotate(8deg);
+      opacity: 1;
+    }
+  }
 }
