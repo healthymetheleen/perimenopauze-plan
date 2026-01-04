@@ -1,7 +1,7 @@
 import { format, subDays, differenceInMinutes, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
-  CalendarDays, TrendingUp, ArrowRight, Plus, Briefcase,
+  TrendingUp, ArrowRight, Briefcase,
   Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText, Heart
 } from 'lucide-react';
 import { SeasonDecorations } from '@/components/dashboard/SeasonDecorations';
@@ -163,28 +163,30 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
-        {/* Header with date and action buttons */}
-        <div className="flex items-center justify-between">
-          <div>
+        {/* Season Header - Always at top with date */}
+        <div className={`rounded-2xl p-5 ${showSeasonBadge ? seasonAccent.bg : 'bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10'}`}>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">
+                {format(new Date(), "EEEE", { locale: nl })}
+              </p>
+              <p className="text-xl font-semibold text-foreground">
+                {format(new Date(), "d MMMM yyyy", { locale: nl })}
+              </p>
+            </div>
             {showSeasonBadge && (
-              <div className="relative inline-block">
-                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium mb-1 ${seasonAccent.accent} text-white`}>
+              <div className="relative">
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-sm font-medium ${seasonAccent.accent} text-white`}>
                   {seasonIcons[currentSeason]}
                   <span>{seasonLabels[currentSeason]}</span>
                 </div>
                 <SeasonDecorations season={currentSeason} />
               </div>
             )}
-            <p className="text-lg font-medium text-foreground">
-              {format(new Date(), "EEEE d MMMM", { locale: nl })}
-            </p>
           </div>
-          <Button asChild className="btn-gradient text-primary-foreground shadow-soft">
-            <Link to="/diary">
-              <Plus className="h-4 w-4 mr-2" />
-              Maaltijd
-            </Link>
-          </Button>
+          {showSeasonBadge && currentPhase !== 'unknown' && (
+            <p className="text-sm text-muted-foreground mt-1">{phaseLabels[currentPhase]}</p>
+          )}
         </div>
 
         {/* Fertility Banner - only for users with child wish (show_fertile_days enabled) */}
@@ -207,51 +209,28 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Daily Check-in Button - with more spacing */}
-        <div className="pt-2">
-          <Link to="/cycle">
-            <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className="p-3 rounded-full bg-primary/20">
-                  <Sparkles className="h-5 w-5 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <p className="font-semibold text-foreground">Dagelijkse check-in</p>
-                  <p className="text-sm text-muted-foreground">
-                    Log hoe je je voelt, energie, slaap & klachten
-                  </p>
-                </div>
-                <ArrowRight className="h-5 w-5 text-primary" />
-              </CardContent>
-            </Card>
-          </Link>
-        </div>
+        {/* Daily Check-in Button */}
+        <Link to="/cycle">
+          <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10 hover:shadow-soft transition-all">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-primary/20">
+                <Sparkles className="h-5 w-5 text-primary" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-foreground">Dagelijkse check-in</p>
+                <p className="text-sm text-muted-foreground">
+                  Log hoe je je voelt, energie, slaap & klachten
+                </p>
+              </div>
+              <ArrowRight className="h-5 w-5 text-primary" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Trial Countdown */}
         <TrialCountdown />
 
-        {/* Season Badge - Always visible if onboarding completed */}
-        {showSeasonBadge && (
-          <Link to="/cycle">
-            <Card className={`glass rounded-2xl overflow-hidden season-${currentSeason}`}>
-              <CardContent className="p-4 flex items-center gap-4">
-                <div className={`p-3 rounded-full ${seasonColors[currentSeason].bg}`}>
-                  {seasonIcons[currentSeason]}
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">Huidige fase</p>
-                  <p className="font-semibold text-lg">{seasonLabels[currentSeason]}</p>
-                  {currentPhase !== 'unknown' && (
-                    <p className="text-sm text-muted-foreground">{phaseLabels[currentPhase]}</p>
-                  )}
-                </div>
-                <ArrowRight className="h-5 w-5 text-muted-foreground" />
-              </CardContent>
-            </Card>
-          </Link>
-        )}
-
-        {/* Scores Grid */}
+        {/* Scores Grid - Yesterday's eating and Today's food */}
         <div className="grid grid-cols-2 gap-4">
           {/* Yesterday's Eating Score */}
           <Link to="/diary">
@@ -275,30 +254,88 @@ export default function DashboardPage() {
             </Card>
           </Link>
 
-          {/* Sleep Score */}
-          <Link to="/slaap">
-            <Card className={`glass rounded-2xl h-full ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
+          {/* Today's Food Summary */}
+          <Link to="/diary">
+            <Card className={`glass rounded-2xl h-full ${getScoreGradientClass(todayScore?.day_score ?? null)}`}>
               <CardContent className="p-4">
                 <div className="flex items-center gap-2 mb-2">
-                  <Moon className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground">Slaap 7 dagen</span>
+                  <Utensils className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-muted-foreground">Eten vandaag</span>
                 </div>
-                {sleepStats && sleepStats.totalSessions > 0 ? (
+                {todayScore ? (
                   <div>
-                    <div className={`text-3xl font-bold ${getSleepScoreColor(sleepScore)}`}>
-                      {sleepScore}
-                    </div>
+                    <ScoreBadge score={todayScore.day_score} size="lg" />
                     <p className="text-xs text-muted-foreground mt-1">
-                      Gem. {sleepStats.avgDurationHours.toFixed(1)}u slaap
+                      {todayScore.meals_count} maaltijden
                     </p>
                   </div>
                 ) : (
-                  <p className="text-sm text-muted-foreground">Geen data</p>
+                  <p className="text-sm text-muted-foreground">Nog niets</p>
                 )}
               </CardContent>
             </Card>
           </Link>
         </div>
+
+        {/* Today's Macro Bar */}
+        {todayScore && (
+          <Link to="/diary">
+            <Card className="glass rounded-2xl">
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between gap-2 text-xs">
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{Math.round(todayScore.kcal_total || 0)}</span>
+                    <span className="text-muted-foreground">kcal</span>
+                  </div>
+                  <div className="h-3 w-px bg-border" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{Math.round(todayScore.carbs_g || 0)}g</span>
+                    <span className="text-muted-foreground">koolh.</span>
+                  </div>
+                  <div className="h-3 w-px bg-border" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{Math.round(todayScore.protein_g || 0)}g</span>
+                    <span className="text-muted-foreground">eiwit</span>
+                  </div>
+                  <div className="h-3 w-px bg-border" />
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-medium">{Math.round(todayScore.fiber_g || 0)}g</span>
+                    <span className="text-muted-foreground">vezels</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+        )}
+
+        {/* Sleep Score - moved above monthly analysis */}
+        <Link to="/slaap">
+          <Card className={`glass rounded-2xl ${sleepScore >= 70 ? 'score-gradient-high' : sleepScore >= 40 ? 'score-gradient-medium' : ''}`}>
+            <CardContent className="p-4 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                  <Moon className="h-5 w-5 text-indigo-600" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Slaap 7 dagen</p>
+                  {sleepStats && sleepStats.totalSessions > 0 ? (
+                    <div className="flex items-center gap-3">
+                      <span className={`text-2xl font-bold ${getSleepScoreColor(sleepScore)}`}>
+                        {sleepScore}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        Gem. {sleepStats.avgDurationHours.toFixed(1)}u
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">Geen data</p>
+                  )}
+                </div>
+              </div>
+              <ArrowRight className="h-5 w-5 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Phase-based Advice */}
         {showSeasonBadge && currentAdvice && (
@@ -340,51 +377,6 @@ export default function DashboardPage() {
           </Card>
         )}
 
-        {/* Today's score */}
-        <Card className="glass rounded-2xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <CalendarDays className="h-5 w-5 text-primary" />
-              Vandaag
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <LoadingState size="sm" />
-            ) : error ? (
-              <ErrorState onRetry={() => refetch()} />
-            ) : todayScore ? (
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <ScoreBadge score={todayScore.day_score} size="lg" />
-                  <div>
-                    <p className="font-medium">{todayScore.meals_count} maaltijden</p>
-                    <p className="text-sm text-muted-foreground">
-                      {Math.round(todayScore.protein_g)}g eiwit · {Math.round(todayScore.fiber_g)}g vezels
-                    </p>
-                  </div>
-                </div>
-                <Button variant="ghost" size="sm" asChild>
-                  <Link to="/diary">
-                    Bekijken
-                    <ArrowRight className="h-4 w-4 ml-1" />
-                  </Link>
-                </Button>
-              </div>
-            ) : (
-              <EmptyState
-                icon={<CalendarDays className="h-8 w-8" />}
-                title="Nog niets geregistreerd"
-                description="Begin met je eerste maaltijd van vandaag"
-                action={{
-                  label: 'Start registratie',
-                  onClick: () => window.location.href = '/diary',
-                }}
-              />
-            )}
-          </CardContent>
-        </Card>
-
         {/* Daily AI Reflection */}
         <DailyReflectionCard
           mealsCount={todayScore?.meals_count || 0}
@@ -395,9 +387,8 @@ export default function DashboardPage() {
         {/* Movement & Focus Widget */}
         {showSeasonBadge && <MovementWidget />}
 
-        {/* Monthly Analysis CTA - with spacing */}
+        {/* Monthly Analysis CTA */}
         {canGenerateMonthly && (
-          <div className="mt-6">
           <Link to="/analyse">
             <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/10 via-primary/5 to-rose-500/10 hover:shadow-soft transition-all">
               <CardContent className="p-4 flex items-center gap-4">
@@ -414,10 +405,9 @@ export default function DashboardPage() {
               </CardContent>
             </Card>
           </Link>
-          </div>
         )}
 
-        {/* Sleep Card */}
+        {/* Sleep Card - Active sleep or start button */}
         <Card className="glass rounded-2xl overflow-hidden">
           {activeSession ? (
             <CardContent className="p-4 flex items-center gap-4 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30">
@@ -462,7 +452,7 @@ export default function DashboardPage() {
           )}
         </Card>
 
-        {/* Quick actions - Trends only (combines trends + patterns, premium only) */}
+        {/* Quick actions - Trends */}
         <Card className="glass rounded-2xl hover:shadow-soft transition-all">
           <Link to="/trends" className="block p-5">
             <div className="flex items-center gap-3 mb-2">
