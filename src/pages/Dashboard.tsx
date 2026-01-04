@@ -1,8 +1,8 @@
-import { format, subDays, differenceInMinutes } from 'date-fns';
+import { format, subDays, differenceInMinutes, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   CalendarDays, TrendingUp, Activity, ArrowRight, Plus, 
-  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText
+  Snowflake, Leaf, Sun, Wind, Moon, Dumbbell, Utensils, Sparkles, FileText, Heart
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -20,7 +20,7 @@ import { useDailyScores } from '@/hooks/useDiary';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useAuth } from '@/lib/auth';
 import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors, phaseLabels } from '@/hooks/useCycle';
-import { useSleepSessions, useActiveSleepSession, useStartSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
+import { useSleepSessions, useActiveSleepSession, useStartSleep, useEndSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
 import { useToast } from '@/hooks/use-toast';
 import { useCanGenerateMonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
 
@@ -75,6 +75,7 @@ export default function DashboardPage() {
   const { data: sleepSessions } = useSleepSessions(7);
   const { data: activeSession } = useActiveSleepSession();
   const startSleep = useStartSleep();
+  const endSleep = useEndSleep();
 
   const today = format(new Date(), 'yyyy-MM-dd');
   const yesterday = format(subDays(new Date(), 1), 'yyyy-MM-dd');
@@ -91,6 +92,27 @@ export default function DashboardPage() {
   const phaseKey = seasonToPhase[currentSeason] || 'follicular';
   const currentAdvice = phaseAdvice[phaseKey];
 
+  // Check if today is in fertile window (for users with child wish)
+  const isTodayFertile = preferences?.show_fertile_days && 
+    prediction?.fertile_window_start && 
+    prediction?.fertile_window_end &&
+    isWithinInterval(new Date(), {
+      start: parseISO(prediction.fertile_window_start),
+      end: parseISO(prediction.fertile_window_end),
+    });
+
+  // Get season-based background class
+  const getSeasonBackgroundClass = () => {
+    if (!showSeasonBadge) return 'bg-gradient-subtle';
+    switch (currentSeason) {
+      case 'winter': return 'bg-gradient-to-br from-blue-50 via-slate-50 to-indigo-50 dark:from-blue-950/30 dark:via-slate-950/30 dark:to-indigo-950/30';
+      case 'lente': return 'bg-gradient-to-br from-green-50 via-emerald-50 to-lime-50 dark:from-green-950/30 dark:via-emerald-950/30 dark:to-lime-950/30';
+      case 'zomer': return 'bg-gradient-to-br from-amber-50 via-yellow-50 to-orange-50 dark:from-amber-950/30 dark:via-yellow-950/30 dark:to-orange-950/30';
+      case 'herfst': return 'bg-gradient-to-br from-orange-50 via-amber-50 to-red-50 dark:from-orange-950/30 dark:via-amber-950/30 dark:to-red-950/30';
+      default: return 'bg-gradient-subtle';
+    }
+  };
+
   // Calculate current sleep duration if sleeping
   const currentSleepDuration = activeSession
     ? differenceInMinutes(new Date(), new Date(activeSession.sleep_start))
@@ -104,6 +126,16 @@ export default function DashboardPage() {
       toast({ title: 'Welterusten! 🌙', description: 'Je slaapsessie is gestart.' });
     } catch {
       toast({ title: 'Kon slaapsessie niet starten', variant: 'destructive' });
+    }
+  };
+
+  const handleStopSleep = async () => {
+    if (!activeSession) return;
+    try {
+      await endSleep.mutateAsync({ sessionId: activeSession.id });
+      toast({ title: 'Goedemorgen! ☀️', description: 'Je slaapsessie is opgeslagen.' });
+    } catch {
+      toast({ title: 'Kon slaapsessie niet stoppen', variant: 'destructive' });
     }
   };
 
@@ -122,7 +154,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+      <div className={`space-y-6 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* Header with date and action buttons */}
         <div className="flex items-center justify-between">
           <div>
@@ -137,6 +169,26 @@ export default function DashboardPage() {
             </Link>
           </Button>
         </div>
+
+        {/* Fertility Banner - only for users with child wish (show_fertile_days enabled) */}
+        {isTodayFertile && (
+          <Card className="rounded-2xl bg-gradient-to-r from-green-100 via-emerald-50 to-green-100 border-green-200 dark:from-green-950/50 dark:via-emerald-950/30 dark:to-green-950/50 dark:border-green-800">
+            <CardContent className="p-4 flex items-center gap-4">
+              <div className="p-3 rounded-full bg-green-200 dark:bg-green-800">
+                <Heart className="h-5 w-5 text-green-700 dark:text-green-300" />
+              </div>
+              <div className="flex-1">
+                <p className="font-semibold text-green-800 dark:text-green-200">Je bent nu vruchtbaar 💚</p>
+                <p className="text-sm text-green-700 dark:text-green-300">
+                  Vruchtbare periode t/m {format(parseISO(prediction!.fertile_window_end!), 'd MMMM', { locale: nl })}
+                </p>
+              </div>
+              <Link to="/cycle">
+                <ArrowRight className="h-5 w-5 text-green-600" />
+              </Link>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Daily Check-in Button - with more spacing */}
         <div className="pt-2">
@@ -351,22 +403,26 @@ export default function DashboardPage() {
         {/* Sleep Card */}
         <Card className="glass rounded-2xl overflow-hidden">
           {activeSession ? (
-            <Link to="/slaap">
-              <CardContent className="p-4 flex items-center gap-4 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30">
-                <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
-                  <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
-                  <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
-                    {currentSleepHours}u {currentSleepMins}m
-                  </p>
-                </div>
-                <Badge variant="secondary" className="bg-indigo-200 text-indigo-800">
-                  Tap om te stoppen
-                </Badge>
-              </CardContent>
-            </Link>
+            <CardContent className="p-4 flex items-center gap-4 bg-gradient-to-br from-indigo-100/50 to-purple-100/50 dark:from-indigo-950/30 dark:to-purple-950/30">
+              <div className="p-3 rounded-full bg-indigo-200 dark:bg-indigo-800">
+                <Moon className="h-5 w-5 text-indigo-700 dark:text-indigo-300 animate-pulse" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
+                <p className="font-semibold text-lg text-indigo-900 dark:text-indigo-100">
+                  {currentSleepHours}u {currentSleepMins}m
+                </p>
+              </div>
+              <Button 
+                size="sm" 
+                className="bg-amber-500 hover:bg-amber-600 text-white"
+                onClick={handleStopSleep}
+                disabled={endSleep.isPending}
+              >
+                <Sun className="h-4 w-4 mr-1" />
+                Stop slaap
+              </Button>
+            </CardContent>
           ) : (
             <CardContent className="p-4 flex items-center gap-4">
               <div className="p-3 rounded-full bg-indigo-100 dark:bg-indigo-900/50">

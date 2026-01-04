@@ -127,7 +127,7 @@ export default function DiaryPage() {
                 </div>
                 
                 {/* Nutrition totals */}
-                <div className="grid grid-cols-3 gap-3 p-3 rounded-xl bg-muted/50">
+                <div className="grid grid-cols-4 gap-2 p-3 rounded-xl bg-muted/50">
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.kcal_total || 0)}</p>
                     <p className="text-xs text-muted-foreground">kcal</p>
@@ -135,6 +135,10 @@ export default function DiaryPage() {
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.protein_g || 0)}g</p>
                     <p className="text-xs text-muted-foreground">eiwit</p>
+                  </div>
+                  <div className="text-center">
+                    <p className="text-lg font-bold text-foreground">{Math.round(todayScore.carbs_g || 0)}g</p>
+                    <p className="text-xs text-muted-foreground">koolh</p>
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.fiber_g || 0)}g</p>

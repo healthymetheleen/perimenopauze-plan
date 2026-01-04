@@ -1151,10 +1151,12 @@ export type Database = {
       }
       v_daily_scores: {
         Row: {
+          carbs_g: number | null
           day_date: string | null
           day_id: string | null
           day_score: number | null
           fiber_g: number | null
+          kcal_total: number | null
           meals_count: number | null
           owner_id: string | null
           protein_g: number | null

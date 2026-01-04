@@ -307,6 +307,14 @@ export default function CyclePage() {
         start: parseISO(prediction.ovulation_min),
         end: parseISO(prediction.ovulation_max),
       });
+    
+    // Check if predicted menstruation
+    const isPredictedPeriod = prediction.next_period_start_min && 
+      prediction.next_period_start_max &&
+      isWithinInterval(date, {
+        start: parseISO(prediction.next_period_start_min),
+        end: addDays(parseISO(prediction.next_period_start_max), 4), // Show 5 days of predicted period
+      });
 
     return {
       date,
@@ -315,6 +323,7 @@ export default function CyclePage() {
       bleeding: bleeding?.intensity,
       isFertile,
       isOvulation,
+      isPredictedPeriod: isPredictedPeriod && !bleeding, // Only show prediction if no actual bleeding logged
     };
   });
 
@@ -447,10 +456,14 @@ export default function CyclePage() {
         {/* Calendar strip */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-2">
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
               <div className="flex items-center gap-1">
                 <div className="w-2 h-2 rounded-full bg-red-400" />
                 <span>Menstruatie</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <div className="w-2 h-2 rounded-full bg-red-200 border border-dashed border-red-400" />
+                <span>Verwacht</span>
               </div>
               {preferences?.show_fertile_days && (
                 <>
@@ -468,7 +481,7 @@ export default function CyclePage() {
           </CardHeader>
           <CardContent className="pt-2">
             <div className="flex gap-1 overflow-x-auto pb-2">
-              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation }) => (
+              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod }) => (
                 <button
                   key={dateStr}
                   onClick={() => {
@@ -477,11 +490,12 @@ export default function CyclePage() {
                   }}
                   className={`flex-shrink-0 w-10 p-1.5 rounded-lg text-center transition-colors ${
                     isToday ? 'bg-primary text-primary-foreground' : 
+                    isPredictedPeriod ? 'bg-red-50 border border-dashed border-red-200' :
                     isFertile ? 'bg-green-50' : 
                     isOvulation ? 'bg-purple-50' : 'hover:bg-muted'
                   }`}
                 >
-                  <div className="text-[10px] text-muted-foreground">
+                  <div className={`text-[10px] ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
                     {format(date, 'EEE', { locale: nl })}
                   </div>
                   <div className="text-sm font-medium">{format(date, 'd')}</div>
@@ -492,6 +506,9 @@ export default function CyclePage() {
                         bleeding === 'normaal' ? 'bg-red-400' :
                         bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
                       }`} />
+                    )}
+                    {isPredictedPeriod && !bleeding && (
+                      <div className="w-1.5 h-1.5 rounded-full bg-red-200 border border-red-400" />
                     )}
                     {isFertile && !isOvulation && (
                       <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
