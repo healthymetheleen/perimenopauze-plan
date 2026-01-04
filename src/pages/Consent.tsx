@@ -55,7 +55,7 @@ const consentItems: ConsentItem[] = [
     key: 'accepted_ai_processing',
     icon: <Sparkles className="h-5 w-5 text-accent" />,
     title: 'AI-ondersteuning',
-    description: 'Je geeft toestemming voor AI-analyse om gepersonaliseerde tips te geven. AI ontvangt alleen geanonimiseerde statistieken, geen herleidbare persoonsgegevens.',
+    description: 'Je geeft toestemming om geanonimiseerde statistieken (geen naam/email) naar onze AI-verwerkers (OpenAI, Google) te sturen voor persoonlijke inzichten. AI-verwerkers kunnen data tot 30 dagen bewaren voor misbruikdetectie.',
     required: false,
   },
 ];
