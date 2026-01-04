@@ -507,76 +507,89 @@ export default function CyclePage() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="pt-2">
-            {/* Legend for seasons */}
-            <div className="flex flex-wrap gap-2 text-xs text-muted-foreground mb-3 pb-2 border-b">
-              <span className="font-medium">Seizoen:</span>
-              <div className="flex items-center gap-1">
-                <Snowflake className="h-3 w-3 text-blue-500" />
-                <span>Winter</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Leaf className="h-3 w-3 text-green-500" />
-                <span>Lente</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Sun className="h-3 w-3 text-amber-500" />
-                <span>Zomer</span>
-              </div>
-              <div className="flex items-center gap-1">
-                <Wind className="h-3 w-3 text-orange-500" />
-                <span>Herfst</span>
-              </div>
-            </div>
-            {/* Calendar Grid - Multiple rows (1 month view) */}
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason }) => {
-                const seasonBorderColor = predictedSeason === 'winter' ? 'border-blue-300' :
-                  predictedSeason === 'lente' ? 'border-green-300' :
-                  predictedSeason === 'zomer' ? 'border-amber-300' :
-                  predictedSeason === 'herfst' ? 'border-orange-300' : 'border-transparent';
-                
-                return (
-                  <button
-                    key={dateStr}
-                    onClick={() => {
-                      setSelectedDate(dateStr);
-                      setShowDayLog(true);
-                    }}
-                    className={`w-full aspect-square p-1 rounded-lg text-center transition-colors border-2 ${
-                      isToday ? 'bg-primary text-primary-foreground border-primary' : 
-                      isPredictedPeriod ? `bg-red-50 border-dashed border-red-200` :
-                      isFertile ? `bg-green-50 ${seasonBorderColor}` : 
-                      isOvulation ? `bg-purple-50 ${seasonBorderColor}` : 
-                      `hover:bg-muted ${seasonBorderColor}`
-                    }`}
-                  >
-                    <div className={`text-[9px] leading-tight ${isToday ? 'text-primary-foreground/70' : 'text-muted-foreground'}`}>
-                      {format(date, 'EEE', { locale: nl })}
+          <CardContent className="pt-2 space-y-3">
+            {/* Season bars - horizontal visualization */}
+            {(() => {
+              // Group consecutive days by season
+              const seasonGroups: { season: string; days: typeof calendarDays }[] = [];
+              let currentGroup: { season: string; days: typeof calendarDays } | null = null;
+              
+              calendarDays.forEach(day => {
+                const season = day.predictedSeason || 'onbekend';
+                if (!currentGroup || currentGroup.season !== season) {
+                  currentGroup = { season, days: [day] };
+                  seasonGroups.push(currentGroup);
+                } else {
+                  currentGroup.days.push(day);
+                }
+              });
+
+              const seasonBgColors: Record<string, string> = {
+                winter: 'bg-blue-100 dark:bg-blue-900/40',
+                lente: 'bg-green-100 dark:bg-green-900/40',
+                zomer: 'bg-amber-100 dark:bg-amber-900/40',
+                herfst: 'bg-orange-100 dark:bg-orange-900/40',
+                onbekend: 'bg-muted',
+              };
+
+              const seasonTextColors: Record<string, string> = {
+                winter: 'text-blue-700 dark:text-blue-300',
+                lente: 'text-green-700 dark:text-green-300',
+                zomer: 'text-amber-700 dark:text-amber-300',
+                herfst: 'text-orange-700 dark:text-orange-300',
+                onbekend: 'text-muted-foreground',
+              };
+
+              const seasonIconsSmall: Record<string, React.ReactNode> = {
+                winter: <Snowflake className="h-3 w-3" />,
+                lente: <Leaf className="h-3 w-3" />,
+                zomer: <Sun className="h-3 w-3" />,
+                herfst: <Wind className="h-3 w-3" />,
+                onbekend: null,
+              };
+
+              return (
+                <div className="space-y-2">
+                  {seasonGroups.map((group, groupIndex) => (
+                    <div key={groupIndex} className={`rounded-lg p-2 ${seasonBgColors[group.season]}`}>
+                      {/* Season header */}
+                      <div className={`flex items-center gap-1.5 text-xs font-medium mb-2 ${seasonTextColors[group.season]}`}>
+                        {seasonIconsSmall[group.season]}
+                        <span>{seasonLabels[group.season]}</span>
+                        <span className="text-[10px] font-normal opacity-70">
+                          ({format(group.days[0].date, 'd MMM', { locale: nl })} - {format(group.days[group.days.length - 1].date, 'd MMM', { locale: nl })})
+                        </span>
+                      </div>
+                      {/* Days in this season */}
+                      <div className="flex flex-wrap gap-1">
+                        {group.days.map(({ date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod }) => (
+                          <button
+                            key={dateStr}
+                            onClick={() => {
+                              setSelectedDate(dateStr);
+                              setShowDayLog(true);
+                            }}
+                            className={`w-9 h-10 rounded-md text-center transition-all flex flex-col items-center justify-center ${
+                              isToday ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-1' : 
+                              bleeding ? 'bg-red-400 text-white' :
+                              isPredictedPeriod ? 'bg-red-200 border-2 border-dashed border-red-400' :
+                              isOvulation ? 'bg-purple-400 text-white' :
+                              isFertile ? 'bg-green-300 text-green-900' : 
+                              'bg-white/60 dark:bg-white/10 hover:bg-white dark:hover:bg-white/20'
+                            }`}
+                          >
+                            <div className={`text-[8px] leading-tight ${isToday ? 'text-primary-foreground/80' : bleeding || isOvulation ? 'text-white/80' : 'text-muted-foreground'}`}>
+                              {format(date, 'EEE', { locale: nl })}
+                            </div>
+                            <div className="text-xs font-semibold">{format(date, 'd')}</div>
+                          </button>
+                        ))}
+                      </div>
                     </div>
-                    <div className="text-xs font-medium">{format(date, 'd')}</div>
-                    <div className="h-1.5 flex justify-center gap-0.5 mt-0.5">
-                      {bleeding && (
-                        <div className={`w-1 h-1 rounded-full ${
-                          bleeding === 'hevig' ? 'bg-red-500' :
-                          bleeding === 'normaal' ? 'bg-red-400' :
-                          bleeding === 'licht' ? 'bg-pink-400' : 'bg-pink-300'
-                        }`} />
-                      )}
-                      {isPredictedPeriod && !bleeding && (
-                        <div className="w-1 h-1 rounded-full bg-red-200 border border-red-400" />
-                      )}
-                      {isFertile && !isOvulation && (
-                        <div className="w-1 h-1 rounded-full bg-green-400" />
-                      )}
-                      {isOvulation && (
-                        <div className="w-1 h-1 rounded-full bg-purple-500" />
-                      )}
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  ))}
+                </div>
+              );
+            })()}
           </CardContent>
         </Card>
 
