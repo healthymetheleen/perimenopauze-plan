@@ -139,9 +139,9 @@ export function TodayAtAGlance() {
         {symptoms.length > 0 && (
           <div className="px-4 py-2 bg-white/40 dark:bg-black/10 border-b border-border/20">
             <div className="flex items-center gap-2 text-xs">
-              <AlertCircle className={`h-3 w-3 ${seasonTextColors[currentSeason]}`} />
+              <AlertCircle className="h-3 w-3 text-muted-foreground" />
               <span className="text-muted-foreground">Mogelijk:</span>
-              <span className={seasonTextColors[currentSeason]}>{symptoms.join(' · ')}</span>
+              <span className="text-foreground">{symptoms.join(' · ')}</span>
             </div>
           </div>
         )}
@@ -150,10 +150,10 @@ export function TodayAtAGlance() {
         {dailyAnalysis?.hasYesterdayData && (
           <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
             <div className="flex items-start gap-2 mb-2">
-              <Pill className={`h-4 w-4 ${seasonTextColors[currentSeason]} mt-0.5`} />
+              <Pill className="h-4 w-4 text-muted-foreground mt-0.5" />
               <span className="text-sm font-semibold text-foreground">Gisteren & Advies</span>
             </div>
-            
+
             {dailyAnalysis.yesterdaySummary && (
               <p className="text-xs text-muted-foreground mb-2">{dailyAnalysis.yesterdaySummary}</p>
             )}
@@ -175,7 +175,7 @@ export function TodayAtAGlance() {
               <div className="space-y-1 mb-3">
                 {dailyAnalysis.improvements.slice(0, 2).map((imp, i) => (
                   <div key={i} className="flex items-start gap-1.5 text-xs text-muted-foreground">
-                    <X className="h-3 w-3 text-destructive mt-0.5" />
+                    <X className="h-3 w-3 text-muted-foreground mt-0.5" />
                     <span>{imp}</span>
                   </div>
                 ))}
@@ -186,7 +186,7 @@ export function TodayAtAGlance() {
             {dailyAnalysis.orthomolecular && currentSeason !== 'onbekend' && (
               <div className="pt-2 border-t border-border/20">
                 <p className="text-xs font-medium text-foreground mb-1">
-                  💊 Orthomoleculair voor {seasonLabels[currentSeason].toLowerCase()}:
+                  Orthomoleculair voor {seasonLabels[currentSeason].toLowerCase()}:
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
@@ -203,8 +203,8 @@ export function TodayAtAGlance() {
                   </div>
                 </div>
                 {dailyAnalysis.orthomolecular.avoid.length > 0 && (
-                  <p className="text-xs text-destructive/80 mt-1">
-                    ⚠️ Vermijd: {dailyAnalysis.orthomolecular.avoid[0]}
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Vermijd: {dailyAnalysis.orthomolecular.avoid[0]}
                   </p>
                 )}
               </div>
@@ -216,13 +216,13 @@ export function TodayAtAGlance() {
         {coachingTips.length > 0 && !dailyAnalysis?.hasYesterdayData && (
           <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
             <div className="flex items-start gap-2 mb-2">
-              <Sparkles className="h-4 w-4 text-primary mt-0.5" />
+              <Sparkles className="h-4 w-4 text-muted-foreground mt-0.5" />
               <span className="text-sm font-semibold text-foreground">Persoonlijk advies</span>
             </div>
             <ul className="space-y-1">
               {coachingTips.map((tip, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className={seasonTextColors[currentSeason]}>•</span>
+                  <span className="text-muted-foreground">•</span>
                   {tip}
                 </li>
               ))}
@@ -235,7 +235,7 @@ export function TodayAtAGlance() {
           {/* Food section */}
           <Link to="/dagboek" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
             <div className="flex items-center gap-2 mb-2">
-              <Utensils className={`h-4 w-4 ${seasonTextColors[currentSeason]}`} />
+              <Utensils className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold">Eten vandaag</span>
               <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
@@ -252,15 +252,13 @@ export function TodayAtAGlance() {
             ) : (
               <p className="text-sm text-muted-foreground">Log je eerste maaltijd →</p>
             )}
-            <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">
-              💡 {foodTip}
-            </p>
+            <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">💡 {foodTip}</p>
           </Link>
 
           {/* Movement section */}
           <Link to="/bewegen" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
             <div className="flex items-center gap-2 mb-2">
-              <Dumbbell className={`h-4 w-4 ${seasonTextColors[currentSeason]}`} />
+              <Dumbbell className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold">Bewegen</span>
               <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
@@ -274,9 +272,7 @@ export function TodayAtAGlance() {
             ) : (
               <p className="text-sm text-muted-foreground">Bekijk oefeningen →</p>
             )}
-            <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">
-              💡 {movementTip}
-            </p>
+            <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">💡 {movementTip}</p>
           </Link>
         </div>
       </CardContent>

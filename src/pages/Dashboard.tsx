@@ -74,18 +74,33 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className={`space-y-4 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
-        
+      <div className={`grid gap-4 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
+
+        {/* Daily Check-in - compact CTA */}
+        <Link to="/cycle">
+          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
+            <CardContent className="p-4 flex items-center gap-3">
+              <div className="p-2 rounded-full bg-muted/50">
+                <Sparkles className="h-4 w-4" />
+              </div>
+              <div className="flex-1">
+                <p className="font-medium text-foreground">Dagelijkse check-in</p>
+                <p className="text-xs text-muted-foreground">Log energie, stemming & klachten</p>
+              </div>
+              <ArrowRight className="h-4 w-4 text-muted-foreground" />
+            </CardContent>
+          </Card>
+        </Link>
 
         {/* Sleep Card - compact */}
         <Card className="glass rounded-2xl">
           <CardContent className="p-4 space-y-3">
             <Link to="/slaap" className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                  <Moon className="h-5 w-5 text-indigo-600" />
+                <div className="p-2 rounded-full bg-muted/50">
+                  <Moon className="h-5 w-5" />
                 </div>
                 <div>
                   <p className="text-sm font-medium">Slaap</p>
@@ -100,23 +115,18 @@ export default function DashboardPage() {
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </Link>
-            
+
             {/* Sleep action */}
             <div className="pt-2 border-t">
               {activeSession ? (
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-indigo-600 dark:text-indigo-400">Je slaapt nu</p>
-                    <p className="font-semibold text-indigo-900 dark:text-indigo-100">
+                    <p className="text-sm font-medium">Je slaapt nu</p>
+                    <p className="font-semibold">
                       {currentSleepHours}u {currentSleepMins}m
                     </p>
                   </div>
-                  <Button 
-                    size="sm" 
-                    className="bg-amber-500 hover:bg-amber-600 text-white"
-                    onClick={handleStopSleep}
-                    disabled={endSleep.isPending}
-                  >
+                  <Button size="sm" onClick={handleStopSleep} disabled={endSleep.isPending}>
                     <Sun className="h-4 w-4 mr-1" />
                     Wakker
                   </Button>
@@ -124,12 +134,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">Klaar om te slapen?</p>
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    onClick={handleStartSleep}
-                    disabled={startSleep.isPending}
-                  >
+                  <Button size="sm" variant="outline" onClick={handleStartSleep} disabled={startSleep.isPending}>
                     <Moon className="h-4 w-4 mr-1" />
                     Start slaap
                   </Button>
@@ -139,23 +144,6 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Daily Check-in - compact CTA */}
-        <Link to="/cycle">
-          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <Sparkles className="h-4 w-4 text-primary" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">Dagelijkse check-in</p>
-                <p className="text-xs text-muted-foreground">
-                  Log energie, stemming & klachten
-                </p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
 
         {/* Trial Countdown - only if applicable */}
         <TrialCountdown />
@@ -191,14 +179,12 @@ export default function DashboardPage() {
         <Link to="/trends">
           <Card className="glass rounded-2xl hover:shadow-soft transition-all">
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-primary/10">
-                <TrendingUp className="h-4 w-4 text-primary" />
+              <div className="p-2 rounded-full bg-muted/50">
+                <TrendingUp className="h-4 w-4" />
               </div>
               <div className="flex-1">
                 <p className="font-medium">Trends & Patronen</p>
-                <p className="text-xs text-muted-foreground">
-                  Bekijk je voortgang over tijd
-                </p>
+                <p className="text-xs text-muted-foreground">Bekijk je voortgang over tijd</p>
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </CardContent>
