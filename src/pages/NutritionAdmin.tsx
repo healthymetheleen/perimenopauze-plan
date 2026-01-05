@@ -609,7 +609,7 @@ export default function NutritionAdminPage() {
           </CardHeader>
           <CardContent>
             <Textarea
-              placeholder="Bijv: Focus op whole foods, intuïtief eten, geen strenge regels maar bewuste keuzes. Perimenopauze vraagt om extra aandacht voor eiwit, calcium en vitamine D..."
+              placeholder="Bijv: Focus op whole foods, intuïtief eten, geen strenge regels maar bewuste keuzes. Extra aandacht voor eiwit en gevarieerde voeding..."
               value={dietVision}
               onChange={(e) => setDietVision(e.target.value)}
               rows={4}

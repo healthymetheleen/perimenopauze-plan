@@ -127,9 +127,9 @@ serve(async (req) => {
     if (focusCycle) {
       switch (currentSeason) {
         case 'winter':
-          tips.push('Winter fase: focus op ijzerrijk voedsel (spinazie, rode biet, vlees)');
+          tips.push('Winter fase: kies voor warme, voedzame maaltijden');
           if (focusNutrition && avgProtein < 50) {
-            tips.push('Extra eiwit helpt bij herstel tijdens je menstruatie');
+            tips.push('Eiwit bij je maaltijden helpt bij herstel');
           }
           break;
         case 'lente':

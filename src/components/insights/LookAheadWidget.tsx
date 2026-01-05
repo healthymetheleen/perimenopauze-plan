@@ -86,8 +86,8 @@ const seasonTemplates: Record<string, typeof defaultTemplate> = {
     ],
     eatingTips: [
       {
-        action: 'Focus op ijzerrijke voeding',
-        examples: ['Spinazie', 'Rood vlees', 'Peulvruchten'],
+        action: 'Kies voor warme, voedzame maaltijden',
+        examples: ['Soep', 'Stoofpotjes', 'Warme groenten'],
       },
     ],
     planningTips: [
@@ -193,7 +193,7 @@ const transitionTemplates: Record<string, typeof defaultTemplate> = {
     ],
     focus: [
       'Langzaam opbouwen van activiteiten, niet meteen vol gas.',
-      'Focus op ijzer en B-vitamines voor energieherstel.',
+      'Gevarieerd eten ondersteunt je energieherstel.',
     ],
     eatingTips: [
       {

@@ -63,11 +63,10 @@ const seasonIcons: Record<string, React.ReactNode> = {
 const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: string[]; herstel: string[] }> = {
   winter: {
     voeding: [
-      'Focus op ijzerrijk voedsel: donker bladgroen (spinazie, boerenkool), peulvruchten, rode biet en biologisch rood vlees.',
       'Warme maaltijden ondersteunen je spijsvertering en geven comfort. Denk aan stoofschotels, soepen en stamppotten.',
       'Houd je bloedsuiker stabiel met regelmatige eiwitrijke maaltijden. Vermijd lange periodes zonder eten.',
-      'Voeg vitamine C-rijke groenten toe (paprika, broccoli) om ijzeropname te verbeteren.',
-      'Verminder cafeïne en alcohol, deze kunnen je ijzeropname remmen en klachten verergeren.',
+      'Eet gevarieerd met veel groenten voor voedingsstoffen.',
+      'Verminder cafeïne en alcohol voor een betere nachtrust.',
     ],
     training: [
       'Rustig aan is het devies. Je lichaam is bezig met herstellen en herbouwen.',
@@ -88,7 +87,6 @@ const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: 
       'Warmte helpt: kruik, warme douche, warme dranken.',
       'Zeg nee tegen niet-essentiële sociale verplichtingen.',
       'Dit is de tijd voor solo-activiteiten: lezen, journaling, rust.',
-      'Magnesium en omega-3 kunnen krampen en stemmingsklachten verminderen.',
     ],
   },
   lente: {
@@ -155,10 +153,9 @@ const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: 
     voeding: [
       'Stabiele maaltijdfrequentie is cruciaal - sla geen maaltijden over.',
       'Begin elke dag met eiwit: dit stabiliseert je bloedsuiker en stemming.',
-      'Verminder ultrabewerkte voeding, suiker en alcohol - deze verergeren PMS.',
-      'Magnesiumrijke voeding (noten, zaden, donkere chocolade, bladgroen) helpt.',
-      'Complexe koolhydraten (zoete aardappel, quinoa) ondersteunen serotonineproductie.',
-      'B6-rijke voeding (kip, vis, banaan, kikkererwten) kan PMS verlichten.',
+      'Verminder ultrabewerkte voeding, suiker en alcohol - deze kunnen klachten verergeren.',
+      'Voedzame voeding (noten, zaden, donkere chocolade, bladgroen) helpt.',
+      'Complexe koolhydraten (zoete aardappel, quinoa) ondersteunen je energie.',
     ],
     training: [
       'Kracht behouden is het doel, niet per se PR\'s jagen.',
@@ -181,8 +178,8 @@ const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: 
       'Stress heeft nu meer impact - actieve stressregulatie is essentieel.',
       'Ademhaling, meditatie en rust voorkomt dat spanning opbouwt.',
       'Sociale energie kan lager zijn - plan bewust minder.',
-      'Warme baden, magnesium voor het slapen, en vroeg naar bed.',
-      'Dit is preventie: wat je nu doet bepaalt hoe heftig je menstruatie wordt.',
+      'Warme baden en vroeg naar bed helpen bij herstel.',
+      'Dit is preventie: wat je nu doet bepaalt hoe je je voelt.',
     ],
   },
   onbekend: {

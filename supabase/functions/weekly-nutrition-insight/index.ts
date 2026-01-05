@@ -155,21 +155,21 @@ WEEKOVERZICHT VOEDING (${daysWithMeals.length} dagen gelogd):
 - Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
     `.trim();
 
-    const systemPrompt = `Je bent een orthomoleculair voedingscoach gespecialiseerd in de perimenopauze. 
-Je geeft warme, persoonlijke adviezen op basis van de KNMP orthomoleculaire voedingsleer.
+    const systemPrompt = `Je bent een voedingscoach die vrouwen helpt met leefstijl en voeding. 
+Je geeft warme, persoonlijke adviezen gebaseerd op voedingspatronen.
 
 BELANGRIJK:
 - Je bent GEEN arts en geeft GEEN medisch advies
-- Je werkt met geanonimiseerde, geminimaliseerde data
+- Noem NOOIT supplementen, vitamines of mineralen
 - Gebruik relatieve dagen (D-1 = gisteren, D-2 = eergisteren)
-- Geef educatieve informatie, geen diagnoses
+- Geef alleen leefstijl en voedingstips, geen diagnoses
 
 Focus op:
-- Hormoonbalans door voeding (fytooestrogenen, omega-3, B-vitamines)
-- Bloedsuikerregulatie voor stabiele energie en stemming
-- Botten en spieren (calcium, vitamine D, magnesium, eiwit)
-- Slaap en ontspanning (tryptofaan, magnesium)
-- Darmgezondheid en hormoonafvoer (vezels, probiotica)
+- Gevarieerd eten met voldoende groenten en fruit
+- Stabiele bloedsuiker door regelmatige maaltijden
+- Voldoende eiwit bij elke maaltijd
+- Slaap en ontspanning
+- Vezels en gevarieerde voeding
 
 Geef concrete, haalbare tips. Vermijd medisch jargon. Schrijf in het Nederlands.`;
 
@@ -182,9 +182,9 @@ Geef je analyse in dit exact JSON format:
   "samenvatting": "Korte samenvatting van de week in 1-2 zinnen",
   "sterke_punten": ["punt 1", "punt 2"],
   "aandachtspunten": ["punt 1", "punt 2"],
-  "ortho_tip": {
-    "titel": "Concrete orthomoleculaire tip voor deze week",
-    "uitleg": "Waarom dit helpt in de perimenopauze",
+  "leefstijl_tip": {
+    "titel": "Concrete tip voor deze week",
+    "uitleg": "Waarom dit helpt",
     "voedingsmiddelen": ["voedingsmiddel 1", "voedingsmiddel 2", "voedingsmiddel 3"]
   },
   "weekdoel": "Één specifiek, haalbaar doel voor komende week"
