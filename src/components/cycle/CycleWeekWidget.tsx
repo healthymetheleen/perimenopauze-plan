@@ -19,7 +19,7 @@ import {
   seasonLabels,
   getSeasonForDate,
 } from '@/hooks/useCycle';
-import { ArrowRight, Calendar, Droplet, Sparkles } from 'lucide-react';
+import { ArrowRight, Calendar } from 'lucide-react';
 
 type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
@@ -127,22 +127,23 @@ export function CycleWeekWidget() {
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </div>
 
-          {/* Quick chips */}
+          {/* Quick chips with consistent styling */}
           <div className="flex flex-wrap gap-1.5 text-xs">
             {prediction?.next_period_start_min && (
-              <Badge variant="outline" className="font-normal gap-1">
-                <Droplet className="h-3 w-3" />
+              <Badge variant="outline" className="font-normal gap-1.5 pl-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
                 {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
               </Badge>
             )}
             {preferences?.show_fertile_days && prediction?.fertile_window_start && (
-              <Badge variant="outline" className="font-normal">
+              <Badge variant="outline" className="font-normal gap-1.5 pl-1.5">
+                <span className="h-2.5 w-2.5 rounded-full ring-2 ring-green-500 bg-transparent" />
                 Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
               </Badge>
             )}
             {preferences?.show_fertile_days && ovulationDateStr && (
               <Badge variant="outline" className="font-normal gap-1">
-                <Sparkles className="h-3 w-3" />
+                <span className="text-amber-500 text-xs font-bold">★</span>
                 {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
               </Badge>
             )}
