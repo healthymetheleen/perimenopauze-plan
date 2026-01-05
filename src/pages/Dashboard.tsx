@@ -1,6 +1,6 @@
 import { differenceInMinutes } from 'date-fns';
 import { 
-  TrendingUp, ArrowRight, Moon, Sun, Sparkles, FileText
+  ArrowRight, Moon, Sun, Sparkles, FileText
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -171,21 +171,6 @@ export default function DashboardPage() {
           </Link>
         )}
 
-        {/* Trends link - compact */}
-        <Link to="/trends">
-          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-muted/50">
-                <TrendingUp className="h-4 w-4" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium">Trends & Patronen</p>
-                <p className="text-xs text-muted-foreground">Bekijk je voortgang over tijd</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
       </div>
     </AppLayout>
   );
