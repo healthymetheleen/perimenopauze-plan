@@ -50,14 +50,114 @@ const riskColors: Record<RiskLevel, string> = {
   hoog: 'bg-red-500',
 };
 
+// Fallback template for same-season or unknown transitions
+const defaultTemplate = {
+  quote: 'Focus op ritme en balans in deze fase.',
+  feelings: [
+    'Je energie kan stabiel zijn, maar blijf letten op signalen.',
+    'Luister naar je lichaam en geef het wat het nodig heeft.',
+  ],
+  focus: [
+    'Houd je ritme vast met regelmatige maaltijden.',
+    'Zorg voor voldoende slaap en beweging.',
+  ],
+  eatingTips: [
+    {
+      action: 'Eet regelmatig en gevarieerd',
+      examples: ['Groenten', 'Eiwitten', 'Gezonde vetten'],
+    },
+  ],
+  planningTips: [
+    { action: 'Plan je week vooruit', details: 'Balans tussen activiteit en rust' },
+  ],
+};
+
+// Season-specific templates (when staying in same season)
+const seasonTemplates: Record<string, typeof defaultTemplate> = {
+  winter: {
+    quote: 'Rust en herstel staan centraal in je winterfase.',
+    feelings: [
+      'Je energie kan wat lager zijn - dat is normaal.',
+      'Meer behoefte aan warmte en comfort.',
+    ],
+    focus: [
+      'Prioriteer slaap en zachte beweging.',
+      'Warme, voedzame maaltijden ondersteunen je lichaam.',
+    ],
+    eatingTips: [
+      {
+        action: 'Focus op ijzerrijke voeding',
+        examples: ['Spinazie', 'Rood vlees', 'Peulvruchten'],
+      },
+    ],
+    planningTips: [
+      { action: 'Plan rustige dagen', details: 'Minder sociale verplichtingen' },
+    ],
+  },
+  lente: {
+    quote: 'Je energie bouwt op - geniet van deze opwaartse fase!',
+    feelings: [
+      'Meer energie en motivatie.',
+      'Creativiteit en focus nemen toe.',
+    ],
+    focus: [
+      'Dit is een goede tijd om projecten te starten.',
+      'Je lichaam reageert goed op training.',
+    ],
+    eatingTips: [
+      {
+        action: 'Varieer met verse groenten',
+        examples: ['Broccoli', 'Paprika', 'Bladgroenten'],
+      },
+    ],
+    planningTips: [
+      { action: 'Start nieuwe projecten', details: 'Je concentratie is nu op z\'n best' },
+    ],
+  },
+  zomer: {
+    quote: 'Dit is je piekmomen - benut je energie slim!',
+    feelings: [
+      'Hoge energie en zelfvertrouwen.',
+      'Meer sociale drive.',
+    ],
+    focus: [
+      'Plan belangrijke gesprekken en presentaties.',
+      'Geniet, maar waak voor overcommitment.',
+    ],
+    eatingTips: [
+      {
+        action: 'Blijf gehydrateerd',
+        examples: ['Water', 'Kruidenthee', 'Waterrijke groenten'],
+      },
+    ],
+    planningTips: [
+      { action: 'Plan je hoogtepunten', details: 'Belangrijke meetings, sportwedstrijden' },
+    ],
+  },
+  herfst: {
+    quote: 'Tijd voor structuur en zelfzorg in je herfstfase.',
+    feelings: [
+      'Energie kan fluctueren.',
+      'Meer behoefte aan ritme en rust.',
+    ],
+    focus: [
+      'Stabiele bloedsuiker helpt met stemmingswisselingen.',
+      'Vroeg naar bed, minder prikkels.',
+    ],
+    eatingTips: [
+      {
+        action: 'Eet op vaste tijden',
+        examples: ['3 hoofdmaaltijden', 'Beperkt snacken'],
+      },
+    ],
+    planningTips: [
+      { action: 'Structureer je week', details: 'Minder spontane plannen, meer rust' },
+    ],
+  },
+};
+
 // Season transition templates
-const transitionTemplates: Record<string, {
-  quote: string;
-  feelings: string[];
-  focus: string[];
-  eatingTips: { action: string; examples: string[] }[];
-  planningTips: { action: string; details: string }[];
-}> = {
+const transitionTemplates: Record<string, typeof defaultTemplate> = {
   'herfst-winter': {
     quote: 'De komende dagen: minder pushen, meer beschermen.',
     feelings: [
@@ -163,6 +263,28 @@ const transitionTemplates: Record<string, {
     ],
   },
 };
+
+// Helper function to get template safely
+function getTemplate(currentSeason: string, nextSeason: string, transitionKey: string | null): typeof defaultTemplate {
+  // First try transition template
+  if (transitionKey && transitionTemplates[transitionKey]) {
+    return transitionTemplates[transitionKey];
+  }
+  
+  // Try alternative transition key
+  const altKey = `${currentSeason}-${nextSeason}`;
+  if (transitionTemplates[altKey]) {
+    return transitionTemplates[altKey];
+  }
+  
+  // Use season-specific template for same-season
+  if (seasonTemplates[currentSeason]) {
+    return seasonTemplates[currentSeason];
+  }
+  
+  // Fallback to default
+  return defaultTemplate;
+}
 
 // Calculate risk levels based on season and transition
 function calculateRiskLevels(season: Season, isTransition: boolean): { sleep: RiskLevel; cravings: RiskLevel; unrest: RiskLevel } {
@@ -376,7 +498,7 @@ export function LookAheadWidget() {
   const transitionKey = daysUntilTransition !== null && daysUntilTransition <= 5
     ? `${currentSeason}-${nextSeason}`
     : null;
-  const template = transitionKey ? transitionTemplates[transitionKey] : transitionTemplates[`${currentSeason}-${nextSeason}`] || transitionTemplates['herfst-winter'];
+  const template = getTemplate(currentSeason, nextSeason, transitionKey);
   
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
