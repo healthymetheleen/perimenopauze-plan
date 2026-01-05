@@ -12,13 +12,14 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale, Settings2, BarChart3
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useProfile, AGE_CATEGORY_OPTIONS, AgeCategory } from '@/hooks/useProfile';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { CoachingPreferencesCard } from '@/components/settings/CoachingPreferencesCard';
 
 const timezones = [
@@ -40,6 +41,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
+  const { data: isAdmin } = useIsAdmin();
   const { profile, updateProfile } = useProfile();
   const navigate = useNavigate();
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
@@ -147,6 +149,46 @@ export default function SettingsPage() {
             AI wordt ingezet als hulpmiddel en ontvangt geen herleidbare persoonsgegevens.
           </AlertDescription>
         </Alert>
+
+        {/* Admin-only: Coaching Settings */}
+        {isAdmin && (
+          <Card className="glass rounded-2xl border-primary/30 bg-primary/5">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Settings2 className="h-5 w-5 text-primary" />
+                Admin: Coaching & AI Instellingen
+              </CardTitle>
+              <CardDescription>Beheer de stem en stijl van alle AI-adviezen</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Coaching Configuratie</Label>
+                  <p className="text-sm text-muted-foreground">Stel targets, voedingsregels en coachingstijl in</p>
+                </div>
+                <Button variant="default" asChild>
+                  <Link to="/voeding-beheer">
+                    <Settings2 className="h-4 w-4 mr-2" />
+                    Configureren
+                  </Link>
+                </Button>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <Label>Maandelijkse Analyse</Label>
+                  <p className="text-sm text-muted-foreground">Uitgebreide inzichten over cyclus & voeding</p>
+                </div>
+                <Button variant="outline" asChild className="glass">
+                  <Link to="/analyse">
+                    <BarChart3 className="h-4 w-4 mr-2" />
+                    Bekijken
+                  </Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Account & Subscription */}
         <Card className="glass rounded-2xl">

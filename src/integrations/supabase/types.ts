@@ -895,45 +895,78 @@ export type Database = {
       }
       nutrition_settings: {
         Row: {
+          app_philosophy: string | null
+          avoid_ingredients: string[] | null
+          coaching_context: string | null
+          coaching_style: string | null
+          coaching_tone: string | null
           created_at: string
           diet_vision: string | null
           id: string
           important_points: Json | null
           less_important_points: Json | null
           no_go_items: Json | null
+          perimenopause_focus: string[] | null
+          prefer_ingredients: string[] | null
+          supplement_recommendations: string[] | null
           target_carbs_g: number | null
+          target_eating_window_hours: number | null
           target_fat_g: number | null
           target_fiber_g: number | null
           target_kcal: number | null
           target_protein_g: number | null
+          target_protein_per_kg: number | null
+          target_sleep_hours: number | null
           updated_at: string
         }
         Insert: {
+          app_philosophy?: string | null
+          avoid_ingredients?: string[] | null
+          coaching_context?: string | null
+          coaching_style?: string | null
+          coaching_tone?: string | null
           created_at?: string
           diet_vision?: string | null
           id?: string
           important_points?: Json | null
           less_important_points?: Json | null
           no_go_items?: Json | null
+          perimenopause_focus?: string[] | null
+          prefer_ingredients?: string[] | null
+          supplement_recommendations?: string[] | null
           target_carbs_g?: number | null
+          target_eating_window_hours?: number | null
           target_fat_g?: number | null
           target_fiber_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          target_protein_per_kg?: number | null
+          target_sleep_hours?: number | null
           updated_at?: string
         }
         Update: {
+          app_philosophy?: string | null
+          avoid_ingredients?: string[] | null
+          coaching_context?: string | null
+          coaching_style?: string | null
+          coaching_tone?: string | null
           created_at?: string
           diet_vision?: string | null
           id?: string
           important_points?: Json | null
           less_important_points?: Json | null
           no_go_items?: Json | null
+          perimenopause_focus?: string[] | null
+          prefer_ingredients?: string[] | null
+          supplement_recommendations?: string[] | null
           target_carbs_g?: number | null
+          target_eating_window_hours?: number | null
           target_fat_g?: number | null
           target_fiber_g?: number | null
           target_kcal?: number | null
           target_protein_g?: number | null
+          target_protein_per_kg?: number | null
+          target_sleep_hours?: number | null
           updated_at?: string
         }
         Relationships: []

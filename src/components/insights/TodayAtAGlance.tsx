@@ -264,10 +264,10 @@ export function TodayAtAGlance() {
             </div>
             {workout ? (
               <div className="space-y-1">
-                <p className="text-sm font-medium">{workout.recommendedMinutes} min</p>
-                <Badge variant="secondary" className="text-xs">
-                  {workout.exercises[0]?.nameDutch || 'Yoga'}
-                </Badge>
+                <p className="text-sm font-medium">{workout.recommendedMinutes} min aanbevolen</p>
+                <p className="text-xs text-muted-foreground">
+                  {workout.exercises.length} oefeningen beschikbaar
+                </p>
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">Bekijk oefeningen →</p>
