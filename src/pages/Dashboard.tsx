@@ -35,17 +35,6 @@ export default function DashboardPage() {
   const sleepScore = sleepSessions ? calculateSleepScore(sleepSessions) : 0;
   const sleepStats = sleepSessions ? calculateSleepStats(sleepSessions) : null;
 
-  // Get season-based background class - subtle gradients
-  const getSeasonBackgroundClass = () => {
-    if (!showSeasonBadge) return 'bg-gradient-subtle';
-    switch (currentSeason) {
-      case 'winter': return 'bg-gradient-to-br from-blue-50/50 via-slate-50/80 to-blue-50/30 dark:from-blue-950/20 dark:via-slate-950/40 dark:to-blue-950/10';
-      case 'lente': return 'bg-gradient-to-br from-green-50/50 via-emerald-50/30 to-teal-50/20 dark:from-green-950/20 dark:via-emerald-950/15 dark:to-teal-950/10';
-      case 'zomer': return 'bg-gradient-to-br from-amber-50/50 via-yellow-50/30 to-orange-50/20 dark:from-amber-950/20 dark:via-yellow-950/15 dark:to-orange-950/10';
-      case 'herfst': return 'bg-gradient-to-br from-orange-50/50 via-amber-50/30 to-rose-50/20 dark:from-orange-950/20 dark:via-amber-950/15 dark:to-rose-950/10';
-      default: return 'bg-gradient-subtle';
-    }
-  };
 
   // Calculate current sleep duration if sleeping
   const currentSleepDuration = activeSession
@@ -75,7 +64,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className={`grid gap-4 min-h-screen -m-4 p-4 sm:-m-6 sm:p-6 ${getSeasonBackgroundClass()}`}>
+      <div className="grid gap-4">
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
 
