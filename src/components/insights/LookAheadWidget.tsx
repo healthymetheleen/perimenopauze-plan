@@ -492,10 +492,44 @@ export function LookAheadWidget() {
     prevSeason = season;
   }
   
-  // Find next season transition
+  // Find next season transition in forecast
   const nextSeasonDay = forecast.find(d => d.season !== currentSeason);
-  const nextSeason = nextSeasonDay?.season || currentSeason;
-  const daysUntilTransition = nextSeasonDay ? differenceInDays(nextSeasonDay.date, today) : null;
+  
+  // If no transition in 5-day forecast, calculate when next season starts
+  const avgPeriodLength = periodLength;
+  const follicularEnd = avgPeriodLength + Math.floor((avgCycleLength - avgPeriodLength - lutealLength) / 2);
+  const ovulationEnd = follicularEnd + 2;
+  const lutealStart = ovulationEnd;
+  
+  // Calculate days until next season based on current day in cycle
+  let calculatedNextSeason: Season = currentSeason;
+  let calculatedDaysUntil: number | null = null;
+  
+  if (currentDayInCycle > 0 && currentDayInCycle <= avgCycleLength) {
+    if (currentSeason === 'winter') {
+      // Winter ends at periodLength
+      calculatedNextSeason = 'lente';
+      calculatedDaysUntil = Math.max(0, avgPeriodLength - currentDayInCycle + 1);
+    } else if (currentSeason === 'lente') {
+      // Lente ends at follicularEnd
+      calculatedNextSeason = 'zomer';
+      calculatedDaysUntil = Math.max(0, follicularEnd - currentDayInCycle + 1);
+    } else if (currentSeason === 'zomer') {
+      // Zomer ends at ovulationEnd
+      calculatedNextSeason = 'herfst';
+      calculatedDaysUntil = Math.max(0, ovulationEnd - currentDayInCycle + 1);
+    } else if (currentSeason === 'herfst') {
+      // Herfst ends at avgCycleLength (next winter)
+      calculatedNextSeason = 'winter';
+      calculatedDaysUntil = Math.max(0, avgCycleLength - currentDayInCycle + 1);
+    }
+  }
+  
+  // Use forecast transition if found, otherwise use calculated values
+  const nextSeason = nextSeasonDay?.season || calculatedNextSeason;
+  const daysUntilTransition = nextSeasonDay 
+    ? differenceInDays(nextSeasonDay.date, today) 
+    : calculatedDaysUntil;
   
   // Determine transition template key
   const transitionKey = daysUntilTransition !== null && daysUntilTransition <= 5
@@ -539,18 +573,20 @@ export function LookAheadWidget() {
             <p className="text-xs text-muted-foreground mt-1">
               {daysUntilTransition !== null && daysUntilTransition > 0
                 ? `Over ${daysUntilTransition} dag${daysUntilTransition > 1 ? 'en' : ''}`
-                : 'Start rond ' + format(forecast[1]?.date || today, 'EEEE', { locale: nl })}
+                : 'Binnenkort'}
             </p>
           </div>
         </div>
         
-        {/* Transition description */}
-        <div className="px-4 pb-4">
-          <p className="text-sm text-muted-foreground">
-            Je lichaam schakelt langzaam over richting {seasonLabels[nextSeason].toLowerCase()}.
-            De komende dagen kunnen je trek en prikkelbaarheid veranderen.
-          </p>
-        </div>
+        {/* Transition description - only show if transitioning to different season */}
+        {nextSeason !== currentSeason && (
+          <div className="px-4 pb-4">
+            <p className="text-sm text-muted-foreground">
+              Je lichaam schakelt langzaam over richting {seasonLabels[nextSeason].toLowerCase()}.
+              De komende dagen kunnen je energie en behoeften veranderen.
+            </p>
+          </div>
+        )}
         
         
         {/* What you might notice */}
