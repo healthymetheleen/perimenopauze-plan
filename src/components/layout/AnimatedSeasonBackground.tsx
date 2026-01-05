@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 
-type Season = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
+type Season = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend' | 'primary';
 
 interface SeasonPalette {
   base: string;
@@ -41,6 +41,12 @@ const SEASON_PALETTES: Record<Season, SeasonPalette> = {
     blobB: '#D4CFC9',
     blobC: '#FFFFFF',
   },
+  primary: {
+    base: '#FBF4F1',
+    blobA: '#D4A5C9', // dusty rose/mauve
+    blobB: '#C98DB8', // deeper mauve
+    blobC: '#F0E6ED', // soft pink-white
+  },
 };
 
 // Dark mode palettes (more muted, deeper tones)
@@ -74,6 +80,12 @@ const SEASON_PALETTES_DARK: Record<Season, SeasonPalette> = {
     blobA: '#2d2d3a',
     blobB: '#1e1e2a',
     blobC: '#3d3d4a',
+  },
+  primary: {
+    base: '#1a1a2e',
+    blobA: '#4a2d4a',
+    blobB: '#3a1e3a',
+    blobC: '#5a3d5a',
   },
 };
 

@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { AnimatedSeasonBackground } from '@/components/layout/AnimatedSeasonBackground';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
@@ -63,8 +64,9 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4">
-      <Card className="w-full max-w-md rounded-2xl">
+    <div className="min-h-screen flex items-center justify-center px-4 relative">
+      <AnimatedSeasonBackground season="primary" />
+      <Card className="w-full max-w-md rounded-2xl bg-card/80 backdrop-blur-md border-border/50">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl">Perimenopauze Plan</CardTitle>
           <CardDescription>
