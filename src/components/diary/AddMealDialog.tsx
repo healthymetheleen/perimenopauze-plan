@@ -38,9 +38,7 @@ interface QualityFlags {
 
 interface MealItem {
   name: string;
-  category: string;
-  attributes?: string[];
-  quantity: string;
+  grams?: number;
   kcal: number;
   protein_g: number;
   carbs_g: number;
@@ -49,16 +47,30 @@ interface MealItem {
   processing_level?: number;
 }
 
+interface MealTotals {
+  kcal_min?: number;
+  kcal_max?: number;
+  kcal: number;
+  protein_g: number;
+  carbs_g: number;
+  fat_g: number;
+  fiber_g: number;
+  alcohol_g?: number | null;
+  caffeine_mg?: number | null;
+}
+
 interface MealAnalysis {
   description: string;
   items?: MealItem[];
+  totals?: MealTotals;
   kcal: number | null;
   protein_g: number | null;
   carbs_g: number | null;
   fat_g: number | null;
   fiber_g: number | null;
   ultra_processed_level?: number | null;
-  confidence: 'high' | 'medium' | 'low';
+  confidence: number; // 0.0 - 1.0
+  missing_info?: string[];
   verification_questions?: VerificationQuestion[];
   quality_flags?: QualityFlags;
   notes?: string;
@@ -418,8 +430,13 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       const qualityFlags = {
         ai_description: editableAnalysis.description,
         ai_confidence: editableAnalysis.confidence,
+        ai_kcal_min: editableAnalysis.totals?.kcal_min ?? null,
+        ai_kcal_max: editableAnalysis.totals?.kcal_max ?? null,
+        ai_missing_info: editableAnalysis.missing_info || [],
         ai_ultra_processed_level_raw: editableAnalysis.ultra_processed_level ?? null,
         items: editableAnalysis.items || [],
+        alcohol_g: editableAnalysis.totals?.alcohol_g ?? null,
+        caffeine_mg: editableAnalysis.totals?.caffeine_mg ?? null,
         has_protein: editableAnalysis.quality_flags?.has_protein ?? false,
         has_fiber: editableAnalysis.quality_flags?.has_fiber ?? false,
         has_vegetables: editableAnalysis.quality_flags?.has_vegetables ?? false,
@@ -473,10 +490,11 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     setEditableAnalysis({ ...editableAnalysis, [field]: numValue });
   };
 
-  const confidenceColors = {
-    high: 'bg-success/20 text-success-foreground',
-    medium: 'bg-warning/20 text-warning-foreground',
-    low: 'bg-destructive/20 text-destructive-foreground',
+  // Convert numeric confidence to display values
+  const getConfidenceDisplay = (conf: number) => {
+    if (conf >= 0.75) return { label: 'Zeker', color: 'bg-success/20 text-success-foreground' };
+    if (conf >= 0.5) return { label: 'Redelijk', color: 'bg-warning/20 text-warning-foreground' };
+    return { label: 'Onzeker', color: 'bg-destructive/20 text-destructive-foreground' };
   };
 
   return (
@@ -660,15 +678,27 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
             {/* AI Analysis result */}
             {editableAnalysis && (
               <>
-                <div className="p-3 rounded-lg bg-muted/50">
-                  <div className="flex items-center justify-between mb-2">
+                {/* AI Analysis result with range and confidence */}
+                <div className="p-3 rounded-lg bg-muted/50 space-y-2">
+                  <div className="flex items-center justify-between">
                     <span className="font-medium">{editableAnalysis.description}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${confidenceColors[editableAnalysis.confidence]}`}>
-                      {editableAnalysis.confidence === 'high' ? 'Zeker' : editableAnalysis.confidence === 'medium' ? 'Redelijk' : 'Onzeker'}
+                    <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceDisplay(editableAnalysis.confidence).color}`}>
+                      {Math.round(editableAnalysis.confidence * 100)}% {getConfidenceDisplay(editableAnalysis.confidence).label}
                     </span>
                   </div>
-                  {editableAnalysis.notes && (
-                    <p className="text-sm text-muted-foreground">{editableAnalysis.notes}</p>
+                  
+                  {/* Calorie range if available */}
+                  {editableAnalysis.totals?.kcal_min && editableAnalysis.totals?.kcal_max && (
+                    <p className="text-sm text-muted-foreground">
+                      Geschat: <span className="font-medium">{editableAnalysis.totals.kcal_min} - {editableAnalysis.totals.kcal_max} kcal</span>
+                    </p>
+                  )}
+                  
+                  {/* Missing info warnings */}
+                  {editableAnalysis.missing_info && editableAnalysis.missing_info.length > 0 && (
+                    <div className="text-xs text-warning-foreground bg-warning/10 px-2 py-1.5 rounded">
+                      ⚠️ Ontbrekend: {editableAnalysis.missing_info.join(', ')}
+                    </div>
                   )}
                 </div>
 
