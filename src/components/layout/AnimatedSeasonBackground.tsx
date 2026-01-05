@@ -117,9 +117,9 @@ export function AnimatedSeasonBackground({ season = 'onbekend', isDark = false }
 
   const gradients = useMemo(() => {
     return {
-      blobA: `radial-gradient(circle at 30% 20%, ${hexToRgba(palette.blobA, 0.55)} 0%, transparent 55%)`,
-      blobB: `radial-gradient(circle at 70% 80%, ${hexToRgba(palette.blobB, 0.45)} 0%, transparent 50%)`,
-      blobC: `radial-gradient(circle at 50% 50%, ${hexToRgba(palette.blobC, 0.35)} 0%, transparent 45%)`,
+      blobA: `radial-gradient(circle at 30% 20%, ${hexToRgba(palette.blobA, 0.85)} 0%, ${hexToRgba(palette.blobA, 0.3)} 40%, transparent 65%)`,
+      blobB: `radial-gradient(circle at 70% 80%, ${hexToRgba(palette.blobB, 0.75)} 0%, ${hexToRgba(palette.blobB, 0.25)} 35%, transparent 60%)`,
+      blobC: `radial-gradient(circle at 50% 50%, ${hexToRgba(palette.blobC, 0.6)} 0%, ${hexToRgba(palette.blobC, 0.2)} 30%, transparent 55%)`,
     };
   }, [palette]);
 
@@ -131,19 +131,19 @@ export function AnimatedSeasonBackground({ season = 'onbekend', isDark = false }
     >
       {/* Blob A - top-left, slow float */}
       <div
-        className="absolute -top-1/4 -left-1/4 w-3/4 h-3/4 rounded-full blur-3xl opacity-80 animate-[seasonFloat1_18s_ease-in-out_infinite]"
+        className="absolute -top-[10%] -left-[15%] w-[70%] h-[70%] rounded-full blur-[80px] animate-[seasonFloat1_18s_ease-in-out_infinite]"
         style={{ background: gradients.blobA }}
       />
 
       {/* Blob B - bottom-right, medium float */}
       <div
-        className="absolute -bottom-1/4 -right-1/4 w-2/3 h-2/3 rounded-full blur-3xl opacity-70 animate-[seasonFloat2_22s_ease-in-out_infinite]"
+        className="absolute -bottom-[10%] -right-[15%] w-[65%] h-[65%] rounded-full blur-[70px] animate-[seasonFloat2_22s_ease-in-out_infinite]"
         style={{ background: gradients.blobB }}
       />
 
       {/* Blob C - center, subtle pulse */}
       <div
-        className="absolute top-1/4 left-1/4 w-1/2 h-1/2 rounded-full blur-3xl opacity-50 animate-[seasonFloat3_28s_ease-in-out_infinite]"
+        className="absolute top-[20%] left-[25%] w-[50%] h-[50%] rounded-full blur-[60px] animate-[seasonFloat3_28s_ease-in-out_infinite]"
         style={{ background: gradients.blobC }}
       />
 
