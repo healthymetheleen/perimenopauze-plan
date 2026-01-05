@@ -69,9 +69,20 @@ serve(async (req) => {
       console.log('Prediction query error:', predError.message);
     }
 
+    // Get coaching preferences
+    const { data: coachingPrefs } = await supabase
+      .from('coaching_preferences')
+      .select('focus_nutrition, focus_sleep, focus_cycle, focus_movement, focus_stress, focus_symptoms, personal_context')
+      .eq('owner_id', user.id)
+      .maybeSingle();
+
     // Generate coaching tips based on data
     const tips: string[] = [];
     const currentSeason = prediction?.current_season || 'onbekend';
+
+    // Check if nutrition focus is enabled (default true)
+    const focusNutrition = coachingPrefs?.focus_nutrition ?? true;
+    const focusCycle = coachingPrefs?.focus_cycle ?? true;
 
     console.log('Scores found:', scores?.length || 0, 'Season:', currentSeason);
 
@@ -88,50 +99,55 @@ serve(async (req) => {
     const avgKcal = scores.reduce((sum, s) => sum + (s.kcal_total || 0), 0) / scores.length;
     const avgMeals = scores.reduce((sum, s) => sum + (s.meals_count || 0), 0) / scores.length;
 
-    // Protein coaching
-    if (avgProtein < 40) {
-      tips.push(`Je gemiddelde eiwit is ${Math.round(avgProtein)}g/dag. Probeer minimaal 50g voor energie en spieren.`);
-      tips.push('Tip: voeg eieren, vis, peulvruchten of Griekse yoghurt toe aan je maaltijden.');
-    } else if (avgProtein >= 50) {
-      tips.push(`Goed bezig! Je eet gemiddeld ${Math.round(avgProtein)}g eiwit per dag 💪`);
+    // Only provide nutrition tips if focus is enabled
+    if (focusNutrition) {
+      // Protein coaching
+      if (avgProtein < 40) {
+        tips.push(`Je gemiddelde eiwit is ${Math.round(avgProtein)}g/dag. Probeer minimaal 50g voor energie en spieren.`);
+        tips.push('Tip: voeg eieren, vis, peulvruchten of Griekse yoghurt toe aan je maaltijden.');
+      } else if (avgProtein >= 50) {
+        tips.push(`Goed bezig! Je eet gemiddeld ${Math.round(avgProtein)}g eiwit per dag 💪`);
+      }
+
+      // Fiber coaching
+      if (avgFiber < 20) {
+        tips.push(`Je vezelintake (${Math.round(avgFiber)}g/dag) is onder de aanbevolen 25g.`);
+        tips.push('Tip: meer groenten, volkoren producten en fruit helpen je spijsvertering.');
+      } else if (avgFiber >= 25) {
+        tips.push(`Uitstekende vezels! ${Math.round(avgFiber)}g/dag houdt je darmen gezond 🥗`);
+      }
+
+      // Meal regularity
+      if (avgMeals < 2) {
+        tips.push('Je logt weinig maaltijden. Regelmatig eten houdt je bloedsuiker stabiel.');
+      }
     }
 
-    // Fiber coaching
-    if (avgFiber < 20) {
-      tips.push(`Je vezelintake (${Math.round(avgFiber)}g/dag) is onder de aanbevolen 25g.`);
-      tips.push('Tip: meer groenten, volkoren producten en fruit helpen je spijsvertering.');
-    } else if (avgFiber >= 25) {
-      tips.push(`Uitstekende vezels! ${Math.round(avgFiber)}g/dag houdt je darmen gezond 🥗`);
-    }
-
-    // Meal regularity
-    if (avgMeals < 2) {
-      tips.push('Je logt weinig maaltijden. Regelmatig eten houdt je bloedsuiker stabiel.');
-    }
-
-    // Season-specific tips
-    switch (currentSeason) {
-      case 'winter':
-        tips.push('Winter fase: focus op ijzerrijk voedsel (spinazie, rode biet, vlees)');
-        if (avgProtein < 50) {
-          tips.push('Extra eiwit helpt bij herstel tijdens je menstruatie');
-        }
-        break;
-      case 'lente':
-        tips.push('Lente fase: je lichaam verwerkt koolhydraten nu optimaal');
-        tips.push('Ideale tijd voor gevarieerde, verse maaltijden');
-        break;
-      case 'zomer':
-        tips.push('Zomer fase: licht maar voedzaam eten, extra hydratatie');
-        tips.push('Je energie is op z\'n piek - geniet ervan!');
-        break;
-      case 'herfst':
-        tips.push('Herfst fase: stabiele maaltijdtijden zijn cruciaal');
-        tips.push('Vermijd veel suiker en alcohol om PMS te verminderen');
-        if (avgFiber < 20) {
-          tips.push('Extra magnesium (noten, zaden) kan helpen bij spanning');
-        }
-        break;
+    // Season-specific tips (only if cycle focus is enabled)
+    if (focusCycle) {
+      switch (currentSeason) {
+        case 'winter':
+          tips.push('Winter fase: focus op ijzerrijk voedsel (spinazie, rode biet, vlees)');
+          if (focusNutrition && avgProtein < 50) {
+            tips.push('Extra eiwit helpt bij herstel tijdens je menstruatie');
+          }
+          break;
+        case 'lente':
+          tips.push('Lente fase: je lichaam verwerkt koolhydraten nu optimaal');
+          tips.push('Ideale tijd voor gevarieerde, verse maaltijden');
+          break;
+        case 'zomer':
+          tips.push('Zomer fase: licht maar voedzaam eten, extra hydratatie');
+          tips.push('Je energie is op z\'n piek - geniet ervan!');
+          break;
+        case 'herfst':
+          tips.push('Herfst fase: stabiele maaltijdtijden zijn cruciaal');
+          tips.push('Vermijd veel suiker en alcohol om PMS te verminderen');
+          if (focusNutrition && avgFiber < 20) {
+            tips.push('Extra magnesium (noten, zaden) kan helpen bij spanning');
+          }
+          break;
+      }
     }
 
     console.log('Returning tips:', tips.length);

@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { CoachingPreferencesCard } from '@/components/settings/CoachingPreferencesCard';
 
 const timezones = [
   { value: 'Europe/Amsterdam', label: 'Amsterdam (CET)' },
@@ -248,6 +249,9 @@ export default function SettingsPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Coaching Focus Preferences */}
+        <CoachingPreferencesCard />
 
         {/* Privacy */}
         <Card className="glass rounded-2xl">
