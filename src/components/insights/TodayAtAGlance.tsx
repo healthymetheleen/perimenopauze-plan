@@ -233,7 +233,7 @@ export function TodayAtAGlance() {
         {/* Quick stats grid */}
         <div className="grid grid-cols-2 divide-x divide-border/20">
           {/* Food section */}
-          <Link to="/dagboek" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
+          <Link to="/diary" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
             <div className="flex items-center gap-2 mb-2">
               <Utensils className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm font-semibold">Eten vandaag</span>

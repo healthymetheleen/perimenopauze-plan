@@ -1,4 +1,12 @@
-import { format, addDays, isSameDay, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
+import {
+  addDays,
+  differenceInDays,
+  format,
+  isSameDay,
+  isWithinInterval,
+  parseISO,
+  startOfDay,
+} from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
@@ -12,13 +20,14 @@ import {
 } from '@/hooks/useCycle';
 import { ArrowRight, Calendar, Droplet, Sparkles } from 'lucide-react';
 
+type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
+
 export function CycleWeekWidget() {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);
   const { data: bleedingLogs } = useBleedingLogs(14);
 
-  // Don't show if onboarding not completed
   if (!preferences?.onboarding_completed) return null;
 
   const avgCycleLength = prediction?.avg_cycle_length || preferences?.avg_cycle_length || 28;
@@ -26,87 +35,90 @@ export function CycleWeekWidget() {
   const lutealLength = preferences?.luteal_phase_length || 13;
   const ovulationDayInCycle = avgCycleLength - lutealLength;
 
-  const currentSeason = prediction?.current_season || 'onbekend';
+  const latestCycleStart = cycles?.[0]?.start_date ? startOfDay(parseISO(cycles[0].start_date)) : null;
 
-  // Calculate day in cycle for a given date
-  const getDayInCycle = (date: Date): number => {
-    if (!cycles?.length) return -1;
-    const latestCycle = cycles[0];
-    const cycleStart = parseISO(latestCycle.start_date);
-    return differenceInDays(date, cycleStart);
-  };
+  const predictedPeriodMin = prediction?.next_period_start_min ? startOfDay(parseISO(prediction.next_period_start_min)) : null;
+  const predictedPeriodMax = prediction?.next_period_start_max ? startOfDay(parseISO(prediction.next_period_start_max)) : null;
 
-  // Get predicted season based on day in cycle
-  const getPredictedSeason = (date: Date): string => {
-    const dayInCycle = getDayInCycle(date);
+  const getPredictedSeason = (date: Date): SeasonKey => {
+    if (!latestCycleStart) return 'onbekend';
+
+    const date0 = startOfDay(date);
+    const anchor = predictedPeriodMin && date0 >= predictedPeriodMin ? predictedPeriodMin : latestCycleStart;
+    const dayInCycle = differenceInDays(date0, anchor);
     if (dayInCycle < 0) return 'onbekend';
-    
-    // Normalize to position within a cycle
-    const normalizedDay = dayInCycle % avgCycleLength;
-    
-    if (normalizedDay < periodLength) return 'winter';
-    if (normalizedDay < ovulationDayInCycle - 1) return 'lente';
-    if (normalizedDay <= ovulationDayInCycle + 1) return 'zomer';
+
+    const normalized = ((dayInCycle % avgCycleLength) + avgCycleLength) % avgCycleLength;
+
+    if (normalized < periodLength) return 'winter';
+    if (normalized < ovulationDayInCycle - 1) return 'lente';
+    if (normalized <= ovulationDayInCycle + 1) return 'zomer';
     return 'herfst';
   };
 
-  // Ovulation - middle day of ovulation window
   const ovulationDateStr = (() => {
     if (!prediction?.ovulation_min || !prediction?.ovulation_max) return undefined;
-    const min = parseISO(prediction.ovulation_min);
-    const max = parseISO(prediction.ovulation_max);
+    const min = startOfDay(parseISO(prediction.ovulation_min));
+    const max = startOfDay(parseISO(prediction.ovulation_max));
     const mid = addDays(min, Math.floor(differenceInDays(max, min) / 2));
     return format(mid, 'yyyy-MM-dd');
   })();
 
-  // Generate 7-day calendar (today + 6 days)
+  const today0 = startOfDay(new Date());
+  const currentSeason = prediction?.current_season || 'onbekend';
+
+  // Day in cycle (for header)
+  const dayInCycle = latestCycleStart ? differenceInDays(today0, latestCycleStart) + 1 : -1;
+
+  const seasonTileClass: Record<SeasonKey, string> = {
+    winter: 'season-surface-winter',
+    lente: 'season-surface-lente',
+    zomer: 'season-surface-zomer',
+    herfst: 'season-surface-herfst',
+    onbekend: 'season-surface-onbekend',
+  };
+
   const calendarDays = Array.from({ length: 7 }, (_, i) => {
-    const date = addDays(new Date(), i);
+    const date = addDays(today0, i);
     const dateStr = format(date, 'yyyy-MM-dd');
-    const bleeding = bleedingLogs?.find(l => l.log_date === dateStr);
-    
-    const isFertile = preferences?.show_fertile_days && 
-      prediction?.fertile_window_start && 
-      prediction?.fertile_window_end &&
+    const bleeding = bleedingLogs?.find((l) => l.log_date === dateStr);
+
+    const isFertile =
+      !!preferences?.show_fertile_days &&
+      !!prediction?.fertile_window_start &&
+      !!prediction?.fertile_window_end &&
       isWithinInterval(date, {
-        start: parseISO(prediction.fertile_window_start),
-        end: parseISO(prediction.fertile_window_end),
+        start: startOfDay(parseISO(prediction.fertile_window_start)),
+        end: startOfDay(parseISO(prediction.fertile_window_end)),
       });
-    
-    const isOvulation = dateStr === ovulationDateStr && preferences?.show_fertile_days;
-    
-    const isPredictedPeriod = prediction?.next_period_start_min && 
-      prediction?.next_period_start_max &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.next_period_start_min),
-        end: addDays(parseISO(prediction.next_period_start_max), 4),
-      });
+
+    const predictedPeriodEnd = predictedPeriodMax ? addDays(predictedPeriodMax, Math.max(0, periodLength - 1)) : null;
+
+    const isPredictedPeriod =
+      !!predictedPeriodMin &&
+      !!predictedPeriodEnd &&
+      isWithinInterval(date, { start: predictedPeriodMin, end: predictedPeriodEnd });
+
+    const isOvulation = preferences?.show_fertile_days && dateStr === ovulationDateStr;
+
+    // Make expected period days read as winter in the strip
+    const baseSeason = getPredictedSeason(date);
+    const predictedSeason: SeasonKey = isPredictedPeriod ? 'winter' : baseSeason;
 
     return {
       date,
       dateStr,
-      isToday: isSameDay(date, new Date()),
-      bleeding: bleeding?.intensity,
+      isToday: isSameDay(date, today0),
+      hasBleeding: !!bleeding,
       isFertile,
       isOvulation,
       isPredictedPeriod: isPredictedPeriod && !bleeding,
-      predictedSeason: getPredictedSeason(date),
+      predictedSeason,
     };
   });
 
-  // Season tile colors
-  const seasonTileClasses: Record<string, string> = {
-    winter: 'bg-sky-100 dark:bg-sky-900/60',
-    lente: 'bg-emerald-100 dark:bg-emerald-900/60',
-    zomer: 'bg-amber-100 dark:bg-amber-900/60',
-    herfst: 'bg-orange-100 dark:bg-orange-900/60',
-    onbekend: 'bg-muted',
-  };
-
-  const dayInCycle = getDayInCycle(new Date());
-
   return (
-    <Link to="/cyclus">
+    <Link to="/cycle">
       <Card className="glass rounded-2xl hover:shadow-soft transition-all">
         <CardContent className="p-4 space-y-3">
           {/* Header */}
@@ -119,7 +131,7 @@ export function CycleWeekWidget() {
                 <p className="text-sm font-medium">Cyclus</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
                   <span>{seasonLabels[currentSeason]}</span>
-                  {dayInCycle >= 0 && <span>· Dag {dayInCycle + 1}</span>}
+                  {dayInCycle > 0 && <span>· Dag {dayInCycle}</span>}
                 </div>
               </div>
             </div>
@@ -147,49 +159,41 @@ export function CycleWeekWidget() {
             )}
           </div>
 
-          {/* 7-day calendar strip */}
+          {/* 7-day strip (season background + event markers) */}
           <div className="grid grid-cols-7 gap-1">
-            {calendarDays.map((day) => {
-              const { date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason } = day;
-              
-              const hasBleeding = !!bleeding;
-              const showPredicted = !!isPredictedPeriod;
-              const showFertile = !!isFertile;
+            {calendarDays.map((d) => (
+              <div
+                key={d.dateStr}
+                className={`
+                  relative min-h-[44px] rounded-md
+                  flex flex-col items-center justify-center text-center
+                  ${seasonTileClass[d.predictedSeason]}
+                  ${d.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                `}
+              >
+                {/* Menstruation marker */}
+                {d.hasBleeding && (
+                  <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive" />
+                )}
+                {/* Predicted marker */}
+                {d.isPredictedPeriod && !d.hasBleeding && (
+                  <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive/35 ring-1 ring-destructive/30" />
+                )}
+                {/* Fertile ring */}
+                {d.isFertile && (
+                  <span className="absolute inset-0.5 rounded-md cycle-ring-fertile" />
+                )}
+                {/* Ovulation star */}
+                {d.isOvulation && (
+                  <span className="absolute top-0.5 right-0.5 cycle-ovulation-star text-xs font-bold">★</span>
+                )}
 
-              // Determine tile color based on events (same style as calendar)
-              let tileClass = seasonTileClasses[predictedSeason];
-              
-              if (hasBleeding) {
-                tileClass = 'bg-rose-400 dark:bg-rose-600 text-white';
-              } else if (showPredicted) {
-                tileClass = 'bg-rose-200 dark:bg-rose-800/60';
-              } else if (showFertile) {
-                tileClass = 'bg-emerald-300 dark:bg-emerald-700';
-              }
-
-              return (
-                <div
-                  key={dateStr}
-                  className={`
-                    relative min-h-[44px] rounded-md flex flex-col items-center justify-center text-center
-                    ${tileClass}
-                    ${isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
-                  `}
-                >
-                  {/* Ovulation star */}
-                  {isOvulation && (
-                    <span className="absolute top-0.5 right-0.5 text-amber-500 text-xs">★</span>
-                  )}
-                  
-                  <span className={`text-[10px] leading-tight ${hasBleeding ? 'text-white/80' : 'text-muted-foreground'}`}>
-                    {format(date, 'EE', { locale: nl }).substring(0, 2)}
-                  </span>
-                  <span className={`text-lg font-bold leading-tight ${hasBleeding ? 'text-white' : ''}`}>
-                    {format(date, 'd')}
-                  </span>
-                </div>
-              );
-            })}
+                <span className="text-[10px] text-muted-foreground leading-none">
+                  {format(d.date, 'EE', { locale: nl }).substring(0, 2)}
+                </span>
+                <span className="text-lg font-bold leading-tight">{format(d.date, 'd')}</span>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>

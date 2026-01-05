@@ -1,12 +1,20 @@
-import { useState } from 'react';
-import { format, addDays, isSameDay, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
+import { useEffect, useMemo, useState } from 'react';
+import {
+  addDays,
+  differenceInDays,
+  format,
+  isSameDay,
+  isWithinInterval,
+  parseISO,
+  startOfDay,
+} from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Calendar, Droplet, Sparkles, Snowflake, Leaf, Sun, Wind } from 'lucide-react';
-import { CyclePrediction, CyclePreferences, BleedingLog, Cycle, seasonLabels } from '@/hooks/useCycle';
+import { Calendar, Droplet, Sparkles } from 'lucide-react';
+import { BleedingLog, Cycle, CyclePreferences, CyclePrediction, seasonLabels } from '@/hooks/useCycle';
 
 interface CycleCalendarProps {
   prediction: Omit<CyclePrediction, 'id' | 'owner_id' | 'generated_at'> | CyclePrediction;
@@ -16,127 +24,165 @@ interface CycleCalendarProps {
   onDayClick: (dateStr: string) => void;
 }
 
-const seasonIcons: Record<string, React.ReactNode> = {
-  winter: <Snowflake className="h-4 w-4" />,
-  lente: <Leaf className="h-4 w-4" />,
-  zomer: <Sun className="h-4 w-4" />,
-  herfst: <Wind className="h-4 w-4" />,
-  onbekend: <Calendar className="h-4 w-4" />,
-};
+type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
 export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, onDayClick }: CycleCalendarProps) {
   const [showSeasons, setShowSeasons] = useState(true);
   const [showMenstruation, setShowMenstruation] = useState(true);
-  const [showFertile, setShowFertile] = useState(preferences?.show_fertile_days ?? true);
+  const [showFertile, setShowFertile] = useState(!!preferences?.show_fertile_days);
+
+  useEffect(() => {
+    if (typeof preferences?.show_fertile_days === 'boolean') {
+      setShowFertile(preferences.show_fertile_days);
+    }
+  }, [preferences?.show_fertile_days]);
 
   const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
   const periodLength = preferences?.avg_period_length || 5;
   const lutealLength = preferences?.luteal_phase_length || 13;
   const ovulationDayInCycle = avgCycleLength - lutealLength;
 
-  const getDayInCycle = (date: Date): number => {
-    if (!cycles?.length) return -1;
-    const latestCycle = cycles[0];
-    const cycleStart = parseISO(latestCycle.start_date);
-    return differenceInDays(date, cycleStart);
+  const latestCycleStart = useMemo(() => {
+    const start = cycles?.[0]?.start_date;
+    return start ? startOfDay(parseISO(start)) : null;
+  }, [cycles]);
+
+  const predictedPeriodMin = prediction.next_period_start_min ? startOfDay(parseISO(prediction.next_period_start_min)) : null;
+  const predictedPeriodMax = prediction.next_period_start_max ? startOfDay(parseISO(prediction.next_period_start_max)) : null;
+
+  const seasonSurfaceClass: Record<SeasonKey, string> = {
+    winter: 'season-surface-winter',
+    lente: 'season-surface-lente',
+    zomer: 'season-surface-zomer',
+    herfst: 'season-surface-herfst',
+    onbekend: 'season-surface-onbekend',
   };
 
-  const getPredictedSeason = (date: Date): string => {
-    const dayInCycle = getDayInCycle(date);
+  const seasonTextClass: Record<SeasonKey, string> = {
+    winter: 'season-text-winter',
+    lente: 'season-text-lente',
+    zomer: 'season-text-zomer',
+    herfst: 'season-text-herfst',
+    onbekend: 'season-text-onbekend',
+  };
+
+  const getPredictedSeason = (date: Date): SeasonKey => {
+    if (!latestCycleStart) return 'onbekend';
+
+    const date0 = startOfDay(date);
+    // Anchor to the *earliest* predicted period start if we are past it.
+    // This makes the uncertainty range feel consistent with the UI's "23-29 jan".
+    const anchor = predictedPeriodMin && date0 >= predictedPeriodMin ? predictedPeriodMin : latestCycleStart;
+    const dayInCycle = differenceInDays(date0, anchor);
     if (dayInCycle < 0) return 'onbekend';
-    const normalizedDay = dayInCycle % avgCycleLength;
-    if (normalizedDay < periodLength) return 'winter';
-    if (normalizedDay < ovulationDayInCycle - 1) return 'lente';
-    if (normalizedDay <= ovulationDayInCycle + 1) return 'zomer';
+
+    const normalized = ((dayInCycle % avgCycleLength) + avgCycleLength) % avgCycleLength;
+
+    if (normalized < periodLength) return 'winter';
+    if (normalized < ovulationDayInCycle - 1) return 'lente';
+    if (normalized <= ovulationDayInCycle + 1) return 'zomer';
     return 'herfst';
   };
 
   const ovulationDateStr = (() => {
     if (!prediction.ovulation_min || !prediction.ovulation_max) return undefined;
-    const min = parseISO(prediction.ovulation_min);
-    const max = parseISO(prediction.ovulation_max);
+    const min = startOfDay(parseISO(prediction.ovulation_min));
+    const max = startOfDay(parseISO(prediction.ovulation_max));
     const mid = addDays(min, Math.floor(differenceInDays(max, min) / 2));
     return format(mid, 'yyyy-MM-dd');
   })();
 
-  // Generate 35 days of calendar data
-  const calendarDays = Array.from({ length: 35 }, (_, i) => {
-    const date = addDays(new Date(), i - 7);
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const bleeding = bleedingLogs?.find(l => l.log_date === dateStr);
-    
-    const isFertile = preferences?.show_fertile_days && 
-      prediction.fertile_window_start && 
-      prediction.fertile_window_end &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.fertile_window_start),
-        end: parseISO(prediction.fertile_window_end),
-      });
-    
-    const isPredictedPeriod = prediction.next_period_start_min && 
-      prediction.next_period_start_max &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.next_period_start_min),
-        end: addDays(parseISO(prediction.next_period_start_max), 4),
-      });
+  const calendarDays = useMemo(() => {
+    const today0 = startOfDay(new Date());
 
-    return {
-      date,
-      dateStr,
-      isToday: isSameDay(date, new Date()),
-      bleeding: bleeding?.intensity,
-      isFertile,
-      isOvulation: dateStr === ovulationDateStr,
-      isPredictedPeriod: isPredictedPeriod && !bleeding,
-      predictedSeason: getPredictedSeason(date),
-    };
-  });
+    return Array.from({ length: 35 }, (_, i) => {
+      const date = addDays(today0, i - 7);
+      const dateStr = format(date, 'yyyy-MM-dd');
+      const bleeding = bleedingLogs?.find((l) => l.log_date === dateStr);
 
-  // Season colors for tiles
-  const seasonTileClasses: Record<string, string> = {
-    winter: 'bg-sky-100 dark:bg-sky-900/60',
-    lente: 'bg-emerald-100 dark:bg-emerald-900/60',
-    zomer: 'bg-amber-100 dark:bg-amber-900/60',
-    herfst: 'bg-orange-100 dark:bg-orange-900/60',
-    onbekend: 'bg-muted',
-  };
+      const isFertile =
+        !!preferences?.show_fertile_days &&
+        !!prediction.fertile_window_start &&
+        !!prediction.fertile_window_end &&
+        isWithinInterval(date, {
+          start: startOfDay(parseISO(prediction.fertile_window_start)),
+          end: startOfDay(parseISO(prediction.fertile_window_end)),
+        });
 
-  // Group days by season to show headers
-  const seasonGroups: { season: string; startIdx: number; endIdx: number; startDate: Date; endDate: Date }[] = [];
-  let currentSeason = calendarDays[0]?.predictedSeason || 'onbekend';
-  let startIdx = 0;
-  
-  calendarDays.forEach((day, idx) => {
-    if (day.predictedSeason !== currentSeason || idx === calendarDays.length - 1) {
-      const endIdx = idx === calendarDays.length - 1 ? idx : idx - 1;
-      seasonGroups.push({
-        season: currentSeason,
-        startIdx,
-        endIdx,
-        startDate: calendarDays[startIdx].date,
-        endDate: calendarDays[endIdx].date,
-      });
-      currentSeason = day.predictedSeason;
-      startIdx = idx;
+      const predictedPeriodEnd =
+        predictedPeriodMax ? addDays(predictedPeriodMax, Math.max(0, periodLength - 1)) : null;
+
+      const isPredictedPeriod =
+        !!predictedPeriodMin &&
+        !!predictedPeriodEnd &&
+        isWithinInterval(date, { start: predictedPeriodMin, end: predictedPeriodEnd });
+
+      const isOvulation = dateStr === ovulationDateStr;
+
+      const baseSeason = getPredictedSeason(date);
+      const season: SeasonKey = isPredictedPeriod ? 'winter' : baseSeason;
+
+      return {
+        date,
+        dateStr,
+        isToday: isSameDay(date, today0),
+        bleeding: bleeding?.intensity,
+        isFertile,
+        isOvulation,
+        isPredictedPeriod: isPredictedPeriod && !bleeding,
+        predictedSeason: season,
+      };
+    });
+  }, [bleedingLogs, getPredictedSeason, ovulationDateStr, periodLength, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
+
+  // Build season segments along the 35-day window
+  const seasonSegments = useMemo(() => {
+    const segments: { season: SeasonKey; startIdx: number; endIdx: number }[] = [];
+    if (calendarDays.length === 0) return segments;
+
+    let season = calendarDays[0].predictedSeason;
+    let startIdx = 0;
+
+    for (let i = 1; i < calendarDays.length; i++) {
+      if (calendarDays[i].predictedSeason !== season) {
+        segments.push({ season, startIdx, endIdx: i - 1 });
+        season = calendarDays[i].predictedSeason;
+        startIdx = i;
+      }
     }
-  });
+    segments.push({ season, startIdx, endIdx: calendarDays.length - 1 });
+    return segments;
+  }, [calendarDays]);
 
-  // Season panel backgrounds
-  const seasonPanelClasses: Record<string, string> = {
-    winter: 'bg-sky-50 dark:bg-sky-950/30',
-    lente: 'bg-emerald-50 dark:bg-emerald-950/30',
-    zomer: 'bg-amber-50 dark:bg-amber-950/30',
-    herfst: 'bg-orange-50 dark:bg-orange-950/30',
-    onbekend: 'bg-muted/20',
-  };
+  // Convert segments into grid background pieces (split per row so we keep a fixed 7x5 grid)
+  const backgroundPieces = useMemo(() => {
+    const pieces: Array<{ season: SeasonKey; row: number; colStart: number; colEnd: number }> = [];
 
-  const seasonTextClasses: Record<string, string> = {
-    winter: 'text-sky-700 dark:text-sky-300',
-    lente: 'text-emerald-700 dark:text-emerald-300',
-    zomer: 'text-amber-700 dark:text-amber-300',
-    herfst: 'text-orange-700 dark:text-orange-300',
-    onbekend: 'text-muted-foreground',
-  };
+    for (const seg of seasonSegments) {
+      const startRow = Math.floor(seg.startIdx / 7) + 1;
+      const endRow = Math.floor(seg.endIdx / 7) + 1;
+      const startCol = (seg.startIdx % 7) + 1;
+      const endCol = (seg.endIdx % 7) + 1;
+
+      if (startRow === endRow) {
+        pieces.push({ season: seg.season, row: startRow, colStart: startCol, colEnd: endCol });
+        continue;
+      }
+
+      // First row (partial)
+      pieces.push({ season: seg.season, row: startRow, colStart: startCol, colEnd: 7 });
+      // Middle rows (full)
+      for (let r = startRow + 1; r <= endRow - 1; r++) {
+        pieces.push({ season: seg.season, row: r, colStart: 1, colEnd: 7 });
+      }
+      // Last row (partial)
+      pieces.push({ season: seg.season, row: endRow, colStart: 1, colEnd: endCol });
+    }
+
+    return pieces;
+  }, [seasonSegments]);
+
+  const segmentStarts = useMemo(() => new Set(seasonSegments.map((s) => s.startIdx)), [seasonSegments]);
 
   return (
     <Card className="rounded-2xl">
@@ -145,7 +191,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           <Calendar className="h-5 w-5" />
           Cyclusagenda
         </CardTitle>
-        
+
         {/* Toggles */}
         <div className="flex flex-wrap gap-4 mt-3">
           <div className="flex items-center gap-2">
@@ -185,85 +231,105 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           )}
         </div>
 
-        {/* Legend */}
+        {/* Legend (events only) */}
         <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
-          <div className="flex items-center gap-1"><span className="text-rose-500">●</span> Menstruatie</div>
-          <div className="flex items-center gap-1"><span className="text-rose-300">○</span> Verwacht</div>
+          <div className="flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-destructive" /> Menstruatie
+          </div>
+          <div className="flex items-center gap-1">
+            <span className="inline-block h-2 w-2 rounded-full bg-destructive/40 ring-1 ring-destructive/30" /> Verwacht
+          </div>
           {preferences?.show_fertile_days && (
             <>
-              <div className="flex items-center gap-1"><span className="text-emerald-500">●</span> Vruchtbaar</div>
-              <div className="flex items-center gap-1"><span className="text-amber-500">★</span> Ovulatie</div>
+              <div className="flex items-center gap-1">
+                <span className="inline-block h-2 w-2 rounded-full bg-[hsl(var(--cycle-fertile))]" /> Vruchtbaar
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="cycle-ovulation-star">★</span> Ovulatie
+              </div>
             </>
           )}
         </div>
       </CardHeader>
-      
-      <CardContent className="pt-0 space-y-3">
-        {seasonGroups.map((group, groupIdx) => (
-          <div key={`${group.season}-${groupIdx}`} className={`rounded-xl p-3 ${showSeasons ? seasonPanelClasses[group.season] : 'bg-muted/20'}`}>
-            {/* Season header */}
-            {showSeasons && (
-              <div className={`flex items-center gap-2 mb-2 ${seasonTextClasses[group.season]}`}>
-                {seasonIcons[group.season]}
-                <span className="text-sm font-semibold">{seasonLabels[group.season]}</span>
-                <span className="text-xs opacity-70">
-                  {format(group.startDate, 'd MMM', { locale: nl })} - {format(group.endDate, 'd MMM', { locale: nl })}
-                </span>
-              </div>
-            )}
-            
-            {/* 7-column grid for this season's days */}
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.slice(group.startIdx, group.endIdx + 1).map((day) => {
-                const { date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod, predictedSeason } = day;
-                
-                const hasBleeding = !!bleeding && showMenstruation;
-                const showPredicted = !!isPredictedPeriod && showMenstruation;
-                const showFertileDay = !!isFertile && showFertile;
-                const showOvulation = !!isOvulation && showFertile;
 
-                // Determine tile color based on events
-                let tileClass = showSeasons ? seasonTileClasses[predictedSeason] : 'bg-background';
-                
-                if (hasBleeding) {
-                  tileClass = 'bg-rose-400 dark:bg-rose-600 text-white';
-                } else if (showPredicted) {
-                  tileClass = 'bg-rose-200 dark:bg-rose-800/60';
-                } else if (showFertileDay) {
-                  tileClass = 'bg-emerald-300 dark:bg-emerald-700';
-                }
-
-                return (
-                  <button
-                    key={dateStr}
-                    onClick={() => onDayClick(dateStr)}
-                    className={`
-                      relative min-h-[52px] rounded-lg
-                      flex flex-col items-center justify-center text-center p-1
-                      transition-all hover:opacity-80
-                      ${tileClass}
-                      ${isToday ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : ''}
-                    `}
-                  >
-                    {/* Ovulation star */}
-                    {showOvulation && (
-                      <span className="absolute top-1 right-1 text-amber-500 text-sm">★</span>
-                    )}
-                    
-                    {/* Day name */}
-                    <span className={`text-[10px] leading-none ${hasBleeding ? 'text-white/80' : 'text-muted-foreground'}`}>
-                      {format(date, 'EE', { locale: nl })}
-                    </span>
-                    {/* Date - large and bold */}
-                    <span className={`text-xl font-bold leading-tight ${hasBleeding ? 'text-white' : ''}`}>
-                      {format(date, 'd')}
-                    </span>
-                  </button>
-                );
-              })}
+      <CardContent className="pt-0">
+        <div className="relative">
+          {/* Season backgrounds (panels) behind a fixed grid */}
+          {showSeasons && (
+            <div className="absolute inset-0 grid grid-cols-7 gap-1 pointer-events-none">
+              {backgroundPieces.map((p, idx) => (
+                <div
+                  key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
+                  className={`rounded-xl ${seasonSurfaceClass[p.season]} opacity-90`}
+                  style={{
+                    gridRow: `${p.row} / ${p.row + 1}`,
+                    gridColumn: `${p.colStart} / ${p.colEnd + 1}`,
+                  }}
+                />
+              ))}
             </div>
+          )}
+
+          {/* Days */}
+          <div className="relative z-10 grid grid-cols-7 gap-1">
+            {calendarDays.map((day, idx) => {
+              const hasBleeding = !!day.bleeding && showMenstruation;
+              const showPredicted = !!day.isPredictedPeriod && showMenstruation;
+              const showFertileDay = !!day.isFertile && showFertile;
+              const showOvulation = !!day.isOvulation && showFertile;
+
+              const season = day.predictedSeason;
+              const showSeasonLabel = showSeasons && segmentStarts.has(idx) && season !== 'onbekend';
+
+              return (
+                <button
+                  key={day.dateStr}
+                  onClick={() => onDayClick(day.dateStr)}
+                  className={`
+                    relative min-h-[44px] rounded-lg
+                    bg-background/70 dark:bg-background/25
+                    border border-border/40
+                    flex flex-col items-center justify-center text-center px-0.5 py-1
+                    transition-all hover:bg-background/85 dark:hover:bg-background/40
+                    ${day.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                  `}
+                >
+                  {/* Season label (first day in a season segment) */}
+                  {showSeasonLabel && (
+                    <span className={`absolute top-1 left-1 text-[10px] font-medium leading-none ${seasonTextClass[season as SeasonKey]} opacity-90`}>
+                      {seasonLabels[season as SeasonKey]}
+                    </span>
+                  )}
+
+                  {/* Menstruation marker */}
+                  {hasBleeding && (
+                    <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive" />
+                  )}
+                  {/* Predicted marker */}
+                  {showPredicted && !hasBleeding && (
+                    <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive/35 ring-1 ring-destructive/30" />
+                  )}
+
+                  {/* Fertile ring */}
+                  {showFertileDay && (
+                    <span className="absolute inset-0.5 rounded-lg cycle-ring-fertile" />
+                  )}
+                  {/* Ovulation star */}
+                  {showOvulation && (
+                    <span className="absolute top-1 right-1 cycle-ovulation-star text-xs font-bold">★</span>
+                  )}
+
+                  <span className="text-[10px] text-muted-foreground leading-none">
+                    {format(day.date, 'EE', { locale: nl }).substring(0, 2)}
+                  </span>
+                  <span className="text-lg font-bold leading-tight">
+                    {format(day.date, 'd')}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-        ))}
+        </div>
       </CardContent>
     </Card>
   );
