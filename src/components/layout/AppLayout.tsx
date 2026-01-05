@@ -40,6 +40,7 @@ interface NavItem {
 
 const baseNavItems: NavItem[] = [
   { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
+  { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" /> },
   { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
   { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
   { href: '/slaap', label: 'Slaap', icon: <Moon className="h-5 w-5" /> },
@@ -47,7 +48,6 @@ const baseNavItems: NavItem[] = [
   { href: '/meditatie', label: 'Meditaties', icon: <Heart className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
-  { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" />, premium: true },
   { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
