@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
-// FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning
+// FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning met ranges en confidence
 const foodParsingPrompt = `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
 BELANGRIJKE RICHTLIJNEN:
@@ -18,17 +18,13 @@ BELANGRIJKE RICHTLIJNEN:
 - Je doet GEEN uitspraken over allergieën of intoleranties
 - GEEN oordelen over of voedsel "gezond" of "ongezond" is
 
-TAAK: Analyseer de maaltijd en geef voedingswaarden. Wees flexibel met informele beschrijvingen.
+TAAK: Analyseer de maaltijd en geef voedingswaarden met RANGES en CONFIDENCE SCORES.
 
 VOORBEELDEN VAN INFORMELE BESCHRIJVINGEN:
 - "een bak yoghurt met havermout" = 1 portie (200g) yoghurt + 40g havermout
 - "boterham met kaas" = 1 snee brood + 1 plak kaas
 - "kopje koffie met melk" = 150ml koffie + 30ml melk
 - "salade met tonijn" = gemengde sla + blikje tonijn
-- "kommetje muesli" = 50g muesli + 125ml melk
-- "broodje gezond" = brood + kaas + groenten
-- "glas wijn" = 150ml wijn
-- "bakje kwark" = 150g kwark
 
 STANDAARD PORTIEGROOTTES (Nederlandse standaard):
 - Bak/kom/bakje yoghurt/kwark: 150-200g
@@ -52,9 +48,7 @@ Antwoord ALLEEN met een JSON object:
   "items": [
     {
       "name": "item naam",
-      "category": "categorie",
-      "attributes": ["attribuut1"],
-      "quantity": "hoeveelheid",
+      "grams": number,
       "kcal": number,
       "protein_g": number,
       "carbs_g": number,
@@ -64,29 +58,36 @@ Antwoord ALLEEN met een JSON object:
     }
   ],
   "totals": {
+    "kcal_min": number,
+    "kcal_max": number,
     "kcal": number,
     "protein_g": number,
     "carbs_g": number,
     "fat_g": number,
-    "fiber_g": number
+    "fiber_g": number,
+    "alcohol_g": number | null,
+    "caffeine_mg": number | null
   },
   "ultra_processed_level": 0-3,
-  "confidence": "high" | "medium" | "low",
-  "verification_questions": [],
+  "confidence": 0.0-1.0,
+  "missing_info": ["portie onbekend", "saus onbekend"],
   "quality_flags": {
     "has_protein": boolean,
     "has_fiber": boolean,
     "has_vegetables": boolean,
     "is_ultra_processed": boolean,
     "is_late_meal": false
-  },
-  "notes": "optionele opmerking"
+  }
 }
 
 BELANGRIJK:
-- Bij informele beschrijvingen ("bak", "kommetje", "bakje"), gebruik standaard portiegroottes
-- Wees niet te streng - als je redelijkerwijs kunt afleiden wat bedoeld wordt, doe dat
-- Bij twijfel: kies gemiddelde portie en confidence "medium"`;
+- confidence is een getal tussen 0.0 en 1.0 (bijv. 0.62, 0.85)
+- kcal_min en kcal_max geven de range aan (bijv. 520-720)
+- kcal is het gemiddelde van de range
+- missing_info bevat ALLE ontbrekende informatie die de schatting beïnvloedt
+- Bij informele beschrijvingen, gebruik standaard portiegroottes
+- alcohol_g en caffeine_mg alleen invullen indien relevant (anders null)
+- Hoe meer info ontbreekt, hoe breder de range en lager de confidence`;
 
 // Helper: Authenticate user and check limits
 async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
