@@ -73,8 +73,21 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
     onbekend: 'season-text-onbekend',
   };
 
+  // Calculate where we are in the cycle - for dates beyond avg cycle length, 
+  // we need to "restart" the cycle count from predicted next period
   const getPredictedSeason = (date: Date): SeasonKey => {
     if (!latestCycleStart) return 'onbekend';
+    
+    const daysSinceStart = differenceInDays(startOfDay(date), startOfDay(latestCycleStart));
+    
+    // If we're beyond the cycle length, calculate based on predicted next cycle start
+    if (daysSinceStart >= avgCycleLength) {
+      // How many full cycles have passed?
+      const cyclesPassed = Math.floor(daysSinceStart / avgCycleLength);
+      const adjustedCycleStart = addDays(latestCycleStart, cyclesPassed * avgCycleLength);
+      return getSeasonForDate(date, adjustedCycleStart, avgCycleLength, periodLength, lutealLength);
+    }
+    
     return getSeasonForDate(date, latestCycleStart, avgCycleLength, periodLength, lutealLength);
   };
 
@@ -142,7 +155,8 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         predictedSeason: season,
       };
     });
-  }, [bleedingLogs, currentMonth, getPredictedSeason, ovulationDateStr, periodLength, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bleedingLogs, currentMonth, latestCycleStart, avgCycleLength, periodLength, lutealLength, ovulationDateStr, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
 
   // Build season segments along the 35-day window
   const seasonSegments = useMemo(() => {
@@ -195,8 +209,19 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
   const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
 
+  // Ensure minimum height for mobile rendering
+  if (calendarDays.length === 0) {
+    return (
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle className="text-lg">Kalender laden...</CardTitle>
+        </CardHeader>
+      </Card>
+    );
+  }
+
   return (
-    <Card className="rounded-2xl">
+    <Card className="rounded-2xl overflow-hidden">
       <CardHeader className="pb-3">
         {/* Month navigation header */}
         <div className="flex items-center justify-between mb-2">
