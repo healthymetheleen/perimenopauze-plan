@@ -17,6 +17,7 @@ import {
   useLatestPrediction,
   useLogBleeding,
   useStartCycle,
+  useDeleteCycle,
   calculatePhaseAndPredictions,
   seasonColors,
   seasonLabels,
@@ -38,6 +39,7 @@ import {
   Briefcase,
   Heart,
   CalendarPlus,
+  Trash2,
 } from 'lucide-react';
 import { CycleDayLogDialog } from '@/components/cycle/CycleDayLogDialog';
 import { CycleCalendar } from '@/components/cycle/CycleCalendar';
@@ -221,6 +223,7 @@ export default function CyclePage() {
 
   const logBleeding = useLogBleeding();
   const startCycle = useStartCycle();
+  const deleteCycle = useDeleteCycle();
 
   const isLoading = prefsLoading || cyclesLoading || bleedingLoading;
 
@@ -600,13 +603,61 @@ export default function CyclePage() {
 
       {/* Period Start Date Dialog */}
       <Dialog open={showPeriodStart} onOpenChange={setShowPeriodStart}>
-        <DialogContent className="sm:max-w-md max-w-[95vw]">
+        <DialogContent className="sm:max-w-md max-w-[95vw] max-h-[85vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Eerste dag menstruatie</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
+            {/* Show existing cycles */}
+            {cycles && cycles.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-sm font-medium">Bestaande cycli</p>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {cycles.slice(0, 6).map((cycle) => (
+                    <div
+                      key={cycle.id}
+                      className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border"
+                    >
+                      <div className="flex items-center gap-2">
+                        <Droplets className="h-4 w-4 text-destructive" />
+                        <div>
+                          <p className="text-sm font-medium">
+                            {format(parseISO(cycle.start_date), 'd MMMM yyyy', { locale: nl })}
+                          </p>
+                          {cycle.computed_cycle_length && (
+                            <p className="text-xs text-muted-foreground">
+                              {cycle.computed_cycle_length} dagen cyclus
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={async () => {
+                          try {
+                            await deleteCycle.mutateAsync(cycle.id);
+                            toast({ title: 'Cyclus verwijderd' });
+                          } catch {
+                            toast({ title: 'Kon cyclus niet verwijderen', variant: 'destructive' });
+                          }
+                        }}
+                        disabled={deleteCycle.isPending}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                <div className="border-t pt-4 mt-4">
+                  <p className="text-sm font-medium mb-2">Nieuwe cyclus toevoegen</p>
+                </div>
+              </div>
+            )}
+            
             <p className="text-sm text-muted-foreground">
-              Vul de eerste dag van je laatste menstruatie in. 
+              Vul de eerste dag van je menstruatie in. 
               Hiermee berekenen we in welk seizoen je nu zit.
             </p>
             <div className="space-y-2">
@@ -623,8 +674,15 @@ export default function CyclePage() {
               onClick={handleSetPeriodStart}
               disabled={startCycle.isPending || logBleeding.isPending}
             >
+              <CalendarPlus className="h-4 w-4 mr-2" />
               Cyclus starten
             </Button>
+            
+            {cycles && cycles.length > 0 && (
+              <p className="text-xs text-muted-foreground text-center">
+                Tip: Als je per ongeluk meerdere cycli hebt toegevoegd, kun je de oude verwijderen.
+              </p>
+            )}
           </div>
         </DialogContent>
       </Dialog>

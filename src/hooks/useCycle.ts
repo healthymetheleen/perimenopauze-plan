@@ -433,6 +433,85 @@ export function useStartCycle() {
   });
 }
 
+export function useDeleteCycle() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (cycleId: string) => {
+      if (!user) throw new Error('Not authenticated');
+      
+      // Get the cycle to check start_date for bleeding logs
+      const { data: cycle } = await supabase
+        .from('cycles')
+        .select('start_date')
+        .eq('id', cycleId)
+        .eq('owner_id', user.id)
+        .single();
+      
+      if (!cycle) throw new Error('Cycle not found');
+      
+      // Delete the cycle
+      const { error } = await supabase
+        .from('cycles')
+        .delete()
+        .eq('id', cycleId)
+        .eq('owner_id', user.id);
+      if (error) throw error;
+      
+      // Also delete the bleeding log for that start date
+      await supabase
+        .from('bleeding_logs')
+        .delete()
+        .eq('owner_id', user.id)
+        .eq('log_date', cycle.start_date);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+      queryClient.invalidateQueries({ queryKey: ['cycle-prediction'] });
+      queryClient.invalidateQueries({ queryKey: ['bleeding-logs'] });
+    },
+  });
+}
+
+export function useUpdateCycleStartDate() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ cycleId, newStartDate, oldStartDate }: { cycleId: string; newStartDate: string; oldStartDate: string }) => {
+      if (!user) throw new Error('Not authenticated');
+      
+      // Update cycle start date
+      const { error } = await supabase
+        .from('cycles')
+        .update({ start_date: newStartDate })
+        .eq('id', cycleId)
+        .eq('owner_id', user.id);
+      if (error) throw error;
+      
+      // Update bleeding log from old date to new date
+      await supabase
+        .from('bleeding_logs')
+        .delete()
+        .eq('owner_id', user.id)
+        .eq('log_date', oldStartDate);
+      
+      await supabase
+        .from('bleeding_logs')
+        .upsert(
+          { owner_id: user.id, log_date: newStartDate, intensity: 'normaal' },
+          { onConflict: 'owner_id,log_date' }
+        );
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['cycles'] });
+      queryClient.invalidateQueries({ queryKey: ['cycle-prediction'] });
+      queryClient.invalidateQueries({ queryKey: ['bleeding-logs'] });
+    },
+  });
+}
+
 // Calculation helpers
 export function calculateCycleStats(cycles: Cycle[]) {
   if (cycles.length < 2) {
