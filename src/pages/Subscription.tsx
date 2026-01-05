@@ -3,7 +3,7 @@ import {
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
   Loader2, ChevronRight, XCircle, Clock
 } from 'lucide-react';
-import { differenceInDays, addDays, format } from 'date-fns';
+import { differenceInDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -85,14 +85,11 @@ export default function SubscriptionPage() {
   const handleCancelSubscription = async () => {
     setIsCancelling(true);
     try {
-      // For now, we update the subscription status in the database
-      // In production, this would also cancel the Mollie subscription
-      const { error } = await supabase
-        .from('subscriptions')
-        .update({ status: 'cancelled' })
-        .eq('owner_id', user?.id);
+      // Call edge function to cancel Mollie subscription
+      const { data, error } = await supabase.functions.invoke('mollie-payments/cancel-subscription');
 
       if (error) throw error;
+      if (data?.error) throw new Error(data.error);
 
       toast({
         title: 'Abonnement opgezegd',
@@ -175,11 +172,12 @@ export default function SubscriptionPage() {
                 </div>
                 
                 {/* Trial progress if applicable */}
-                {subscription?.created_at && (() => {
+                {subscription?.trial_ends_at && (() => {
+                  const trialEndDate = new Date(subscription.trial_ends_at);
                   const startDate = new Date(subscription.created_at);
-                  const trialEndDate = addDays(startDate, 7);
+                  const totalTrialDays = differenceInDays(trialEndDate, startDate);
                   const daysRemaining = Math.max(0, differenceInDays(trialEndDate, new Date()));
-                  const trialProgress = ((7 - daysRemaining) / 7) * 100;
+                  const trialProgress = totalTrialDays > 0 ? ((totalTrialDays - daysRemaining) / totalTrialDays) * 100 : 100;
                   
                   if (daysRemaining > 0) {
                     return (

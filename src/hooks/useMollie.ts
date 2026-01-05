@@ -52,6 +52,9 @@ interface Subscription {
   status: string;
   created_at: string;
   updated_at: string;
+  trial_ends_at?: string;
+  mollie_customer_id?: string;
+  mollie_subscription_id?: string;
 }
 
 // Get available payment methods

@@ -35,14 +35,25 @@ export function useEntitlements() {
     queryFn: async (): Promise<Entitlements> => {
       if (!user) return defaultEntitlements;
       
-      const { data: sub } = await supabase.from('subscriptions').select('plan, status, created_at').eq('owner_id', user.id).maybeSingle();
+      const { data: sub } = await supabase.from('subscriptions').select('plan, status, created_at, trial_ends_at').eq('owner_id', user.id).maybeSingle();
       const { data: ent } = await supabase.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle();
       
-      // Calculate trial status based on user creation date
-      const userCreatedAt = user.created_at ? new Date(user.created_at) : new Date();
-      const daysSinceCreation = differenceInDays(new Date(), userCreatedAt);
-      const trialDaysRemaining = Math.max(0, TRIAL_DAYS - daysSinceCreation);
-      const isTrialExpired = trialDaysRemaining === 0;
+      // Calculate trial status - prefer trial_ends_at from subscription if available
+      let trialDaysRemaining = 0;
+      let isTrialExpired = false;
+      
+      if (sub?.trial_ends_at) {
+        // Use trial_ends_at from subscription (set when user subscribes via Mollie)
+        const trialEndDate = new Date(sub.trial_ends_at);
+        trialDaysRemaining = Math.max(0, differenceInDays(trialEndDate, new Date()));
+        isTrialExpired = trialDaysRemaining === 0;
+      } else {
+        // Fallback to user creation date for non-subscribed users
+        const userCreatedAt = user.created_at ? new Date(user.created_at) : new Date();
+        const daysSinceCreation = differenceInDays(new Date(), userCreatedAt);
+        trialDaysRemaining = Math.max(0, TRIAL_DAYS - daysSinceCreation);
+        isTrialExpired = trialDaysRemaining === 0;
+      }
       
       // Check if user has active premium subscription
       const hasPremium = sub?.plan === 'premium' || sub?.plan === 'premium_monthly';
@@ -58,7 +69,7 @@ export function useEntitlements() {
         max_days_history: hasFullAccess ? 365 : 7,
         plan: hasPremium ? 'premium' : 'free',
         status: sub?.status ?? 'active',
-        trial_days_remaining: hasPremium && isActive ? 0 : trialDaysRemaining,
+        trial_days_remaining: hasPremium && isActive ? trialDaysRemaining : trialDaysRemaining,
         is_trial_expired: !hasPremium && isTrialExpired,
       };
     },

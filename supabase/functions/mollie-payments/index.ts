@@ -577,16 +577,23 @@ serve(async (req) => {
             );
 
             if (subscriptionResponse.ok) {
-              const subscription = await subscriptionResponse.json();
-              console.log(`Recurring subscription created: ${subscription.id}`);
+              const mollieSubscription = await subscriptionResponse.json();
+              console.log(`Recurring subscription created: ${mollieSubscription.id}`);
               
-              // Store subscription ID in database
+              // Calculate trial end date (7 days from now)
+              const trialEndsAt = new Date();
+              trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+              
+              // Store subscription with Mollie IDs in database
               await adminClient
                 .from('subscriptions')
                 .upsert({
                   owner_id: userId,
                   plan: 'premium_monthly',
                   status: 'active',
+                  mollie_customer_id: customerId,
+                  mollie_subscription_id: mollieSubscription.id,
+                  trial_ends_at: trialEndsAt.toISOString(),
                 }, {
                   onConflict: 'owner_id'
                 });
@@ -633,19 +640,30 @@ serve(async (req) => {
           });
         }
 
-        const { customerId, subscriptionId } = body;
+        // Get Mollie IDs from database instead of requiring them from client
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('mollie_customer_id, mollie_subscription_id')
+          .eq('owner_id', user.id)
+          .single();
 
-        if (!customerId || !subscriptionId) {
-          return new Response(JSON.stringify({ error: 'Missing required fields' }), {
-            status: 400,
+        if (!subData?.mollie_customer_id || !subData?.mollie_subscription_id) {
+          // No Mollie subscription to cancel, just update local status
+          console.log('No Mollie subscription found, updating local status only');
+          await supabase
+            .from('subscriptions')
+            .update({ status: 'cancelled' })
+            .eq('owner_id', user.id);
+
+          return new Response(JSON.stringify({ success: true }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        console.log(`Cancelling subscription ${subscriptionId}`);
+        console.log(`Cancelling Mollie subscription ${subData.mollie_subscription_id}`);
 
         const response = await fetch(
-          `${MOLLIE_API_URL}/customers/${customerId}/subscriptions/${subscriptionId}`,
+          `${MOLLIE_API_URL}/customers/${subData.mollie_customer_id}/subscriptions/${subData.mollie_subscription_id}`,
           {
             method: 'DELETE',
             headers: {
@@ -668,6 +686,8 @@ serve(async (req) => {
           .from('subscriptions')
           .update({ status: 'cancelled' })
           .eq('owner_id', user.id);
+
+        console.log(`Subscription cancelled for user ${user.id}`);
 
         return new Response(JSON.stringify({ success: true }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
