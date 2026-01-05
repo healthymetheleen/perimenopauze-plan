@@ -19,27 +19,23 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-// Orthomoleculaire tips per seizoen en tekort
-const orthomolecularTips: Record<string, { minerals: string[]; foods: string[]; avoid: string[] }> = {
+// Leefstijltips per seizoen (geen medische claims of supplementadvies)
+const seasonLifestyleTips: Record<string, { foods: string[]; habits: string[] }> = {
   winter: {
-    minerals: ['IJzer (ferritine)', 'Vitamine C', 'B12', 'Magnesium'],
-    foods: ['Spinazie, rode biet, lever', 'Paprika, kiwi, broccoli', 'Eieren, vis, vlees', 'Pompoenpitten, donkere chocolade'],
-    avoid: ['Koffie bij maaltijden (remt ijzeropname)', 'Zuivel bij ijzerrijke maaltijden'],
+    foods: ['Warme maaltijden met groenten', 'Eiwitrijk ontbijt', 'Soepen en stoofpotjes'],
+    habits: ['Extra rust nemen', 'Zachte beweging zoals wandelen of yoga'],
   },
   lente: {
-    minerals: ['Zink', 'B-vitamines', 'Omega-3'],
-    foods: ['Oesters, pompoenpitten, vlees', 'Volkoren granen, eieren, groene bladgroenten', 'Vette vis (zalm, makreel), walnoten'],
-    avoid: ['Geraffineerde suikers', 'Alcohol in grote hoeveelheden'],
+    foods: ['Verse groenten en fruit', 'Gevarieerde maaltijden', 'Voldoende water'],
+    habits: ['Opbouwen van activiteiten', 'Buiten zijn voor daglicht'],
   },
   zomer: {
-    minerals: ['Elektrolyten (natrium, kalium)', 'Vitamine D', 'Antioxidanten'],
-    foods: ['Banaan, kokoswater, zout in maaltijden', 'Zonlicht + vette vis', 'Bessen, donkere groenten, groene thee'],
-    avoid: ['Te weinig zout bij zweten', 'Uitdroging door koffie/alcohol'],
+    foods: ['Lichte maaltijden', 'Veel water en groenten', 'Fruit als tussendoor'],
+    habits: ['Goed hydrateren', 'Beweging in de ochtend of avond'],
   },
   herfst: {
-    minerals: ['Magnesium', 'B6', 'Tryptofaan (voor serotonine)'],
-    foods: ['Noten, zaden, donkere chocolade', 'Kip, vis, banaan, kikkererwten', 'Kalkoen, kaas, havermout, noten'],
-    avoid: ['Suiker en alcohol (verergeren PMS)', 'Caffeine na 14:00 (verstoort slaap)'],
+    foods: ['Regelmatige maaltijdtijden', 'Minder suiker en alcohol', 'Warme dranken'],
+    habits: ['Vroeger naar bed', 'Structuur in je dag'],
   },
 };
 
@@ -99,7 +95,7 @@ serve(async (req) => {
       .maybeSingle();
 
     const currentSeason = prediction?.current_season || 'onbekend';
-    const tips = orthomolecularTips[currentSeason] || orthomolecularTips.lente;
+    const tips = seasonLifestyleTips[currentSeason] || seasonLifestyleTips.lente;
 
     // Build analysis with CATEGORICAL data only (no exact values in logs)
     const analysis: {
@@ -107,10 +103,9 @@ serve(async (req) => {
       yesterdaySummary: string | null;
       highlights: string[];
       improvements: string[];
-      orthomolecular: {
-        minerals: string[];
+      lifestyleTips: {
         foods: string[];
-        avoid: string[];
+        habits: string[];
       };
       seasonTip: string;
       disclaimer: string;
@@ -119,7 +114,7 @@ serve(async (req) => {
       yesterdaySummary: null,
       highlights: [],
       improvements: [],
-      orthomolecular: tips,
+      lifestyleTips: tips,
       seasonTip: '',
       disclaimer: 'Deze informatie is educatief en geen medisch advies.',
     };
@@ -158,7 +153,7 @@ serve(async (req) => {
     // Season-specific tip
     switch (currentSeason) {
       case 'winter':
-        analysis.seasonTip = 'Focus op ijzerrijk eten en rust. Je lichaam herstelt nu.';
+        analysis.seasonTip = 'Focus op warme, voedzame maaltijden en rust. Je lichaam herstelt nu.';
         break;
       case 'lente':
         analysis.seasonTip = 'Ideale tijd voor verse, gevarieerde maaltijden. Je stofwisseling is optimaal.';
