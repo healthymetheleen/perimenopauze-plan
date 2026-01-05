@@ -17,6 +17,7 @@ import {
   useCycles,
   useBleedingLogs,
   seasonLabels,
+  getSeasonForDate,
 } from '@/hooks/useCycle';
 import { ArrowRight, Calendar, Droplet, Sparkles } from 'lucide-react';
 
@@ -33,7 +34,6 @@ export function CycleWeekWidget() {
   const avgCycleLength = prediction?.avg_cycle_length || preferences?.avg_cycle_length || 28;
   const periodLength = preferences?.avg_period_length || 5;
   const lutealLength = preferences?.luteal_phase_length || 13;
-  const ovulationDayInCycle = avgCycleLength - lutealLength;
 
   const latestCycleStart = cycles?.[0]?.start_date ? startOfDay(parseISO(cycles[0].start_date)) : null;
 
@@ -42,18 +42,7 @@ export function CycleWeekWidget() {
 
   const getPredictedSeason = (date: Date): SeasonKey => {
     if (!latestCycleStart) return 'onbekend';
-
-    const date0 = startOfDay(date);
-    const anchor = predictedPeriodMin && date0 >= predictedPeriodMin ? predictedPeriodMin : latestCycleStart;
-    const dayInCycle = differenceInDays(date0, anchor);
-    if (dayInCycle < 0) return 'onbekend';
-
-    const normalized = ((dayInCycle % avgCycleLength) + avgCycleLength) % avgCycleLength;
-
-    if (normalized < periodLength) return 'winter';
-    if (normalized < ovulationDayInCycle - 1) return 'lente';
-    if (normalized <= ovulationDayInCycle + 1) return 'zomer';
-    return 'herfst';
+    return getSeasonForDate(date, latestCycleStart, avgCycleLength, periodLength, lutealLength);
   };
 
   const ovulationDateStr = (() => {

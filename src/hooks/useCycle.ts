@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
-import { format, subDays, differenceInDays, addDays } from 'date-fns';
+import { format, subDays, differenceInDays, addDays, startOfDay } from 'date-fns';
 
 // Types
 export interface CyclePreferences {
@@ -115,6 +115,56 @@ export const phaseLabels: Record<string, string> = {
   luteaal: 'Luteale fase',
   onbekend: 'Onbekend',
 };
+
+/**
+ * Calculate the season (cycle phase) for a given date based on cycle syncing logic.
+ * 
+ * Seasons map to cycle phases:
+ * - Winter = menstruatie (dag 1 t/m periodLength)
+ * - Lente = folliculair (dag na bloeding t/m dag vóór ovulatie)
+ * - Zomer = ovulatie (ovulatiedag ± 1 dag)
+ * - Herfst = luteaal (dag na ovulatie t/m dag vóór volgende menstruatie)
+ * 
+ * Calculation:
+ * - Ovulation day (OD) = avgCycleLength - lutealLength
+ * - Fertile window = OD - 5 t/m OD (covered separately in fertile_window_* fields)
+ */
+export function getSeasonForDate(
+  date: Date,
+  cycleStartDate: Date,
+  avgCycleLength: number,
+  periodLength: number,
+  lutealLength: number
+): 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend' {
+  const dayInCycle = differenceInDays(startOfDay(date), startOfDay(cycleStartDate)) + 1;
+  
+  if (dayInCycle < 1) return 'onbekend';
+  
+  // Handle cycles that extend beyond avgCycleLength (normalize to position within a cycle)
+  const normalizedDay = ((dayInCycle - 1) % avgCycleLength) + 1;
+  
+  // Calculate ovulation day: OD = avgCycleLength - lutealLength
+  const ovulationDay = avgCycleLength - lutealLength;
+  
+  // Winter = menstruatie (dag 1 t/m periodLength)
+  if (normalizedDay <= periodLength) {
+    return 'winter';
+  }
+  
+  // Lente = folliculair (dag na bloeding t/m dag vóór ovulatie - 1)
+  // This is day (periodLength + 1) to (ovulationDay - 2)
+  if (normalizedDay < ovulationDay - 1) {
+    return 'lente';
+  }
+  
+  // Zomer = ovulatie (ovulatiedag en 1 dag ervoor en erna, dus OD-1 t/m OD+1)
+  if (normalizedDay >= ovulationDay - 1 && normalizedDay <= ovulationDay + 1) {
+    return 'zomer';
+  }
+  
+  // Herfst = luteaal (dag na ovulatie t/m einde cyclus)
+  return 'herfst';
+}
 
 // Hooks
 export function useCyclePreferences() {
