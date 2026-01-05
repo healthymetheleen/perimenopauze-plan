@@ -3,11 +3,10 @@ import { format, addDays, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   Snowflake, Leaf, Sun, Wind, ChevronRight, ChevronDown, 
-  Utensils, Calendar, MessageCircle, Sparkles, Target
+  Utensils, Calendar, Sparkles, Target
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useLatestPrediction, useCyclePreferences, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
 
@@ -428,21 +427,6 @@ export function LookAheadWidget() {
           </p>
         </div>
         
-        {/* 5-Day Timeline */}
-        <div className="px-4 pb-4">
-          <p className="text-sm font-semibold mb-2 flex items-center gap-2">
-            <Calendar className="h-4 w-4" />
-            Komende 5 dagen
-          </p>
-          <div className="flex gap-2">
-            {forecast.map((day, i) => (
-              <DayCard key={i} day={day} onClick={() => setSelectedDay(day)} />
-            ))}
-          </div>
-          <p className="text-xs text-muted-foreground text-center mt-2">
-            Tap op een dag voor details
-          </p>
-        </div>
         
         {/* What you might notice */}
         <div className="border-t">
@@ -562,36 +546,6 @@ export function LookAheadWidget() {
             )}
           </div>
           
-          {/* Blok C: Mini check-in */}
-          <div>
-            <button
-              onClick={() => toggleSection('checkin')}
-              className="w-full flex items-center justify-between p-2 rounded-lg bg-muted/30 hover:bg-muted/50 transition-colors"
-            >
-              <span className="text-sm font-medium flex items-center gap-2">
-                <MessageCircle className="h-4 w-4" />
-                Mini check-in (15 sec/dag)
-              </span>
-              {expandedSection === 'checkin' ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </button>
-            {expandedSection === 'checkin' && (
-              <div className="mt-2 p-3 rounded-lg bg-primary/5">
-                <p className="text-xs text-muted-foreground mb-2">Beantwoord dagelijks:</p>
-                <div className="space-y-1 text-sm">
-                  <p>• Hoe was je energie vandaag? (0–10)</p>
-                  <p>• Hoe was je trek om 16:00? (0–10)</p>
-                  <p>• Hoe was je onrust? (0–10)</p>
-                </div>
-                <p className="text-xs text-primary mt-2">
-                  → Ontdek welke actie werkt voor jou in deze fase
-                </p>
-              </div>
-            )}
-          </div>
         </div>
       </CardContent>
       
