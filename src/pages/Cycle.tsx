@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { format, subDays, addDays, isSameDay, isWithinInterval, parseISO, differenceInDays } from 'date-fns';
+import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -40,6 +40,7 @@ import {
   CalendarPlus,
 } from 'lucide-react';
 import { CycleDayLogDialog } from '@/components/cycle/CycleDayLogDialog';
+import { CycleCalendar } from '@/components/cycle/CycleCalendar';
 import {
   Dialog,
   DialogContent,
@@ -285,92 +286,6 @@ export default function CyclePage() {
     }
   };
 
-  // Calculate day in current cycle
-  const getDayInCycle = (date: Date): number => {
-    const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
-    
-    // If no cycles yet, return -1
-    if (!cycles?.length) return -1;
-    
-    const latestCycle = cycles[0];
-    const cycleStart = parseISO(latestCycle.start_date);
-    const daysSinceStart = differenceInDays(date, cycleStart);
-    
-    // Handle future/past cycles with modulo
-    if (daysSinceStart < 0) {
-      return ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
-    }
-    return daysSinceStart % avgCycleLength;
-  };
-
-  // Calculate predicted season for a given date based on cycle phase
-  const getPredictedSeason = (date: Date): string => {
-    const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
-    const periodLength = preferences?.avg_period_length || 5;
-    const lutealLength = preferences?.luteal_phase_length || 13;
-    
-    const dayInCycle = getDayInCycle(date);
-    if (dayInCycle < 0) return 'onbekend';
-    
-    // Phase boundaries based on cycle biology
-    // Winter (menstruation): day 0 to periodLength-1
-    // Lente (follicular): day periodLength to ovulationDay-2
-    // Zomer (ovulation): day ovulationDay-1 to ovulationDay+1
-    // Herfst (luteal): day ovulationDay+2 to end
-    const ovulationDay = avgCycleLength - lutealLength; // ~day 15 for 28-day cycle
-    
-    if (dayInCycle < periodLength) return 'winter';
-    if (dayInCycle < ovulationDay - 1) return 'lente';
-    if (dayInCycle <= ovulationDay + 1) return 'zomer';
-    return 'herfst';
-  };
-
-  // Generate calendar strip data - 35 days to show full cycle
-  const calendarDays = Array.from({ length: 35 }, (_, i) => {
-    const date = addDays(new Date(), i - 7);
-    const dateStr = format(date, 'yyyy-MM-dd');
-    const bleeding = bleedingLogs?.find(l => l.log_date === dateStr);
-    
-    // Check if in fertile window
-    const isFertile = preferences?.show_fertile_days && 
-      prediction.fertile_window_start && 
-      prediction.fertile_window_end &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.fertile_window_start),
-        end: parseISO(prediction.fertile_window_end),
-      });
-    
-    // Check if ovulation day
-    const isOvulation = prediction.ovulation_min && 
-      prediction.ovulation_max &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.ovulation_min),
-        end: parseISO(prediction.ovulation_max),
-      });
-    
-    // Check if predicted menstruation
-    const isPredictedPeriod = prediction.next_period_start_min && 
-      prediction.next_period_start_max &&
-      isWithinInterval(date, {
-        start: parseISO(prediction.next_period_start_min),
-        end: addDays(parseISO(prediction.next_period_start_max), 4), // Show 5 days of predicted period
-      });
-    
-    // Get predicted season for future dates
-    const predictedSeason = getPredictedSeason(date);
-
-    return {
-      date,
-      dateStr,
-      isToday: isSameDay(date, new Date()),
-      bleeding: bleeding?.intensity,
-      isFertile,
-      isOvulation,
-      isPredictedPeriod: isPredictedPeriod && !bleeding, // Only show prediction if no actual bleeding logged
-      predictedSeason,
-    };
-  });
-
   // Check if today is in fertile window for notification
   const today = format(new Date(), 'yyyy-MM-dd');
   const isTodayFertile = preferences?.show_fertile_days && 
@@ -497,131 +412,17 @@ export default function CyclePage() {
           </CardContent>
         </Card>
 
-        {/* Calendar with season groups */}
-        <Card className="rounded-2xl">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Calendar className="h-5 w-5 text-primary" />
-              Cyclusagenda
-            </CardTitle>
-            {/* Legend */}
-            <div className="flex flex-wrap gap-3 text-xs text-muted-foreground mt-2">
-              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-400" /><span>Menstruatie</span></div>
-              <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-red-200 border border-dashed border-red-400" /><span>Verwacht</span></div>
-              {preferences?.show_fertile_days && (
-                <>
-                  <div className="flex items-center gap-1"><div className="w-2 h-2 rounded-full bg-green-300" /><span>Vruchtbaar</span></div>
-                  <div className="flex items-center gap-1"><span>★</span><span>Ovulatie</span></div>
-                </>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="pt-2">
-            {/* Fixed 7-column grid */}
-            {(() => {
-              const seasonBgClasses: Record<string, string> = {
-                winter: 'season-surface-winter',
-                lente: 'season-surface-lente',
-                zomer: 'season-surface-zomer',
-                herfst: 'season-surface-herfst',
-                onbekend: 'season-surface-onbekend',
-              };
-
-              const seasonTextClasses: Record<string, string> = {
-                winter: 'season-text-winter',
-                lente: 'season-text-lente',
-                zomer: 'season-text-zomer',
-                herfst: 'season-text-herfst',
-                onbekend: 'season-text-onbekend',
-              };
-
-              // Ovulatie: 1 dag (midden van venster)
-              const ovulationDay = (() => {
-                if (!prediction.ovulation_min || !prediction.ovulation_max) return undefined;
-                const min = parseISO(prediction.ovulation_min);
-                const max = parseISO(prediction.ovulation_max);
-                const mid = addDays(min, Math.floor(differenceInDays(max, min) / 2));
-                return format(mid, 'yyyy-MM-dd');
-              })();
-
-              return (
-                <>
-                  {/* Season legend */}
-                  <div className="flex flex-wrap gap-2 mb-3 text-xs">
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-winter border border-border/30" /><span className="text-muted-foreground">Winter</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-lente border border-border/30" /><span className="text-muted-foreground">Lente</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-zomer border border-border/30" /><span className="text-muted-foreground">Zomer</span></div>
-                    <div className="flex items-center gap-1"><div className="w-3 h-3 rounded season-surface-herfst border border-border/30" /><span className="text-muted-foreground">Herfst</span></div>
-                  </div>
-
-                  <div className="grid grid-cols-7 gap-0.5">
-                    {calendarDays.map((day, idx) => {
-                      const { date, dateStr, isToday, bleeding, isFertile, isPredictedPeriod, predictedSeason } = day;
-                      const season = predictedSeason || 'onbekend';
-                      const textClass = seasonTextClasses[season];
-
-                      const showSeasonLabel =
-                        idx === 0 || (calendarDays[idx - 1]?.predictedSeason || 'onbekend') !== season;
-
-                      // Staten als overlays (seizoen blijft altijd zichtbaar)
-                      const hasBleeding = !!bleeding;
-                      const showPredicted = !!isPredictedPeriod;
-                      const showFertile = !!isFertile;
-                      const isOvulationDay = dateStr === ovulationDay;
-
-                      const stateBorder = hasBleeding
-                        ? 'border-2 border-destructive/60'
-                        : showPredicted
-                          ? 'border-2 border-dashed border-destructive/40'
-                          : showFertile
-                            ? 'border-2 border-accent/45'
-                            : 'border border-border/30';
-
-                      const stateRing = isToday ? 'ring-2 ring-primary ring-offset-2 ring-offset-background' : '';
-
-                      return (
-                        <button
-                          key={dateStr}
-                          onClick={() => {
-                            setSelectedDate(dateStr);
-                            setShowDayLog(true);
-                          }}
-                          className={`relative aspect-square min-h-[44px] rounded-md text-center transition-all hover:opacity-90 ${seasonBgClasses[season]} ${stateBorder} ${stateRing}`}
-                        >
-                          {showSeasonLabel && season !== 'onbekend' && (
-                            <div className={`absolute top-1 left-1 text-[10px] font-medium leading-none ${textClass} opacity-80`}>
-                              {seasonLabels[season]}
-                            </div>
-                          )}
-
-                          <div className="h-full w-full flex flex-col items-center justify-center px-1">
-                            <div className={`text-xs leading-tight opacity-70 ${textClass}`}>
-                              {format(date, 'EE', { locale: nl })}
-                            </div>
-                            <div className={`text-lg font-bold leading-none ${textClass}`}>
-                              {format(date, 'd')}
-                              {isOvulationDay && <span className="text-base ml-0.5">★</span>}
-                            </div>
-                          </div>
-
-                          {/* Kleine markers zodat seizoen zichtbaar blijft */}
-                          {(hasBleeding || showFertile || showPredicted) && (
-                            <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center gap-1">
-                              {hasBleeding && <span className="h-1.5 w-1.5 rounded-full bg-destructive" />}
-                              {showFertile && <span className="h-1.5 w-1.5 rounded-full bg-accent" />}
-                              {showPredicted && <span className="h-1.5 w-1.5 rounded-full bg-destructive/50" />}
-                            </div>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </>
-              );
-            })()}
-          </CardContent>
-        </Card>
-
+        {/* Calendar with season groups - using new component */}
+        <CycleCalendar
+          prediction={prediction}
+          preferences={preferences}
+          cycles={cycles || []}
+          bleedingLogs={bleedingLogs || []}
+          onDayClick={(dateStr) => {
+            setSelectedDate(dateStr);
+            setShowDayLog(true);
+          }}
+        />
         {/* Predictions & Pattern combined */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
