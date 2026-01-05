@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -260,10 +261,10 @@ serve(async (req) => {
       });
     }
     
-    // Use Lovable AI Gateway (no direct OpenAI calls)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      throw new Error('LOVABLE_API_KEY is not configured');
+    // Use direct OpenAI API for full control and GDPR compliance
+    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
+    if (!OPENAI_API_KEY) {
+      throw new Error('OpenAI API key is not configured');
     }
 
     // PRIVACY: Anonimiseer naar categorieën, geen exacte waarden
@@ -272,7 +273,7 @@ serve(async (req) => {
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'cycle-coach');
 
-    console.log('Generating cycle coach insight via Lovable AI, subject:', aiSubjectId);
+    console.log('Generating cycle coach insight via OpenAI API, subject:', aiSubjectId);
 
     // Context met ALLEEN categorische kenmerken (geen PII, geen exacte waarden)
     const context = `
@@ -301,24 +302,26 @@ HUIDIGE FASE (inschatting):
 Geef ondersteunende, niet-medische inzichten. Gebruik voorzichtige taal.
 Verwijs bij twijfel naar een zorgverlener.`;
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
         ],
+        max_tokens: 600,
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -326,16 +329,6 @@ Verwijs bij twijfel naar een zorgverlener.`;
           message: 'Te veel verzoeken. Probeer het later opnieuw.' 
         }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'service_unavailable',
-          message: 'De AI-service is tijdelijk niet beschikbaar.' 
-        }), {
-          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }

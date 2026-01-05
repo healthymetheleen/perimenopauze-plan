@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -334,10 +335,10 @@ serve(async (req) => {
       }
     }
 
-    // Use Lovable AI Gateway (no direct OpenAI calls)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    // Use direct OpenAI API for full control and GDPR compliance
+    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
+    if (!OPENAI_API_KEY) {
+      console.error('OpenAI API key not configured');
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
         ...getDefaultResponse(type)
@@ -388,26 +389,28 @@ Geef een cyclus-lens inzicht.`;
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, `premium-insights-${type}`);
 
-    console.log(`Generating ${type} insight via Lovable AI, subject: ${aiSubjectId}`);
+    console.log(`Generating ${type} insight via OpenAI API, subject: ${aiSubjectId}`);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPromptForType },
           { role: 'user', content: context }
         ],
+        max_tokens: 500,
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -416,17 +419,6 @@ Geef een cyclus-lens inzicht.`;
           ...getDefaultResponse(type)
         }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'service_unavailable',
-          message: 'De AI-service is tijdelijk niet beschikbaar.',
-          ...getDefaultResponse(type)
-        }), {
-          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
