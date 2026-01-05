@@ -97,9 +97,9 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create payment' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'create-payment' });
+          return new Response(JSON.stringify({ error: 'Betaling kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -179,9 +179,9 @@ serve(async (req) => {
         });
 
         if (!customerResponse.ok) {
-          const errorText = await customerResponse.text();
-          console.error('Failed to create customer:', errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create customer' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: customerResponse.status, endpoint: 'create-customer-for-first-payment' });
+          return new Response(JSON.stringify({ error: 'Klant kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -229,9 +229,9 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create first payment' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'create-first-payment' });
+          return new Response(JSON.stringify({ error: 'Eerste betaling kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -299,9 +299,9 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create iDEAL payment' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'create-ideal-payment' });
+          return new Response(JSON.stringify({ error: 'iDEAL betaling kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -406,9 +406,9 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create subscription' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'create-subscription' });
+          return new Response(JSON.stringify({ error: 'Abonnement kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -454,9 +454,9 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to create customer' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'create-customer' });
+          return new Response(JSON.stringify({ error: 'Klant kon niet worden aangemaakt. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
@@ -591,8 +591,8 @@ serve(async (req) => {
                   onConflict: 'owner_id'
                 });
             } else {
-              const errorText = await subscriptionResponse.text();
-              console.error('Failed to create recurring subscription:', errorText);
+              // Log only status code, not full error response (security)
+              console.error('Mollie API error:', { status: subscriptionResponse.status, endpoint: 'create-recurring-subscription-webhook' });
             }
           } else {
             // Regular recurring payment
@@ -655,9 +655,9 @@ serve(async (req) => {
         );
 
         if (!response.ok) {
-          const errorText = await response.text();
-          console.error('Mollie API error:', response.status, errorText);
-          return new Response(JSON.stringify({ error: 'Failed to cancel subscription' }), {
+          // Log only status code, not full error response (security)
+          console.error('Mollie API error:', { status: response.status, endpoint: 'cancel-subscription' });
+          return new Response(JSON.stringify({ error: 'Abonnement kon niet worden geannuleerd. Probeer het opnieuw.' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
