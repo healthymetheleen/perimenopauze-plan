@@ -152,7 +152,7 @@ export default function MeditationPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+      <div className="space-y-6">
         {/* Header */}
         <div>
           <h1 className="text-2xl font-semibold text-gradient">Meditatie</h1>
