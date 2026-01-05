@@ -7,11 +7,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { useAIUsage } from '@/hooks/useAIUsage';
 import { useConsent } from '@/hooks/useConsent';
 import { ImageCropper } from './ImageCropper';
-import { Loader2, Type, Camera, Mic, Check, Edit2, Crop } from 'lucide-react';
+import { Loader2, Type, Camera, Mic, Check, Edit2, Crop, AlertTriangle, Info } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
 
 interface AddMealDialogProps {
@@ -185,6 +186,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const { data: aiUsage } = useAIUsage();
   const { consent } = useConsent();
   const hasAIConsent = consent?.accepted_ai_processing ?? false;
+  const hasPhotoConsent = consent?.accepted_photo_analysis ?? false;
 
   // Analyze meal with AI
   const analyzeMeal = async (text?: string, imageBase64?: string) => {
@@ -249,8 +251,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     analyzeMeal(description);
   };
 
-  // Compress and resize image to reduce memory usage
-  const compressImage = (file: File, maxWidth: number = 1024, quality: number = 0.7): Promise<string> => {
+  // Compress and resize image to reduce memory usage - GDPR: max 1280px
+  const compressImage = (file: File, maxWidth: number = 1280, quality: number = 0.7): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -293,15 +295,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     if (!file) return;
 
     try {
-      // Check file size and compress if needed
-      if (file.size > 2 * 1024 * 1024) { // > 2MB
-        toast({
-          title: 'Foto wordt gecomprimeerd...',
-          description: 'Een moment geduld.',
-        });
-      }
-      
-      const compressedBase64 = await compressImage(file, 1024, 0.7);
+      // GDPR: Use 1280px max for privacy (reduces detail/identifiability)
+      const compressedBase64 = await compressImage(file, 1280, 0.7);
       setRawImage(compressedBase64);
       setShowCropper(true); // Show cropper first
     } catch (error) {
@@ -557,102 +552,126 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               </TabsContent>
 
               <TabsContent value="photo" className="space-y-4 mt-4">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  capture="environment"
-                  onChange={handlePhotoChange}
-                  className="hidden"
-                />
-                
-                {showCropper && rawImage ? (
-                  <div className="space-y-4">
-                    <ImageCropper
-                      imageSrc={rawImage}
-                      onCropComplete={handleCropComplete}
-                      onCancel={() => {
-                        setRawImage(null);
-                        setShowCropper(false);
-                      }}
+                {/* Photo consent check */}
+                {!hasPhotoConsent && (
+                  <Alert className="bg-warning/10 border-warning/30">
+                    <AlertTriangle className="h-4 w-4 text-warning" />
+                    <AlertDescription className="text-sm">
+                      <strong>Foto-analyse nog niet ingeschakeld.</strong> Ga naar{' '}
+                      <a href="/settings" className="underline font-medium">Instellingen</a>{' '}
+                      om toestemming te geven voor foto-analyse. Tot die tijd kun je alleen tekst gebruiken.
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                {hasPhotoConsent && (
+                  <>
+                    {/* GDPR camera instructions */}
+                    <Alert className="bg-info/5 border-info/20">
+                      <Info className="h-4 w-4 text-info" />
+                      <AlertDescription className="text-xs text-muted-foreground">
+                        <strong>Privacy tip:</strong> Fotografeer alleen het bord/eten. Geen gezichten, kinderen, documenten of adressen op verpakkingen.
+                      </AlertDescription>
+                    </Alert>
+
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      capture="environment"
+                      onChange={handlePhotoChange}
+                      className="hidden"
                     />
-                    <Button
-                      variant="ghost"
-                      className="w-full text-muted-foreground"
-                      onClick={handleSkipCrop}
-                    >
-                      Overslaan (hele foto gebruiken)
-                    </Button>
-                  </div>
-                ) : imagePreview ? (
-                  <div className="space-y-4">
-                    <div className="relative rounded-lg overflow-hidden">
-                      <img 
-                        src={imagePreview} 
-                        alt="Maaltijd preview" 
-                        className="w-full h-48 object-cover"
-                      />
-                      {isAnalyzing && (
-                        <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                          <Loader2 className="h-8 w-8 animate-spin text-white" />
+                    
+                    {showCropper && rawImage ? (
+                      <div className="space-y-4">
+                        <ImageCropper
+                          imageSrc={rawImage}
+                          onCropComplete={handleCropComplete}
+                          onCancel={() => {
+                            setRawImage(null);
+                            setShowCropper(false);
+                          }}
+                        />
+                        <Button
+                          variant="ghost"
+                          className="w-full text-muted-foreground"
+                          onClick={handleSkipCrop}
+                        >
+                          Overslaan (hele foto gebruiken)
+                        </Button>
+                      </div>
+                    ) : imagePreview ? (
+                      <div className="space-y-4">
+                        <div className="relative rounded-lg overflow-hidden">
+                          <img 
+                            src={imagePreview} 
+                            alt="Maaltijd preview" 
+                            className="w-full h-48 object-cover"
+                          />
+                          {isAnalyzing && (
+                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                              <Loader2 className="h-8 w-8 animate-spin text-white" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                    
-                    {/* Extra beschrijving veld */}
-                    <div className="space-y-2">
-                      <Label htmlFor="photo-description">Extra details (optioneel)</Label>
-                      <Input
-                        id="photo-description"
-                        placeholder="Bijv: volkoren brood, havermelk, biologisch"
-                        value={photoDescription}
-                        onChange={(e) => setPhotoDescription(e.target.value)}
-                      />
-                      <p className="text-xs text-muted-foreground">
-                        Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
-                      </p>
-                    </div>
-                    
-                    <div className="flex gap-2">
+                        
+                        {/* Extra beschrijving veld */}
+                        <div className="space-y-2">
+                          <Label htmlFor="photo-description">Extra details (optioneel)</Label>
+                          <Input
+                            id="photo-description"
+                            placeholder="Bijv: volkoren brood, havermelk, biologisch"
+                            value={photoDescription}
+                            onChange={(e) => setPhotoDescription(e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
+                          </p>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            onClick={() => {
+                              setImagePreview(null);
+                              setRawImage(null);
+                              setPhotoDescription('');
+                            }}
+                            className="flex-1"
+                          >
+                            Andere foto
+                          </Button>
+                          <Button
+                            onClick={handlePhotoAnalyze}
+                            disabled={isAnalyzing}
+                            className="flex-1"
+                          >
+                            {isAnalyzing ? (
+                              <>
+                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                Analyseren...
+                              </>
+                            ) : (
+                              'Analyseer'
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
                       <Button
                         variant="outline"
-                        onClick={() => {
-                          setImagePreview(null);
-                          setRawImage(null);
-                          setPhotoDescription('');
-                        }}
-                        className="flex-1"
+                        className="w-full h-32 border-dashed"
+                        onClick={() => fileInputRef.current?.click()}
                       >
-                        Andere foto
+                        <div className="flex flex-col items-center gap-2">
+                          <Camera className="h-8 w-8 text-muted-foreground" />
+                          <span className="text-muted-foreground">Maak of kies een foto</span>
+                          <span className="text-xs text-muted-foreground">Alleen eten in beeld - bijsnijden mogelijk</span>
+                        </div>
                       </Button>
-                      <Button
-                        onClick={handlePhotoAnalyze}
-                        disabled={isAnalyzing}
-                        className="flex-1"
-                      >
-                        {isAnalyzing ? (
-                          <>
-                            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                            Analyseren...
-                          </>
-                        ) : (
-                          'Analyseer'
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <Button
-                    variant="outline"
-                    className="w-full h-32 border-dashed"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    <div className="flex flex-col items-center gap-2">
-                      <Camera className="h-8 w-8 text-muted-foreground" />
-                      <span className="text-muted-foreground">Maak of kies een foto</span>
-                      <span className="text-xs text-muted-foreground">Je kunt daarna bijsnijden naar het bord</span>
-                    </div>
-                  </Button>
+                    )}
+                  </>
                 )}
               </TabsContent>
 

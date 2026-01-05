@@ -7,11 +7,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { LoadingPage } from '@/components/ui/loading-state';
 import { useToast } from '@/hooks/use-toast';
-import { Shield, FileText, AlertTriangle, Heart, Loader2, Sparkles, Info, ExternalLink } from 'lucide-react';
+import { Shield, FileText, AlertTriangle, Heart, Loader2, Sparkles, Info, ExternalLink, Camera } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface ConsentItem {
-  key: 'accepted_privacy' | 'accepted_terms' | 'accepted_disclaimer' | 'accepted_health_data_processing' | 'accepted_ai_processing';
+  key: 'accepted_privacy' | 'accepted_terms' | 'accepted_disclaimer' | 'accepted_health_data_processing' | 'accepted_ai_processing' | 'accepted_photo_analysis';
   icon: React.ReactNode;
   title: string;
   description: string;
@@ -52,10 +52,17 @@ const consentItems: ConsentItem[] = [
     required: true,
   },
   {
+    key: 'accepted_photo_analysis',
+    icon: <Camera className="h-5 w-5 text-primary" />,
+    title: 'Foto-analyse voor calorieën en macro\'s',
+    description: 'Je geeft toestemming om foto\'s van maaltijden naar onze AI-verwerker te sturen voor automatische voedingswaarde-analyse. Foto\'s worden na 30 dagen automatisch verwijderd. Alleen eten mag in beeld, geen gezichten of personen.',
+    required: false,
+  },
+  {
     key: 'accepted_ai_processing',
     icon: <Sparkles className="h-5 w-5 text-accent" />,
-    title: 'AI-ondersteuning',
-    description: 'Je geeft toestemming om geanonimiseerde statistieken (geen naam/email) naar onze AI-verwerkers (OpenAI, Google) te sturen voor persoonlijke inzichten. AI-verwerkers kunnen data tot 30 dagen bewaren voor misbruikdetectie.',
+    title: 'AI-inzichten op basis van je data',
+    description: 'Je geeft toestemming om geanonimiseerde statistieken (geen naam/email) naar onze AI-verwerkers (OpenAI) te sturen voor persoonlijke inzichten. AI-verwerkers kunnen data tot 30 dagen bewaren voor misbruikdetectie.',
     required: false,
   },
 ];
@@ -70,6 +77,7 @@ export default function ConsentPage() {
     accepted_terms: false,
     accepted_disclaimer: false,
     accepted_health_data_processing: false,
+    accepted_photo_analysis: false,
     accepted_ai_processing: false,
   });
 
@@ -94,7 +102,9 @@ export default function ConsentPage() {
         accepted_terms: accepted.accepted_terms,
         accepted_disclaimer: accepted.accepted_disclaimer,
         accepted_health_data_processing: accepted.accepted_health_data_processing,
+        accepted_photo_analysis: accepted.accepted_photo_analysis,
         accepted_ai_processing: accepted.accepted_ai_processing,
+        photo_analysis_consent_at: accepted.accepted_photo_analysis ? new Date().toISOString() : null,
         accepted_at: new Date().toISOString(),
       },
       {
