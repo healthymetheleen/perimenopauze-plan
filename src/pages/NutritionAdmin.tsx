@@ -16,7 +16,7 @@ import { useNutritionSettings, useUpdateNutritionSettings } from '@/hooks/useNut
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { 
   Target, AlertTriangle, Check, Minus, Plus, X, Save, FileText,
-  Heart, Moon, Clock, Sparkles, Apple, Pill, MessageCircle, Info
+  Heart, Moon, Clock, Sparkles, Apple, MessageCircle, Info
 } from 'lucide-react';
 
 const COACHING_STYLES = [
@@ -68,7 +68,7 @@ export default function NutritionAdminPage() {
   const [noGoItems, setNoGoItems] = useState<string[]>([]);
   const [preferIngredients, setPreferIngredients] = useState<string[]>([]);
   const [avoidIngredients, setAvoidIngredients] = useState<string[]>([]);
-  const [supplements, setSupplements] = useState<string[]>([]);
+  
   const [perimenopauseFocus, setPerimenopauseFocus] = useState<string[]>([]);
   
   // Coaching
@@ -84,7 +84,7 @@ export default function NutritionAdminPage() {
   const [newNoGo, setNewNoGo] = useState('');
   const [newPrefer, setNewPrefer] = useState('');
   const [newAvoid, setNewAvoid] = useState('');
-  const [newSupplement, setNewSupplement] = useState('');
+  
 
   // Load settings into form
   useEffect(() => {
@@ -102,7 +102,7 @@ export default function NutritionAdminPage() {
       setNoGoItems(settings.no_go_items || []);
       setPreferIngredients(settings.prefer_ingredients || []);
       setAvoidIngredients(settings.avoid_ingredients || []);
-      setSupplements(settings.supplement_recommendations || []);
+      
       setPerimenopauseFocus(settings.perimenopause_focus || []);
       setCoachingStyle(settings.coaching_style || 'empathisch');
       setCoachingTone(settings.coaching_tone || 'vriendelijk');
@@ -128,7 +128,7 @@ export default function NutritionAdminPage() {
         no_go_items: noGoItems,
         prefer_ingredients: preferIngredients,
         avoid_ingredients: avoidIngredients,
-        supplement_recommendations: supplements,
+        
         perimenopause_focus: perimenopauseFocus,
         coaching_style: coachingStyle,
         coaching_tone: coachingTone,
@@ -488,41 +488,14 @@ export default function NutritionAdminPage() {
           </CardContent>
         </Card>
 
-        {/* Supplements */}
-        <Card className="glass rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Pill className="h-5 w-5 text-primary" />
-              Supplement aanbevelingen
-            </CardTitle>
-            <CardDescription>
-              Supplementen die kunnen worden aangeraden (disclaimer altijd tonen!)
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex flex-wrap gap-2">
-              {supplements.map((item) => (
-                <Badge key={item} variant="outline">
-                  {item}
-                  <button onClick={() => removeFromList(supplements, setSupplements, item)} className="ml-1">
-                    <X className="h-3 w-3" />
-                  </button>
-                </Badge>
-              ))}
-            </div>
-            <div className="flex gap-2">
-              <Input
-                placeholder="Bijv: Vitamine D3, Magnesium, Omega-3"
-                value={newSupplement}
-                onChange={(e) => setNewSupplement(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && addToList(supplements, setSupplements, newSupplement, setNewSupplement)}
-              />
-              <Button variant="outline" size="icon" onClick={() => addToList(supplements, setSupplements, newSupplement, setNewSupplement)}>
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Medical Disclaimer - Important notice */}
+        <Alert className="border-destructive/30 bg-destructive/5">
+          <AlertTriangle className="h-4 w-4 text-destructive" />
+          <AlertDescription className="text-sm">
+            <strong>Belangrijk:</strong> Deze app geeft GEEN supplementadvies, medische claims, 
+            diagnoses of behandeladviezen. Alle adviezen zijn gericht op algemene leefstijl en voeding.
+          </AlertDescription>
+        </Alert>
 
         {/* Priority Points */}
         <Card className="glass rounded-2xl">
