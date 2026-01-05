@@ -11,7 +11,6 @@ import {
   TrendsCorrelations,
   TrendsSymptomsBlock,
   TrendsEatingPattern,
-  TrendsForecast,
   TrendsDayDialog,
 } from '@/components/trends';
 import { TrendDayData } from '@/hooks/useTrendsData';
@@ -29,9 +28,6 @@ export default function TrendsPage() {
     correlations,
     topSymptoms,
     eatingPatternStats,
-    currentSeason,
-    nextSeason,
-    daysUntilNextSeason,
   } = useTrendsData(period, showSeasonOverlay);
 
   const numDays = period === 'cycle' ? 28 : period;
@@ -48,7 +44,6 @@ export default function TrendsPage() {
       all: [],
       energie: ['score', 'protein', 'eating', 'correlations'],
       slaap: ['score', 'sleep', 'correlations'],
-      cravings: ['score', 'protein', 'eating', 'symptoms', 'correlations'],
       onrust: ['score', 'symptoms', 'sleep', 'correlations'],
       sport: ['score', 'protein', 'sleep'],
     };
@@ -115,13 +110,6 @@ export default function TrendsPage() {
             {shouldShow('correlations') && (
               <TrendsCorrelations correlations={correlations} period={numDays} />
             )}
-            
-            {/* Forecast */}
-            <TrendsForecast 
-              currentSeason={currentSeason}
-              nextSeason={nextSeason}
-              daysUntilNextSeason={daysUntilNextSeason}
-            />
           </>
         )}
       </div>
