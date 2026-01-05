@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.daily-analysis]
 verify_jwt = false
+
+[functions.weekly-nutrition-insight]
+verify_jwt = false
