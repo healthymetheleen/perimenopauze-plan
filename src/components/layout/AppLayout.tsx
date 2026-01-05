@@ -113,7 +113,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <nav className="absolute top-16 left-0 right-0 bg-card/90 backdrop-blur-md border-b border-border/50 shadow-lg animate-slide-up">
+          <nav className="absolute top-16 left-0 right-0 bg-card border-b border-border shadow-lg animate-slide-up z-50">
             <ul className="py-2">
               {navItems.map((item) => (
                 <li key={item.href}>

@@ -9,11 +9,22 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { AnimatedSeasonBackground } from '@/components/layout/AnimatedSeasonBackground';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [resetEmail, setResetEmail] = useState('');
+  const [resetLoading, setResetLoading] = useState(false);
+  const [resetDialogOpen, setResetDialogOpen] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -110,6 +121,67 @@ export default function LoginPage() {
                   {loading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                   Inloggen
                 </Button>
+                
+                <Dialog open={resetDialogOpen} onOpenChange={setResetDialogOpen}>
+                  <DialogTrigger asChild>
+                    <button
+                      type="button"
+                      className="w-full text-sm text-primary hover:underline mt-2"
+                    >
+                      Wachtwoord vergeten?
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Wachtwoord resetten</DialogTitle>
+                      <DialogDescription>
+                        Vul je e-mailadres in en we sturen je een link om je wachtwoord te resetten.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <form
+                      onSubmit={async (e) => {
+                        e.preventDefault();
+                        setResetLoading(true);
+                        const { error } = await supabase.auth.resetPasswordForEmail(
+                          resetEmail.trim(),
+                          { redirectTo: `${window.location.origin}/login` }
+                        );
+                        setResetLoading(false);
+                        if (error) {
+                          toast({
+                            title: 'Kon reset e-mail niet versturen',
+                            description: error.message,
+                            variant: 'destructive',
+                          });
+                        } else {
+                          toast({
+                            title: 'E-mail verstuurd',
+                            description: 'Check je inbox voor de resetlink.',
+                          });
+                          setResetDialogOpen(false);
+                          setResetEmail('');
+                        }
+                      }}
+                      className="space-y-4"
+                    >
+                      <div className="space-y-2">
+                        <Label htmlFor="reset-email">E-mailadres</Label>
+                        <Input
+                          id="reset-email"
+                          type="email"
+                          placeholder="jouw@email.nl"
+                          value={resetEmail}
+                          onChange={(e) => setResetEmail(e.target.value)}
+                          required
+                        />
+                      </div>
+                      <Button type="submit" className="w-full" disabled={resetLoading}>
+                        {resetLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                        Verstuur resetlink
+                      </Button>
+                    </form>
+                  </DialogContent>
+                </Dialog>
               </form>
             </TabsContent>
 

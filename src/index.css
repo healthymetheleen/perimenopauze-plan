@@ -313,21 +313,21 @@
     );
   }
 
-  /* Season headers (iets rijker, maar nog zacht) */
+  /* Season headers (zachter pastel) */
   .season-header-winter {
-    background: linear-gradient(90deg, hsl(210 70% 44% / 0.9), hsl(210 75% 34% / 0.9));
+    background: linear-gradient(90deg, hsl(210 45% 58% / 0.85), hsl(220 40% 52% / 0.85));
   }
   .season-header-lente {
-    background: linear-gradient(90deg, hsl(120 55% 38% / 0.9), hsl(150 55% 32% / 0.9));
+    background: linear-gradient(90deg, hsl(140 38% 48% / 0.85), hsl(155 35% 44% / 0.85));
   }
   .season-header-zomer {
-    background: linear-gradient(90deg, hsl(38 90% 48% / 0.9), hsl(25 85% 45% / 0.9));
+    background: linear-gradient(90deg, hsl(42 65% 55% / 0.85), hsl(35 60% 52% / 0.85));
   }
   .season-header-herfst {
-    background: linear-gradient(90deg, hsl(18 80% 45% / 0.9), hsl(350 55% 45% / 0.9));
+    background: linear-gradient(90deg, hsl(18 55% 55% / 0.85), hsl(350 40% 55% / 0.85));
   }
   .season-header-onbekend {
-    background: linear-gradient(90deg, hsl(210 10% 45% / 0.9), hsl(210 12% 35% / 0.9));
+    background: linear-gradient(90deg, hsl(210 12% 55% / 0.85), hsl(210 10% 48% / 0.85));
   }
 
   /* Season text helpers */
