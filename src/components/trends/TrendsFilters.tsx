@@ -24,7 +24,6 @@ const focusOptions: { value: TrendFocus; label: string }[] = [
   { value: 'all', label: 'Alles' },
   { value: 'energie', label: 'Energie' },
   { value: 'slaap', label: 'Slaap' },
-  { value: 'cravings', label: 'Cravings' },
   { value: 'onrust', label: 'Onrust' },
 ];
 

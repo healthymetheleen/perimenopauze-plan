@@ -29,7 +29,7 @@ const seasonIcons: Record<string, React.ReactNode> = {
 export function TrendsDayDialog({ day, open, onOpenChange }: TrendsDayDialogProps) {
   if (!day) return null;
 
-  const hasSymptoms = day.headache || day.anxiety || day.irritability || day.bloating || day.breastTender;
+  const hasSymptoms = day.headache || day.anxiety || day.irritability || day.bloating || day.breastTender || day.hotFlashes;
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -109,16 +109,12 @@ export function TrendsDayDialog({ day, open, onOpenChange }: TrendsDayDialogProp
               </div>
               <div className="flex flex-wrap gap-1">
                 {day.headache && <Badge variant="outline" className="text-xs">Hoofdpijn</Badge>}
-                {day.anxiety && <Badge variant="outline" className="text-xs">Onrust</Badge>}
+                {day.anxiety && <Badge variant="outline" className="text-xs">Angst/onrust</Badge>}
                 {day.irritability && <Badge variant="outline" className="text-xs">Prikkelbaar</Badge>}
                 {day.bloating && <Badge variant="outline" className="text-xs">Opgeblazen</Badge>}
-                {day.breastTender && <Badge variant="outline" className="text-xs">Borsten gevoelig</Badge>}
+                {day.breastTender && <Badge variant="outline" className="text-xs">Gevoelige borsten</Badge>}
+                {day.hotFlashes && <Badge variant="outline" className="text-xs">Opvliegers</Badge>}
               </div>
-              {day.cravings && (
-                <p className="text-xs text-muted-foreground mt-2">
-                  Cravings: {day.cravings}
-                </p>
-              )}
             </div>
           )}
           

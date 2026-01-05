@@ -6,7 +6,7 @@ import { useSleepSessions, calculateSleepStats } from './useSleep';
 import { useLatestPrediction, useCyclePreferences, getSeasonForDate } from './useCycle';
 
 export type TrendPeriod = 7 | 14 | 28 | 'cycle';
-export type TrendFocus = 'all' | 'energie' | 'slaap' | 'cravings' | 'onrust' | 'sport';
+export type TrendFocus = 'all' | 'energie' | 'slaap' | 'onrust' | 'sport';
 
 export interface TrendDayData {
   date: string;
@@ -308,18 +308,18 @@ function calculateCorrelations(trendDays: TrendDayData[]): Correlation[] {
     });
   }
   
-  // Low breakfast protein vs afternoon cravings
+  // Low breakfast protein vs low energy
   const lowProteinBreakfastDays = trendDays.filter(d => {
     // Simplified: if total protein is low and has meals
     return d.mealsCount > 0 && d.proteinG / d.mealsCount < 20;
   });
-  const lowProteinWithCravings = lowProteinBreakfastDays.filter(d => d.cravings);
-  if (lowProteinBreakfastDays.length >= 3 && lowProteinWithCravings.length / lowProteinBreakfastDays.length > 0.4) {
+  const lowProteinWithLowEnergy = lowProteinBreakfastDays.filter(d => d.energy !== null && d.energy < 5);
+  if (lowProteinBreakfastDays.length >= 3 && lowProteinWithLowEnergy.length / lowProteinBreakfastDays.length > 0.4) {
     correlations.push({
       trigger: 'Ontbijt eiwit laag',
-      effect: 'Meer trek om 16:00',
-      strength: lowProteinWithCravings.length / lowProteinBreakfastDays.length > 0.6 ? 'hoog' : 'matig',
-      description: `Op ${lowProteinWithCravings.length} dagen met weinig ontbijteiwit had je meer cravings.`,
+      effect: 'Energie lager',
+      strength: lowProteinWithLowEnergy.length / lowProteinBreakfastDays.length > 0.6 ? 'hoog' : 'matig',
+      description: `Op ${lowProteinWithLowEnergy.length} dagen met weinig ontbijteiwit was je energie lager.`,
     });
   }
   
@@ -339,30 +339,33 @@ function calculateCorrelations(trendDays: TrendDayData[]): Correlation[] {
 }
 
 function calculateTopSymptoms(trendDays: TrendDayData[]): TopSymptom[] {
+  // Updated symptoms based on user's actual tracking:
+  // Energie, Stemming, Hoofdpijn, Gevoelige borsten, Angst/onrust, Opvliegers, Opgeblazen, Prikkelbaar
   const symptomCounts: Record<string, { count: number; seasons: string[] }> = {
-    brainfog: { count: 0, seasons: [] },
     onrust: { count: 0, seasons: [] },
     prikkelbaar: { count: 0, seasons: [] },
-    trek: { count: 0, seasons: [] },
     hoofdpijn: { count: 0, seasons: [] },
     bloating: { count: 0, seasons: [] },
+    borsten: { count: 0, seasons: [] },
+    opvliegers: { count: 0, seasons: [] },
   };
   
   trendDays.forEach(d => {
     if (d.anxiety) { symptomCounts.onrust.count++; symptomCounts.onrust.seasons.push(d.season); }
     if (d.irritability) { symptomCounts.prikkelbaar.count++; symptomCounts.prikkelbaar.seasons.push(d.season); }
-    if (d.cravings) { symptomCounts.trek.count++; symptomCounts.trek.seasons.push(d.season); }
     if (d.headache) { symptomCounts.hoofdpijn.count++; symptomCounts.hoofdpijn.seasons.push(d.season); }
     if (d.bloating) { symptomCounts.bloating.count++; symptomCounts.bloating.seasons.push(d.season); }
+    if (d.breastTender) { symptomCounts.borsten.count++; symptomCounts.borsten.seasons.push(d.season); }
+    if (d.hotFlashes) { symptomCounts.opvliegers.count++; symptomCounts.opvliegers.seasons.push(d.season); }
   });
   
   const labels: Record<string, string> = {
-    brainfog: 'Brainfog',
-    onrust: 'Onrust',
+    onrust: 'Angst/onrust',
     prikkelbaar: 'Prikkelbaar',
-    trek: 'Trek',
     hoofdpijn: 'Hoofdpijn',
     bloating: 'Opgeblazen',
+    borsten: 'Gevoelige borsten',
+    opvliegers: 'Opvliegers',
   };
   
   return Object.entries(symptomCounts)
