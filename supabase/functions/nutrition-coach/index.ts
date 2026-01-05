@@ -28,7 +28,8 @@ serve(async (req) => {
       global: { headers: { Authorization: authHeader } }
     });
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const jwt = authHeader.replace(/^Bearer\s+/i, '');
+    const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
       console.log('Auth error:', authError?.message);
       return new Response(JSON.stringify({ error: 'Unauthorized', tips: [] }), {

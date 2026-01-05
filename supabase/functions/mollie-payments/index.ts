@@ -39,7 +39,11 @@ serve(async (req) => {
     // Verify user for protected endpoints
     let user = null;
     if (authHeader) {
-      const { data: { user: authUser } } = await supabase.auth.getUser();
+      const jwt = authHeader.replace(/^Bearer\s+/i, '');
+      const { data: { user: authUser }, error: authError } = await supabase.auth.getUser(jwt);
+      if (authError) {
+        console.log('Auth error:', authError.message);
+      }
       user = authUser;
     }
 
