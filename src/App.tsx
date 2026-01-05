@@ -17,7 +17,7 @@ import PricingPage from "./pages/Pricing";
 import DashboardPage from "./pages/Dashboard";
 import DiaryPage from "./pages/Diary";
 import TrendsPage from "./pages/Trends";
-import PatternsPage from "./pages/Patterns";
+
 import AccountPage from "./pages/Account";
 import SettingsPage from "./pages/Settings";
 import CyclePage from "./pages/Cycle";
@@ -173,11 +173,6 @@ function AppRoutes() {
       <Route path="/trends" element={
         <ProtectedRoute>
           <TrendsPage />
-        </ProtectedRoute>
-      } />
-      <Route path="/patterns" element={
-        <ProtectedRoute>
-          <PatternsPage />
         </ProtectedRoute>
       } />
       <Route path="/account" element={

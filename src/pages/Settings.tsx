@@ -213,10 +213,14 @@ export default function SettingsPage() {
               <div className="space-y-0.5 flex-1">
                 <Label className="flex items-center gap-2">
                   {isPremium && <Crown className="h-4 w-4 text-primary" />}
-                  Abonnement
+                  Huidig abonnement
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  {isPremium ? 'Premium - volledige toegang' : 'Gratis - beperkte functies'}
+                  {isPremium 
+                    ? 'Premium - volledige toegang' 
+                    : entitlements?.trial_days_remaining && entitlements.trial_days_remaining > 0
+                      ? `Gratis trial - nog ${entitlements.trial_days_remaining} ${entitlements.trial_days_remaining === 1 ? 'dag' : 'dagen'}`
+                      : 'Gratis - beperkte functies'}
                 </p>
               </div>
               <Button variant="outline" asChild className="glass">
