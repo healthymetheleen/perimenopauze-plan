@@ -440,13 +440,17 @@ export default function CyclePage() {
               <div>
                 <p className="text-xs text-muted-foreground">Gem. cycluslengte</p>
                 <p className="font-semibold">
-                  {prediction.avg_cycle_length ? `${prediction.avg_cycle_length} dagen` : 'Nog onbekend'}
+                  {prediction.avg_cycle_length && prediction.avg_cycle_length >= 7 
+                    ? `${prediction.avg_cycle_length} dagen` 
+                    : 'Nog onbekend'}
                 </p>
               </div>
               <div>
                 <p className="text-xs text-muted-foreground">Variatie</p>
                 <p className="font-semibold">
-                  {prediction.cycle_variability !== undefined ? `±${prediction.cycle_variability} dagen` : 'Nog onbekend'}
+                  {prediction.cycle_variability !== undefined && prediction.cycle_variability !== null && prediction.cycle_variability >= 0
+                    ? `±${prediction.cycle_variability} dagen` 
+                    : 'Nog onbekend'}
                 </p>
               </div>
             </div>

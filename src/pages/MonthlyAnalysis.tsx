@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { useGenerateMonthlyAnalysis, useCanGenerateMonthlyAnalysis, type MonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
+import { useGenerateMonthlyAnalysis, useCanGenerateMonthlyAnalysis, useSavedMonthlyAnalysis, useMonthlyAnalysisList, type MonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
 import { useConsent } from '@/hooks/useConsent';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -42,9 +42,14 @@ const domainColors: Record<string, string> = {
 export default function MonthlyAnalysisPage() {
   const { toast } = useToast();
   const { consent } = useConsent();
+  const { data: savedAnalysis, isLoading: loadingSaved } = useSavedMonthlyAnalysis();
+  const { data: analysisList } = useMonthlyAnalysisList();
   const { data: canGenerate, isLoading: checkingLimit } = useCanGenerateMonthlyAnalysis();
   const generateAnalysis = useGenerateMonthlyAnalysis();
   const [analysis, setAnalysis] = useState<MonthlyAnalysis | null>(null);
+
+  // Use saved analysis if available, otherwise use generated one
+  const displayAnalysis = analysis || savedAnalysis;
 
   const hasAIConsent = consent?.accepted_ai_processing === true;
 
@@ -114,11 +119,11 @@ export default function MonthlyAnalysisPage() {
           </Alert>
         )}
 
-        {/* Generate Button */}
-        {!analysis && (
+        {/* Generate Button - only show if no saved analysis */}
+        {!displayAnalysis && (
           <Card className="glass rounded-2xl">
             <CardContent className="p-6 text-center space-y-4">
-              {checkingLimit ? (
+              {checkingLimit || loadingSaved ? (
                 <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
               ) : canGenerate ? (
                 <>
@@ -168,7 +173,7 @@ export default function MonthlyAnalysisPage() {
         )}
 
         {/* Analysis Results */}
-        {analysis && (
+        {displayAnalysis && (
           <div className="space-y-6">
             {/* Summary */}
             <Card className="glass-strong rounded-2xl card-premium">
@@ -179,26 +184,26 @@ export default function MonthlyAnalysisPage() {
                     Samenvatting
                   </CardTitle>
                   <Badge variant="secondary" className="text-xs">
-                    {format(new Date(analysis.generatedAt), 'MMMM yyyy', { locale: nl })}
+                    {format(new Date(displayAnalysis.generatedAt), 'MMMM yyyy', { locale: nl })}
                   </Badge>
                 </div>
               </CardHeader>
               <CardContent>
-                <p className="text-foreground">{analysis.summary}</p>
-                {analysis.positiveNote && (
-                  <p className="text-primary font-medium mt-3">✨ {analysis.positiveNote}</p>
+                <p className="text-foreground">{displayAnalysis.summary}</p>
+                {displayAnalysis.positiveNote && (
+                  <p className="text-primary font-medium mt-3">✨ {displayAnalysis.positiveNote}</p>
                 )}
               </CardContent>
             </Card>
 
             {/* Patterns */}
-            {analysis.patterns && analysis.patterns.length > 0 && (
+            {displayAnalysis.patterns && displayAnalysis.patterns.length > 0 && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg">Geobserveerde Patronen</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  {analysis.patterns.map((pattern, index) => (
+                  {displayAnalysis.patterns.map((pattern, index) => (
                     <div key={index} className="p-4 rounded-xl bg-muted/50 space-y-2">
                       <div className="flex items-center gap-2">
                         <Badge className={domainColors[pattern.domain]}>
@@ -219,7 +224,7 @@ export default function MonthlyAnalysisPage() {
             )}
 
             {/* Hormone Analysis */}
-            {analysis.hormoneAnalysis && (
+            {displayAnalysis.hormoneAnalysis && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -229,13 +234,13 @@ export default function MonthlyAnalysisPage() {
                   <CardDescription>Educatieve context over hormoonschommelingen</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm">{analysis.hormoneAnalysis}</p>
+                  <p className="text-sm">{displayAnalysis.hormoneAnalysis}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Nutrition Insights */}
-            {analysis.nutritionInsights && (
+            {displayAnalysis.nutritionInsights && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
@@ -245,14 +250,14 @@ export default function MonthlyAnalysisPage() {
                   <CardDescription>Orthomoleculaire observaties</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-sm">{analysis.nutritionInsights}</p>
+                  <p className="text-sm">{displayAnalysis.nutritionInsights}</p>
                 </CardContent>
               </Card>
             )}
 
             {/* Sleep & Movement */}
             <div className="grid md:grid-cols-2 gap-4">
-              {analysis.sleepAnalysis && (
+              {displayAnalysis.sleepAnalysis && (
                 <Card className="glass rounded-2xl">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
@@ -261,11 +266,11 @@ export default function MonthlyAnalysisPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">{analysis.sleepAnalysis}</p>
+                    <p className="text-sm text-muted-foreground">{displayAnalysis.sleepAnalysis}</p>
                   </CardContent>
                 </Card>
               )}
-              {analysis.movementAnalysis && (
+              {displayAnalysis.movementAnalysis && (
                 <Card className="glass rounded-2xl">
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
@@ -274,14 +279,14 @@ export default function MonthlyAnalysisPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-sm text-muted-foreground">{analysis.movementAnalysis}</p>
+                    <p className="text-sm text-muted-foreground">{displayAnalysis.movementAnalysis}</p>
                   </CardContent>
                 </Card>
               )}
             </div>
 
             {/* Recommendations */}
-            {analysis.recommendations && analysis.recommendations.length > 0 && (
+            {displayAnalysis.recommendations && displayAnalysis.recommendations.length > 0 && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
                   <CardTitle className="text-lg">Aandachtspunten</CardTitle>
@@ -289,7 +294,7 @@ export default function MonthlyAnalysisPage() {
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {analysis.recommendations.map((rec, index) => (
+                    {displayAnalysis.recommendations.map((rec, index) => (
                       <li key={index} className="flex items-start gap-2 text-sm">
                         <span className="text-primary">•</span>
                         <span>{rec}</span>
@@ -301,11 +306,11 @@ export default function MonthlyAnalysisPage() {
             )}
 
             {/* Talk to Provider */}
-            {analysis.talkToProvider && (
+            {displayAnalysis.talkToProvider && (
               <Alert>
                 <Info className="h-4 w-4" />
                 <AlertTitle>Bespreek met je zorgverlener</AlertTitle>
-                <AlertDescription>{analysis.talkToProvider}</AlertDescription>
+                <AlertDescription>{displayAnalysis.talkToProvider}</AlertDescription>
               </Alert>
             )}
 
@@ -314,7 +319,7 @@ export default function MonthlyAnalysisPage() {
               <CardContent className="p-4">
                 <div className="flex gap-3 text-xs text-muted-foreground">
                   <Info className="h-4 w-4 flex-shrink-0 mt-0.5" />
-                  <p>{analysis.disclaimer}</p>
+                  <p>{displayAnalysis.disclaimer}</p>
                 </div>
               </CardContent>
             </Card>
