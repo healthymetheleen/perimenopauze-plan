@@ -9,6 +9,30 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
+// Privacy: generate AI subject ID (not reversible without DB)
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
+}
+
+// Scrub PII from text before AI calls
+function scrubPII(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  return input
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
+    .replace(/\b(\+?\d[\d\s().-]{7,}\d)\b/g, '[phone]')
+    .replace(/\b\d{4}\s?[A-Z]{2}\b/gi, '[postcode]')
+    .replace(/\b(?:straat|laan|weg|plein|singel|gracht|kade|dijk|pad)\b.*?\d+\b/gi, '[address]')
+    .replace(/\b(ik ben|mijn naam is|ik heet|my name is|i am)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/gi, '$1 [naam]');
+}
+
 // FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning met ranges en confidence
 const foodParsingPrompt = `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
@@ -90,7 +114,7 @@ BELANGRIJK:
 - Hoe meer info ontbreekt, hoe breder de range en lager de confidence`;
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
+async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -116,6 +140,9 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
+  // Generate pseudonymous ID for logging (never log real user_id with AI data)
+  const aiSubjectId = generateAISubjectId(user.id);
+
   // Check daily AI usage limit server-side
   const today = new Date().toISOString().split('T')[0];
   const { count, error: countError } = await supabase
@@ -138,7 +165,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
-  return { user, supabase };
+  return { user, supabase, aiSubjectId };
 }
 
 // Helper: Track AI usage server-side
@@ -163,13 +190,12 @@ serve(async (req) => {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { user, supabase } = authResult;
+    const { user, supabase, aiSubjectId } = authResult;
 
     const { description, imageBase64, hasAIConsent, mealTime } = await req.json();
     
     // CONSENT CHECK - verify consent server-side
     if (hasAIConsent === false) {
-      // Also verify from database
       const { data: consent } = await supabase
         .from('user_consents')
         .select('accepted_ai_processing')
@@ -194,31 +220,36 @@ serve(async (req) => {
       }
     }
     
-    // Use OpenAI API key from Supabase secrets
-    const openAIKey = Deno.env.get('ChatGPT');
-    if (!openAIKey) {
-      console.error('OpenAI API key not configured');
+    // Use Lovable AI Gateway (no direct OpenAI calls from Edge Functions)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       throw new Error('AI service is niet geconfigureerd');
     }
 
-    // Build user content
+    // PRIVACY: Scrub PII from description before sending to AI
+    const scrubbedDescription = description ? scrubPII(description) : null;
+
+    // Build user content - NO PII, only food description and image
     const userContent: any[] = [];
     
-    if (description) {
+    if (scrubbedDescription) {
       userContent.push({
         type: 'text',
-        text: `Analyseer deze maaltijd: ${description}`
+        text: `Analyseer deze maaltijd: ${scrubbedDescription}`
       });
     }
     
     if (imageBase64) {
+      // WARNING: Images may contain PII (faces, documents, addresses)
+      // TODO: Consider EXIF stripping and downscaling for production
       userContent.push({
         type: 'image_url',
         image_url: {
           url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
         }
       });
-      if (!description) {
+      if (!scrubbedDescription) {
         userContent.push({
           type: 'text',
           text: 'Analyseer deze maaltijd op de foto.'
@@ -233,34 +264,29 @@ serve(async (req) => {
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'analyze-meal');
 
-    console.log('Sending meal data to OpenAI for analysis (user:', user.id, ')');
+    console.log('Analyzing meal via Lovable AI, subject:', aiSubjectId);
     
-    // TWO-TIER AI STRATEGY: Start with nano (cheap), fallback to mini if needed
-    let analysis;
-    let usedFallback = false;
-    
-    // First try with gpt-5-nano (cheapest)
-    const nanoResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // Use Lovable AI Gateway with flash model for meal analysis
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: foodParsingPrompt },
           { role: 'user', content: userContent }
         ],
-        max_completion_tokens: 1000,
       }),
     });
 
-    if (!nanoResponse.ok) {
-      const errorText = await nanoResponse.text();
-      console.error('OpenAI API error:', nanoResponse.status, errorText);
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Lovable AI error:', response.status, errorText);
       
-      if (nanoResponse.status === 429) {
+      if (response.status === 429) {
         return new Response(JSON.stringify({ 
           error: 'rate_limit',
           message: 'Te veel verzoeken. Probeer het later opnieuw.' 
@@ -270,7 +296,7 @@ serve(async (req) => {
         });
       }
       
-      if (nanoResponse.status === 402) {
+      if (response.status === 402) {
         return new Response(JSON.stringify({ 
           error: 'service_unavailable',
           message: 'De AI-service is tijdelijk niet beschikbaar.' 
@@ -283,120 +309,37 @@ serve(async (req) => {
       throw new Error('AI service unavailable');
     }
 
-    const nanoData = await nanoResponse.json();
-    const nanoContent = nanoData.choices?.[0]?.message?.content;
+    const aiData = await response.json();
+    const content = aiData.choices?.[0]?.message?.content;
     
-    console.log('Nano response received');
+    console.log('Meal analysis received for subject:', aiSubjectId);
 
-    // Parse nano response
+    // Parse response
+    let analysis;
     try {
-      const jsonMatch = nanoContent.match(/\{[\s\S]*\}/);
+      const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error('No JSON found in response');
       }
     } catch (parseError) {
-      console.error('Failed to parse nano AI response:', parseError);
-      // Set confidence low to trigger fallback to mini
+      console.error('Failed to parse AI response for', aiSubjectId);
       analysis = {
-        confidence: 'low',
-        needs_review: true
+        description: description || 'Maaltijd',
+        items: [],
+        totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+        ultra_processed_level: null,
+        confidence: 0.3,
+        verification_questions: [{
+          question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+          options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+          affects: 'description'
+        }],
+        quality_flags: {},
+        notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
       };
     }
-
-    // CHECK IF FALLBACK TO MINI IS NEEDED
-    // Fallback if: confidence is low, needs_review is true, or image analysis with uncertain result
-    const needsFallback = 
-      analysis.confidence === 'low' || 
-      analysis.needs_review === true ||
-      (imageBase64 && analysis.confidence !== 'high');
-
-    if (needsFallback) {
-      console.log('Low confidence from nano, falling back to gpt-5-mini (user:', user.id, ')');
-      usedFallback = true;
-      
-      const miniResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${openAIKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'gpt-5-mini-2025-08-07',
-          messages: [
-            { role: 'system', content: foodParsingPrompt },
-            { role: 'user', content: userContent }
-          ],
-          max_completion_tokens: 1000,
-        }),
-      });
-
-      if (miniResponse.ok) {
-        const miniData = await miniResponse.json();
-        const miniContent = miniData.choices?.[0]?.message?.content;
-        
-        try {
-          const jsonMatch = miniContent.match(/\{[\s\S]*\}/);
-          if (jsonMatch) {
-            analysis = JSON.parse(jsonMatch[0]);
-            console.log('Mini fallback successful');
-          } else {
-            // Both nano and mini failed to return valid JSON
-            console.error('Mini also returned no valid JSON');
-            analysis = {
-              description: description || 'Maaltijd',
-              items: [],
-              totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-              ultra_processed_level: null,
-              confidence: 'low',
-              verification_questions: [{
-                question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
-                options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
-                affects: 'description'
-              }],
-              quality_flags: {},
-              notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
-            };
-          }
-        } catch (parseError) {
-          console.error('Failed to parse mini AI response');
-          analysis = {
-            description: description || 'Maaltijd',
-            items: [],
-            totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-            ultra_processed_level: null,
-            confidence: 'low',
-            verification_questions: [{
-              question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
-              options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
-              affects: 'description'
-            }],
-            quality_flags: {},
-            notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
-          };
-        }
-      } else {
-        console.error('Mini fallback failed');
-        analysis = {
-          description: description || 'Maaltijd',
-          items: [],
-          totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-          ultra_processed_level: null,
-          confidence: 'low',
-          verification_questions: [{
-            question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
-            options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
-            affects: 'description'
-          }],
-          quality_flags: {},
-          notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
-        };
-      }
-    }
-    
-    // Add metadata about which model was used
-    analysis.model_used = usedFallback ? 'gpt-5-mini' : 'gpt-5-nano';
 
     // Add late meal flag based on time
     if (mealTime) {
@@ -432,7 +375,6 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error in analyze-meal:', error);
-    // Return generic error message to client, never expose internal details
     return new Response(JSON.stringify({ 
       error: 'service_error',
       message: 'Er ging iets mis bij de analyse. Probeer het later opnieuw.' 

@@ -92,8 +92,6 @@ export default function DiaryPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
-        {/* Weekly AI Insight - only on today */}
-        {isToday && <WeeklyInsightCard />}
         {/* Date navigation */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={handlePrevDay}>
@@ -211,6 +209,8 @@ export default function DiaryPage() {
           </CardContent>
         </Card>
 
+        {/* Weekly AI Insight - only on today, at bottom */}
+        {isToday && <WeeklyInsightCard />}
       </div>
 
       {diaryDay && (

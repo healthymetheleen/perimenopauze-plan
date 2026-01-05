@@ -6,6 +6,32 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+// Privacy-compliant: generate AI subject ID (not reversible without DB)
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  return `subj_${hex}`;
+}
+
+// Convert to relative day (D0 = today, D-1 = yesterday)
+function toRelativeDay(dateStr: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
+  const diffDays = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return 'D0';
+  if (diffDays > 0) return `D+${diffDays}`;
+  return `D${diffDays}`;
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -34,6 +60,9 @@ serve(async (req) => {
       });
     }
 
+    // Generate pseudonymous subject ID (never send real user_id to AI)
+    const aiSubjectId = generateAISubjectId(user.id);
+
     // Check if we have a cached insight from this week
     const today = new Date();
     const dayOfWeek = today.getDay();
@@ -52,7 +81,7 @@ serve(async (req) => {
       .maybeSingle();
 
     if (cachedInsight) {
-      console.log("Returning cached weekly insight");
+      console.log("Returning cached weekly insight for", aiSubjectId);
       return new Response(JSON.stringify({ insight: cachedInsight.insight_data, cached: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
@@ -65,13 +94,13 @@ serve(async (req) => {
 
     const { data: dailyScores, error: scoresError } = await supabaseClient
       .from('v_daily_scores')
-      .select('*')
+      .select('day_date, meals_count, kcal_total, protein_g, fiber_g, carbs_g, score_reasons')
       .eq('owner_id', user.id)
       .gte('day_date', sevenDaysAgoStr)
       .order('day_date', { ascending: true });
 
     if (scoresError) {
-      console.error("Error fetching scores:", scoresError);
+      console.error("Error fetching scores for", aiSubjectId, ":", scoresError);
       throw scoresError;
     }
 
@@ -86,7 +115,7 @@ serve(async (req) => {
       });
     }
 
-    // Calculate weekly totals and averages
+    // PRIVACY: Build minimal context pack with relative days, no PII
     const daysWithMeals = dailyScores.filter(d => d.meals_count > 0);
     const totalMeals = daysWithMeals.reduce((sum, d) => sum + (d.meals_count || 0), 0);
     const avgKcal = daysWithMeals.length > 0 
@@ -102,23 +131,38 @@ serve(async (req) => {
       ? daysWithMeals.reduce((sum, d) => sum + (d.carbs_g || 0), 0) / daysWithMeals.length 
       : 0;
 
-    // Collect all score reasons
+    // Collect all score reasons (categorical, no PII)
     const allReasons = dailyScores.flatMap(d => d.score_reasons || []);
     const reasonCounts: Record<string, number> = {};
     allReasons.forEach(r => {
       reasonCounts[r] = (reasonCounts[r] || 0) + 1;
     });
 
-    // Build prompt for AI
+    // Build MINIMAL CONTEXT PACK with relative days (no dates)
+    const dailyPatterns = daysWithMeals.map(d => ({
+      relDay: toRelativeDay(d.day_date),
+      meals: d.meals_count,
+      proteinCategory: (d.protein_g || 0) < 40 ? 'laag' : (d.protein_g || 0) < 60 ? 'gemiddeld' : 'goed',
+      fiberCategory: (d.fiber_g || 0) < 20 ? 'laag' : (d.fiber_g || 0) < 30 ? 'gemiddeld' : 'goed',
+    }));
+
     const nutritionSummary = `
-Weekoverzicht voeding (${daysWithMeals.length} dagen gelogd):
+WEEKOVERZICHT VOEDING (${daysWithMeals.length} dagen gelogd):
 - Totaal maaltijden: ${totalMeals}
-- Gemiddeld per dag: ${Math.round(avgKcal)} kcal, ${Math.round(avgProtein)}g eiwit, ${Math.round(avgFiber)}g vezels, ${Math.round(avgCarbs)}g koolhydraten
-- Veelvoorkomende patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 5).map(([r, c]) => `${r} (${c}x)`).join(', ')}
+- Gemiddeld per dag: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g eiwit, ~${Math.round(avgFiber)}g vezels, ~${Math.round(avgCarbs)}g koolhydraten
+- Patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
+- Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
     `.trim();
 
     const systemPrompt = `Je bent een orthomoleculair voedingscoach gespecialiseerd in de perimenopauze. 
 Je geeft warme, persoonlijke adviezen op basis van de KNMP orthomoleculaire voedingsleer.
+
+BELANGRIJK:
+- Je bent GEEN arts en geeft GEEN medisch advies
+- Je werkt met geanonimiseerde, geminimaliseerde data
+- Gebruik relatieve dagen (D-1 = gisteren, D-2 = eergisteren)
+- Geef educatieve informatie, geen diagnoses
+
 Focus op:
 - Hormoonbalans door voeding (fytooestrogenen, omega-3, B-vitamines)
 - Bloedsuikerregulatie voor stabiele energie en stemming
@@ -150,7 +194,7 @@ Geef je analyse in dit exact JSON format:
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    console.log("Calling Lovable AI for weekly nutrition insight...");
+    console.log("Calling Lovable AI for weekly nutrition insight, subject:", aiSubjectId);
 
     const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -164,7 +208,6 @@ Geef je analyse in dit exact JSON format:
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
-        temperature: 0.7,
       }),
     });
 
@@ -193,12 +236,11 @@ Geef je analyse in dit exact JSON format:
     // Parse JSON from response
     let insight;
     try {
-      // Extract JSON from potential markdown code blocks
       const jsonMatch = content.match(/```json\s*([\s\S]*?)\s*```/) || content.match(/```\s*([\s\S]*?)\s*```/);
       const jsonStr = jsonMatch ? jsonMatch[1] : content;
       insight = JSON.parse(jsonStr.trim());
     } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
+      console.error("Failed to parse AI response for", aiSubjectId, ":", content);
       insight = {
         samenvatting: "Analyse kon niet worden voltooid.",
         sterke_punten: [],
@@ -208,14 +250,15 @@ Geef je analyse in dit exact JSON format:
       };
     }
 
-    // Add metadata
+    // Add metadata (no PII)
     insight.week_start = weekStartStr;
     insight.days_logged = daysWithMeals.length;
     insight.avg_protein = Math.round(avgProtein);
     insight.avg_fiber = Math.round(avgFiber);
     insight.avg_kcal = Math.round(avgKcal);
+    insight.disclaimer = "Deze inzichten zijn informatief en geen medisch advies.";
 
-    // Cache the insight
+    // Cache the insight (linked to real user_id in our DB only)
     const { error: cacheError } = await supabaseClient
       .from('ai_insights_cache')
       .insert({
@@ -226,10 +269,10 @@ Geef je analyse in dit exact JSON format:
       });
 
     if (cacheError) {
-      console.error("Failed to cache insight:", cacheError);
+      console.error("Failed to cache insight for", aiSubjectId, ":", cacheError);
     }
 
-    console.log("Successfully generated weekly nutrition insight");
+    console.log("Successfully generated weekly nutrition insight for", aiSubjectId);
 
     return new Response(JSON.stringify({ insight, cached: false }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },

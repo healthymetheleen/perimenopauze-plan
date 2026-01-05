@@ -8,6 +8,19 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
+// Privacy: generate AI subject ID
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
+}
+
 // GLOBAL AI GUARDRAIL - MDR-compliant systeem prompt
 const baseSystemPrompt = `ROL & KADER
 
@@ -58,7 +71,7 @@ const dailyReflectionPrompt = `${baseSystemPrompt}
 
 SPECIFIEKE TAAK: Dagelijkse reflectie
 
-Je ontvangt dagkenmerken van één dag.
+Je ontvangt dagkenmerken van één dag (geanonimiseerd, geen persoonlijke identificatoren).
 
 STRUCTUUR OUTPUT (JSON):
 {
@@ -80,7 +93,7 @@ const weeklyAnalysisPrompt = `${baseSystemPrompt}
 
 SPECIFIEKE TAAK: Weekanalyse
 
-Je ontvangt samengevatte weekpatronen.
+Je ontvangt samengevatte weekpatronen (geanonimiseerd).
 
 STRUCTUUR OUTPUT (JSON):
 {
@@ -183,22 +196,13 @@ function getDefaultResponse(type: string): object {
         observation: "Log meer data om verbanden met je cyclus te zien.",
         invitation: "Merk op hoe je je vandaag voelt."
       };
-    case 'monthly':
-      return {
-        summary: "Er is nog onvoldoende data voor een uitgebreide maandanalyse.",
-        patterns: [],
-        hormoneAnalysis: "Met meer data kunnen we hormoonpatronen beter in kaart brengen.",
-        nutritionInsights: "Log meer maaltijden voor voedingsinzichten.",
-        recommendations: [],
-        disclaimer: "Deze analyse is informatief en geen medisch advies."
-      };
     default:
       return {};
   }
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
+async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -224,6 +228,8 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
+  const aiSubjectId = generateAISubjectId(user.id);
+
   // Check daily AI usage limit server-side
   const today = new Date().toISOString().split('T')[0];
   const { count, error: countError } = await supabase
@@ -246,7 +252,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
-  return { user, supabase };
+  return { user, supabase, aiSubjectId };
 }
 
 // Helper: Track AI usage server-side
@@ -283,7 +289,7 @@ serve(async (req) => {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { user, supabase } = authResult;
+    const { user, supabase, aiSubjectId } = authResult;
 
     const { type, data, hasAIConsent, forceRefresh } = await req.json();
 
@@ -317,9 +323,8 @@ serve(async (req) => {
         .eq('insight_date', today)
         .single();
 
-      // Return cached if exists and input hasn't changed significantly
       if (cachedInsight && cachedInsight.input_hash === inputHash) {
-        console.log(`Returning cached ${type} insight for user ${user.id}`);
+        console.log(`Returning cached ${type} insight for subject ${aiSubjectId}`);
         return new Response(JSON.stringify({
           ...cachedInsight.insight_data,
           cached: true
@@ -329,10 +334,10 @@ serve(async (req) => {
       }
     }
 
-    // Use OpenAI API key from Supabase secrets
-    const openAIKey = Deno.env.get('ChatGPT');
-    if (!openAIKey) {
-      console.error('OpenAI API key not configured');
+    // Use Lovable AI Gateway (no direct OpenAI calls)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured');
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
         ...getDefaultResponse(type)
@@ -343,11 +348,11 @@ serve(async (req) => {
 
     const systemPromptForType = getPromptForType(type);
     
-    // Build context based on type
+    // Build MINIMAL context - only categorical data, no PII
     let context = '';
     
     if (type === 'daily') {
-      context = `DAGKENMERKEN:
+      context = `DAGKENMERKEN (geanonimiseerd):
 - Eetmomenten: ${data.mealsCount || 'onbekend'}
 - Slaapbeleving: ${data.sleepQuality || 'onbekend'}
 - Stressbeleving: ${data.stressLevel || 'onbekend'}
@@ -357,12 +362,12 @@ serve(async (req) => {
 
 Geef een reflectie op basis van deze dagkenmerken.`;
     } else if (type === 'weekly') {
-      context = `WEEKPATRONEN (laatste 7-14 dagen):
+      context = `WEEKPATRONEN (laatste 7-14 dagen, geanonimiseerd):
 ${JSON.stringify(data.patterns || {}, null, 2)}
 
 Geef een weekanalyse op basis van deze patronen.`;
     } else if (type === 'sleep') {
-      context = `SLAAPGEGEVENS:
+      context = `SLAAPGEGEVENS (geanonimiseerd):
 - Gemiddelde duur: ${data.avgDuration || 'onbekend'}
 - Kwaliteitsbeleving: ${data.avgQuality || 'onbekend'}
 - Consistentie: ${data.consistency || 'onbekend'}
@@ -371,7 +376,7 @@ Geef een weekanalyse op basis van deze patronen.`;
 
 Geef een slaap-inzicht op basis van deze gegevens.`;
     } else if (type === 'cycle') {
-      context = `CYCLUSGEGEVENS:
+      context = `CYCLUSGEGEVENS (geanonimiseerd):
 - Huidig seizoen: ${data.season || 'onbekend'}
 - Huidige fase: ${data.phase || 'onbekend'}
 - Energiebeleving: ${data.energy || 'onbekend'}
@@ -383,27 +388,26 @@ Geef een cyclus-lens inzicht.`;
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, `premium-insights-${type}`);
 
-    console.log(`Generating ${type} insight with OpenAI (user: ${user.id})`);
+    console.log(`Generating ${type} insight via Lovable AI, subject: ${aiSubjectId}`);
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPromptForType },
           { role: 'user', content: context }
         ],
-        max_completion_tokens: 500,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -433,7 +437,7 @@ Geef een cyclus-lens inzicht.`;
     const aiResponse = await response.json();
     const content = aiResponse.choices?.[0]?.message?.content;
     
-    console.log(`${type} insight generated successfully via OpenAI`);
+    console.log(`${type} insight generated for subject ${aiSubjectId}`);
 
     let result;
     try {
@@ -451,7 +455,7 @@ Geef een cyclus-lens inzicht.`;
     // Add disclaimer
     result.disclaimer = 'Deze inzichten zijn informatief en geen medisch advies.';
 
-    // CACHE THE RESULT - upsert to handle existing entries
+    // CACHE THE RESULT
     const { error: cacheError } = await supabase
       .from('ai_insights_cache')
       .upsert({
@@ -466,8 +470,6 @@ Geef een cyclus-lens inzicht.`;
 
     if (cacheError) {
       console.error('Failed to cache insight:', cacheError);
-    } else {
-      console.log(`Cached ${type} insight for user ${user.id}`);
     }
 
     return new Response(JSON.stringify(result), {
@@ -476,7 +478,6 @@ Geef een cyclus-lens inzicht.`;
 
   } catch (error) {
     console.error('Error in premium-insights:', error);
-    // Return generic error message to client, never expose internal details
     return new Response(JSON.stringify({ 
       error: 'service_error',
       message: 'Er ging iets mis bij het genereren van inzichten. Probeer het later opnieuw.' 

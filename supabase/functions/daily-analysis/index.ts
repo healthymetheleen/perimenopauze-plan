@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -6,6 +5,19 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Privacy: generate AI subject ID for logging
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
+}
 
 // Orthomoleculaire tips per seizoen en tekort
 const orthomolecularTips: Record<string, { minerals: string[]; foods: string[]; avoid: string[] }> = {
@@ -60,17 +72,18 @@ serve(async (req) => {
       });
     }
 
-    console.log('Fetching daily analysis for user:', user.id);
+    const aiSubjectId = generateAISubjectId(user.id);
+    console.log('Fetching daily analysis for subject:', aiSubjectId);
 
     // Get yesterday's date
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
     const yesterdayStr = yesterday.toISOString().split('T')[0];
 
-    // Get yesterday's nutrition data
+    // Get yesterday's nutrition data (only aggregates, no raw data)
     const { data: yesterdayScore } = await supabase
       .from('v_daily_scores')
-      .select('*')
+      .select('meals_count, kcal_total, protein_g, fiber_g')
       .eq('owner_id', user.id)
       .eq('day_date', yesterdayStr)
       .maybeSingle();
@@ -87,7 +100,7 @@ serve(async (req) => {
     const currentSeason = prediction?.current_season || 'onbekend';
     const tips = orthomolecularTips[currentSeason] || orthomolecularTips.lente;
 
-    // Build analysis
+    // Build analysis with CATEGORICAL data only (no exact values in logs)
     const analysis: {
       hasYesterdayData: boolean;
       yesterdaySummary: string | null;
@@ -99,6 +112,7 @@ serve(async (req) => {
         avoid: string[];
       };
       seasonTip: string;
+      disclaimer: string;
     } = {
       hasYesterdayData: !!yesterdayScore && yesterdayScore.meals_count > 0,
       yesterdaySummary: null,
@@ -106,6 +120,7 @@ serve(async (req) => {
       improvements: [],
       orthomolecular: tips,
       seasonTip: '',
+      disclaimer: 'Deze informatie is educatief en geen medisch advies.',
     };
 
     if (yesterdayScore && yesterdayScore.meals_count > 0) {
@@ -157,7 +172,7 @@ serve(async (req) => {
         analysis.seasonTip = 'Log je cyclus om seizoensgebonden tips te ontvangen.';
     }
 
-    console.log('Returning daily analysis');
+    console.log('Returning daily analysis for subject:', aiSubjectId);
 
     return new Response(JSON.stringify(analysis), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -168,6 +183,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       error: 'Er ging iets mis',
       hasYesterdayData: false,
+      disclaimer: 'Deze informatie is educatief en geen medisch advies.',
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
