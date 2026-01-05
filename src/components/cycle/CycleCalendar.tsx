@@ -228,7 +228,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           {preferences?.show_fertile_days && (
             <>
               <div className="flex items-center gap-1">
-                <span className="inline-block h-2 w-2 rounded-full bg-[hsl(var(--cycle-fertile))]" /> Vruchtbaar
+                <span className="inline-block h-2 w-2 rounded-full border-2 border-[hsl(140_60%_45%)] bg-[hsl(140_60%_45%/0.15)]" /> Vruchtbaar
               </div>
               <div className="flex items-center gap-1">
                 <span className="cycle-ovulation-star">★</span> Ovulatie
