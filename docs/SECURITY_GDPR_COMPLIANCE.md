@@ -43,7 +43,8 @@
 
 | Tabel | Data | Bewaartermijn | Grondslag |
 |-------|------|---------------|-----------|
-| `profiles` | Displaynaam | Account levensduur | Contract (Art. 6.1.b) |
+| `profiles` | Displaynaam, leeftijdscategorie | Account levensduur | Contract (Art. 6.1.b) |
+| `profiles` | Lengte, gewicht (optioneel) | Account levensduur | Toestemming (Art. 9.2.a) |
 | `user_consents` | Toestemmingen | Account + 5 jaar | Wettelijke plicht (Art. 6.1.c) |
 | `subscriptions` | Abonnementsinfo | Account levensduur | Contract |
 
@@ -120,16 +121,17 @@ FORCE RLS voorkomt dat table owners of rollen met elevated privileges RLS bypass
 |--------|---------|------|-------------|
 | `content-images` | ❌ Nee | App content (meditaties, oefeningen) | Nee |
 | `user-uploads` | ❌ Nee | Gebruikersuploads algemeen | Nee |
-| `meal-photos` | ❌ Nee | Maaltijdfoto's (GDPR-gevoelig) | ✅ 30 dagen |
 
-### Meal Photos Bucket (GDPR-specifiek)
+### ⚠️ Maaltijdfoto's Beleid (Privacy by Design)
 
-- **Private bucket** - geen public URLs
-- **Per-user folder isolation** - `{user_id}/{meal_id}.jpg`
-- **Signed URLs** - korte geldigheid voor toegang
-- **Max 5MB** - beperkt bestandsgrootte
-- **Alleen JPEG/PNG/WebP** - beperkt mime types
-- **Auto-delete na 30 dagen** - `cleanup_expired_meal_photos()` functie
+**Foto's worden NIET opgeslagen.** In plaats daarvan:
+
+1. **Direct analyse**: Foto wordt naar AI gestuurd voor voedingsanalyse
+2. **Alleen resultaat opslaan**: Alleen de tekstbeschrijving en macro's in `quality_flags`
+3. **Geen storage bucket nodig**: `meal-photos` bucket is verwijderd
+4. **Privacy-vriendelijk**: Geen persistentie van beelden
+
+Dit is de meest privacyvriendelijke optie en voldoet volledig aan dataminimalisatie (Art. 5.1.c).
 
 ```sql
 -- Meal photos storage policies
@@ -495,6 +497,7 @@ WHERE pronamespace = 'public'::regnamespace AND prosecdef = true;
 
 | Versie | Datum | Wijzigingen |
 |--------|-------|-------------|
+| 2.6 | 2026-01-05 | Foto's niet meer opslaan (direct delete na analyse), profielvelden (leeftijd, lengte, gewicht), body data consent |
 | 2.5 | 2026-01-05 | Foto consent, private meal-photos bucket, 30-dagen retention, camera instructies, downscaling naar 1280px |
 | 2.4 | 2026-01-05 | EXIF stripping voor foto's, OpenAI ZDR instructies toegevoegd |
 | 2.3 | 2026-01-05 | Community privacy views (SECURITY INVOKER), nutrition_settings RLS fix, exercises/meditations admin-only |

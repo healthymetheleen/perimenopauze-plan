@@ -566,11 +566,12 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
                 {hasPhotoConsent && (
                   <>
-                    {/* GDPR camera instructions */}
+                    {/* GDPR camera instructions - photos are NOT stored */}
                     <Alert className="bg-info/5 border-info/20">
                       <Info className="h-4 w-4 text-info" />
                       <AlertDescription className="text-xs text-muted-foreground">
-                        <strong>Privacy tip:</strong> Fotografeer alleen het bord/eten. Geen gezichten, kinderen, documenten of adressen op verpakkingen.
+                        <strong>Privacy:</strong> Foto's worden direct na analyse verwijderd en niet opgeslagen. 
+                        Fotografeer alleen het bord/eten. Geen gezichten of documenten.
                       </AlertDescription>
                     </Alert>
 

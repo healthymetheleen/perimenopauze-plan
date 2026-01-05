@@ -5,12 +5,14 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/lib/auth";
 import { useConsent } from "@/hooks/useConsent";
+import { useProfile } from "@/hooks/useProfile";
 import { LoadingPage } from "@/components/ui/loading-state";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 
 // Pages
 import LoginPage from "./pages/Login";
 import ConsentPage from "./pages/Consent";
+import ProfileOnboardingPage from "./pages/ProfileOnboarding";
 import PricingPage from "./pages/Pricing";
 import DashboardPage from "./pages/Dashboard";
 import DiaryPage from "./pages/Diary";
@@ -40,12 +42,13 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected route wrapper
+// Protected route wrapper - checks consent AND profile completion
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const { hasCompletedConsent, isLoading: consentLoading } = useConsent();
+  const { hasCompletedProfile, isLoading: profileLoading } = useProfile();
 
-  if (loading || consentLoading) {
+  if (loading || consentLoading || profileLoading) {
     return <LoadingPage />;
   }
 
@@ -55,6 +58,10 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (!hasCompletedConsent) {
     return <Navigate to="/consent" replace />;
+  }
+
+  if (!hasCompletedProfile) {
+    return <Navigate to="/profile-onboarding" replace />;
   }
 
   return <>{children}</>;
@@ -89,6 +96,31 @@ function ConsentRoute({ children }: { children: React.ReactNode }) {
   }
 
   if (hasCompletedConsent) {
+    return <Navigate to="/profile-onboarding" replace />;
+  }
+
+  return <>{children}</>;
+}
+
+// Profile onboarding route wrapper
+function ProfileOnboardingRoute({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  const { hasCompletedConsent, isLoading: consentLoading } = useConsent();
+  const { hasCompletedProfile, isLoading: profileLoading } = useProfile();
+
+  if (loading || consentLoading || profileLoading) {
+    return <LoadingPage />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  if (!hasCompletedConsent) {
+    return <Navigate to="/consent" replace />;
+  }
+
+  if (hasCompletedProfile) {
     return <Navigate to="/dashboard" replace />;
   }
 
@@ -118,6 +150,13 @@ function AppRoutes() {
         <ConsentRoute>
           <ConsentPage />
         </ConsentRoute>
+      } />
+      
+      {/* Profile onboarding route */}
+      <Route path="/profile-onboarding" element={
+        <ProfileOnboardingRoute>
+          <ProfileOnboardingPage />
+        </ProfileOnboardingRoute>
       } />
       
       {/* Protected routes */}
