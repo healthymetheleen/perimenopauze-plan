@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DailyReflectionCard, TodayAtAGlance } from '@/components/insights';
+import { DailyReflectionCard, TodayAtAGlance, LookAheadWidget } from '@/components/insights';
 import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { CycleWeekWidget } from '@/components/cycle/CycleWeekWidget';
 import { useDailyScores } from '@/hooks/useDiary';
@@ -70,6 +70,9 @@ export default function DashboardPage() {
 
         {/* Cycle 7-day widget */}
         <CycleWeekWidget />
+
+        {/* Blik Vooruit - Look Ahead Widget */}
+        <LookAheadWidget />
 
         {/* Daily Check-in - compact CTA */}
         <Link to="/cycle">
