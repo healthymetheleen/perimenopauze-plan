@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingState } from '@/components/ui/loading-state';
-import { useTrendsData, TrendPeriod, TrendFocus } from '@/hooks/useTrendsData';
+import { useTrendsData, TrendPeriod } from '@/hooks/useTrendsData';
 import {
   TrendsKPIStrip,
   TrendsFilters,
@@ -18,7 +18,6 @@ import { TrendDayData } from '@/hooks/useTrendsData';
 export default function TrendsPage() {
   const [period, setPeriod] = useState<TrendPeriod>(14);
   const [showSeasonOverlay, setShowSeasonOverlay] = useState(true);
-  const [focus, setFocus] = useState<TrendFocus>('all');
   const [selectedDay, setSelectedDay] = useState<TrendDayData | null>(null);
 
   const {
@@ -35,19 +34,6 @@ export default function TrendsPage() {
   const handleDayClick = (date: string) => {
     const day = trendDays.find(d => d.date === date);
     if (day) setSelectedDay(day);
-  };
-
-  // Filter data based on focus
-  const shouldShow = (section: string): boolean => {
-    if (focus === 'all') return true;
-    const focusMap: Record<TrendFocus, string[]> = {
-      all: [],
-      energie: ['score', 'protein', 'eating', 'correlations'],
-      slaap: ['score', 'sleep', 'correlations'],
-      onrust: ['score', 'symptoms', 'sleep', 'correlations'],
-      sport: ['score', 'protein', 'sleep'],
-    };
-    return focusMap[focus]?.includes(section) ?? true;
   };
 
   return (
@@ -68,48 +54,35 @@ export default function TrendsPage() {
             {/* KPI Strip */}
             <TrendsKPIStrip kpis={kpis} period={numDays} />
             
-            {/* Filters */}
+            {/* Filters - only period and season overlay */}
             <TrendsFilters
               period={period}
               setPeriod={setPeriod}
               showSeasonOverlay={showSeasonOverlay}
               setShowSeasonOverlay={setShowSeasonOverlay}
-              focus={focus}
-              setFocus={setFocus}
             />
             
-            {/* Main Charts */}
-            {shouldShow('score') && (
-              <TrendsScoreChart 
-                data={trendDays} 
-                showSeasonOverlay={showSeasonOverlay}
-                onDayClick={handleDayClick}
-              />
-            )}
+            {/* Dit viel op - moved up */}
+            <TrendsCorrelations correlations={correlations} period={numDays} />
             
-            {shouldShow('protein') && (
-              <TrendsProteinChart data={trendDays} />
-            )}
+            {/* Score Chart */}
+            <TrendsScoreChart 
+              data={trendDays} 
+              showSeasonOverlay={showSeasonOverlay}
+              onDayClick={handleDayClick}
+            />
+            
+            {/* Protein Chart */}
+            <TrendsProteinChart data={trendDays} />
             
             {/* Sleep Block */}
-            {shouldShow('sleep') && (
-              <TrendsSleepBlock data={trendDays} />
-            )}
+            <TrendsSleepBlock data={trendDays} />
             
             {/* Symptoms Block */}
-            {shouldShow('symptoms') && (
-              <TrendsSymptomsBlock symptoms={topSymptoms} period={numDays} />
-            )}
+            <TrendsSymptomsBlock symptoms={topSymptoms} period={numDays} />
             
             {/* Eating Pattern */}
-            {shouldShow('eating') && (
-              <TrendsEatingPattern stats={eatingPatternStats} />
-            )}
-            
-            {/* Correlations */}
-            {shouldShow('correlations') && (
-              <TrendsCorrelations correlations={correlations} period={numDays} />
-            )}
+            <TrendsEatingPattern stats={eatingPatternStats} />
           </>
         )}
       </div>
