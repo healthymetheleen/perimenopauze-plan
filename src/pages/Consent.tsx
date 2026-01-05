@@ -55,7 +55,7 @@ const consentItems: ConsentItem[] = [
     key: 'accepted_photo_analysis',
     icon: <Camera className="h-5 w-5 text-primary" />,
     title: 'Foto-analyse voor calorieën en macro\'s',
-    description: 'Je geeft toestemming om foto\'s van maaltijden naar onze AI-verwerker te sturen voor automatische voedingswaarde-analyse. Foto\'s worden na 30 dagen automatisch verwijderd. Alleen eten mag in beeld, geen gezichten of personen.',
+    description: 'Je geeft toestemming om foto\'s van maaltijden te analyseren met AI. Foto\'s worden direct na analyse verwijderd en niet opgeslagen.',
     required: false,
   },
   {

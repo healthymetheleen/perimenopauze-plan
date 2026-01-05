@@ -1,21 +1,24 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { useProfile, AGE_CATEGORY_OPTIONS, AgeCategory } from '@/hooks/useProfile';
 import { CoachingPreferencesCard } from '@/components/settings/CoachingPreferencesCard';
 
 const timezones = [
@@ -37,13 +40,57 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
+  const { profile, updateProfile } = useProfile();
   const navigate = useNavigate();
   const [timezone, setTimezone] = useState('Europe/Amsterdam');
   const [digestTime, setDigestTime] = useState('09:00');
   const [privacyMode, setPrivacyMode] = useState(false);
   const { consent, updateConsent } = useConsent();
   
+  // Profile editing states
+  const [ageCategory, setAgeCategory] = useState<AgeCategory | ''>(profile?.age_category || '');
+  const [heightCm, setHeightCm] = useState<string>(profile?.height_cm?.toString() || '');
+  const [weightKg, setWeightKg] = useState<string>(profile?.weight_kg?.toString() || '');
+  const [acceptedBodyData, setAcceptedBodyData] = useState(profile?.accepted_body_data || false);
+  
+  // Sync profile data when loaded
+  useEffect(() => {
+    if (profile) {
+      setAgeCategory(profile.age_category || '');
+      setHeightCm(profile.height_cm?.toString() || '');
+      setWeightKg(profile.weight_kg?.toString() || '');
+      setAcceptedBodyData(profile.accepted_body_data || false);
+    }
+  }, [profile]);
+  
   const isPremium = entitlements?.plan === 'premium' && entitlements?.status === 'active';
+  
+  const handleSaveProfile = async () => {
+    // Need consent if providing height/weight
+    if ((heightCm || weightKg) && !acceptedBodyData) {
+      toast({
+        title: 'Toestemming vereist',
+        description: 'Geef toestemming voor het gebruik van lengte/gewicht.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    try {
+      await updateProfile.mutateAsync({
+        age_category: ageCategory as AgeCategory || null,
+        height_cm: heightCm ? parseInt(heightCm, 10) : null,
+        weight_kg: weightKg ? parseFloat(weightKg) : null,
+        accepted_body_data: acceptedBodyData,
+      });
+      toast({ title: 'Profiel opgeslagen' });
+    } catch {
+      toast({
+        title: 'Kon profiel niet opslaan',
+        variant: 'destructive',
+      });
+    }
+  };
   
   const handleSignOut = async () => {
     await signOut();
@@ -162,7 +209,100 @@ export default function SettingsPage() {
           </CardContent>
         </Card>
 
-        {/* Preferences */}
+        {/* Profile - Age, Height, Weight */}
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" />
+              Persoonlijk profiel
+            </CardTitle>
+            <CardDescription>Voor gepersonaliseerde voedings- en eiwitadviezen</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label>Leeftijdscategorie</Label>
+                <p className="text-sm text-muted-foreground">Voor leeftijd-specifieke adviezen</p>
+              </div>
+              <Select value={ageCategory} onValueChange={(v) => setAgeCategory(v as AgeCategory)}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Kies..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {AGE_CATEGORY_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Separator />
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="height" className="flex items-center gap-2">
+                  <Ruler className="h-4 w-4 text-muted-foreground" />
+                  Lengte (cm)
+                </Label>
+                <Input
+                  id="height"
+                  type="number"
+                  placeholder="170"
+                  value={heightCm}
+                  onChange={(e) => setHeightCm(e.target.value)}
+                  min="100"
+                  max="250"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="weight" className="flex items-center gap-2">
+                  <Scale className="h-4 w-4 text-muted-foreground" />
+                  Gewicht (kg)
+                </Label>
+                <Input
+                  id="weight"
+                  type="number"
+                  step="0.1"
+                  placeholder="65"
+                  value={weightKg}
+                  onChange={(e) => setWeightKg(e.target.value)}
+                  min="30"
+                  max="300"
+                />
+              </div>
+            </div>
+
+            {/* Body Data Consent */}
+            {(heightCm || weightKg) && (
+              <Alert className="bg-info/10 border-info/30">
+                <Info className="h-4 w-4 text-info" />
+                <AlertDescription className="text-sm">
+                  <div className="flex items-start gap-3 mt-2">
+                    <Checkbox
+                      id="body-data-consent-settings"
+                      checked={acceptedBodyData}
+                      onCheckedChange={(c) => setAcceptedBodyData(!!c)}
+                    />
+                    <Label htmlFor="body-data-consent-settings" className="text-sm cursor-pointer leading-relaxed">
+                      Ik geef toestemming om mijn lengte en gewicht te gebruiken voor 
+                      persoonlijke calorie- en eiwit-aanbevelingen.
+                    </Label>
+                  </div>
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button 
+              onClick={handleSaveProfile} 
+              disabled={updateProfile.isPending}
+              className="w-full"
+            >
+              Profiel opslaan
+            </Button>
+          </CardContent>
+        </Card>
         <Card className="glass rounded-2xl">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">

@@ -940,22 +940,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          accepted_body_data: boolean | null
+          age_category: string | null
+          body_data_consent_at: string | null
           created_at: string
           display_name: string | null
+          height_cm: number | null
           id: string
           updated_at: string
+          weight_kg: number | null
         }
         Insert: {
+          accepted_body_data?: boolean | null
+          age_category?: string | null
+          body_data_consent_at?: string | null
           created_at?: string
           display_name?: string | null
+          height_cm?: number | null
           id: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Update: {
+          accepted_body_data?: boolean | null
+          age_category?: string | null
+          body_data_consent_at?: string | null
           created_at?: string
           display_name?: string | null
+          height_cm?: number | null
           id?: string
           updated_at?: string
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -1193,11 +1208,13 @@ export type Database = {
         Row: {
           accepted_ai_processing: boolean | null
           accepted_at: string | null
+          accepted_body_data: boolean | null
           accepted_disclaimer: boolean
           accepted_health_data_processing: boolean
           accepted_photo_analysis: boolean | null
           accepted_privacy: boolean
           accepted_terms: boolean
+          body_data_consent_at: string | null
           consent_version: string | null
           created_at: string
           id: string
@@ -1210,11 +1227,13 @@ export type Database = {
         Insert: {
           accepted_ai_processing?: boolean | null
           accepted_at?: string | null
+          accepted_body_data?: boolean | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
           accepted_photo_analysis?: boolean | null
           accepted_privacy?: boolean
           accepted_terms?: boolean
+          body_data_consent_at?: string | null
           consent_version?: string | null
           created_at?: string
           id?: string
@@ -1227,11 +1246,13 @@ export type Database = {
         Update: {
           accepted_ai_processing?: boolean | null
           accepted_at?: string | null
+          accepted_body_data?: boolean | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
           accepted_photo_analysis?: boolean | null
           accepted_privacy?: boolean
           accepted_terms?: boolean
+          body_data_consent_at?: string | null
           consent_version?: string | null
           created_at?: string
           id?: string
@@ -1394,7 +1415,6 @@ export type Database = {
       }
       cleanup_ai_cache: { Args: never; Returns: undefined }
       cleanup_expired_data: { Args: never; Returns: undefined }
-      cleanup_expired_meal_photos: { Args: never; Returns: undefined }
       cleanup_old_data: { Args: never; Returns: undefined }
       delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
       export_user_data: { Args: { user_uuid: string }; Returns: Json }
