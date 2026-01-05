@@ -83,7 +83,7 @@ export default function DashboardPage() {
         <CycleWeekWidget />
 
         {/* Daily Check-in - compact CTA */}
-        <Link to="/cyclus">
+        <Link to="/cycle">
           <Card className="glass rounded-2xl hover:shadow-soft transition-all">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-full bg-muted/50">
