@@ -105,7 +105,7 @@ export default function SubscriptionPage() {
       console.error('Cancel error:', error);
       toast({
         title: 'Opzeggen mislukt',
-        description: 'Neem contact op met support@hormoonbalans.nl',
+        description: 'Neem contact op met healthymetheleen@gmail.com',
         variant: 'destructive',
       });
     } finally {
@@ -328,8 +328,8 @@ export default function SubscriptionPage() {
                 <p className="font-medium mb-1">Vragen over je abonnement?</p>
                 <p>
                   Neem contact op via{' '}
-                  <a href="mailto:support@hormoonbalans.nl" className="text-primary hover:underline">
-                    support@hormoonbalans.nl
+                  <a href="mailto:healthymetheleen@gmail.com" className="text-primary hover:underline">
+                    healthymetheleen@gmail.com
                   </a>
                 </p>
               </div>
