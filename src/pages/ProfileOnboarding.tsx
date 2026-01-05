@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useProfile, AGE_CATEGORY_OPTIONS, AgeCategory } from '@/hooks/useProfile';
 import { Button } from '@/components/ui/button';
@@ -22,10 +22,20 @@ export default function ProfileOnboardingPage() {
   const [weightKg, setWeightKg] = useState<string>('');
   const [acceptedBodyData, setAcceptedBodyData] = useState(false);
 
-  // Redirect if profile is already complete
-  if (!isLoading && hasCompletedProfile) {
-    navigate('/dashboard', { replace: true });
-  }
+  useEffect(() => {
+    if (hasCompletedProfile) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [hasCompletedProfile, navigate]);
+
+  useEffect(() => {
+    if (profile) {
+      setAgeCategory(profile.age_category ?? '');
+      setHeightCm(profile.height_cm != null ? String(profile.height_cm) : '');
+      setWeightKg(profile.weight_kg != null ? String(profile.weight_kg) : '');
+      setAcceptedBodyData(profile.accepted_body_data ?? false);
+    }
+  }, [profile]);
 
   if (isLoading) {
     return <LoadingPage />;

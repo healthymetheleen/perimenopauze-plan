@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import type { TablesInsert } from '@/integrations/supabase/types';
 import { useAuth } from '@/lib/auth';
 
 export type AgeCategory = '30-34' | '35-39' | '40-44' | '45-49' | '50-54' | '55-59' | '60+';
@@ -47,23 +48,30 @@ export function useProfile() {
   });
 
   const updateProfile = useMutation({
-    mutationFn: async (updates: ProfileUpdate) => {
+    mutationFn: async (updates: ProfileUpdate): Promise<UserProfile> => {
       if (!user) throw new Error('Not authenticated');
 
+      const payload: TablesInsert<'profiles'> = {
+        id: user.id,
+        ...(updates as Omit<TablesInsert<'profiles'>, 'id'>),
+      };
+
       // Add consent timestamp if body data consent is being given
-      if (updates.accepted_body_data && !updates.body_data_consent_at) {
-        updates.body_data_consent_at = new Date().toISOString();
+      if (payload.accepted_body_data === true && !payload.body_data_consent_at) {
+        payload.body_data_consent_at = new Date().toISOString();
       }
 
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
-        .update(updates)
-        .eq('id', user.id);
+        .upsert(payload, { onConflict: 'id' })
+        .select('*')
+        .single();
 
       if (error) throw error;
+      return data as UserProfile;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['profile', user?.id] });
+    onSuccess: (data) => {
+      queryClient.setQueryData(['profile', user?.id], data);
     },
   });
 
