@@ -410,14 +410,33 @@ export function useStartCycle() {
 
       if (lastCycle) {
         const cycleLength = differenceInDays(new Date(startDate), new Date(lastCycle.start_date));
-        await supabase
-          .from('cycles')
-          .update({ 
-            end_date: format(subDays(new Date(startDate), 1), 'yyyy-MM-dd'),
-            computed_cycle_length: cycleLength,
-            is_anovulatory: cycleLength > 45,
-          })
-          .eq('id', lastCycle.id);
+        
+        // Only update previous cycle if the new start date creates a valid cycle (min 7 days)
+        // If less than 7 days, we assume user is correcting the previous entry
+        if (cycleLength >= 7) {
+          await supabase
+            .from('cycles')
+            .update({ 
+              end_date: format(subDays(new Date(startDate), 1), 'yyyy-MM-dd'),
+              computed_cycle_length: cycleLength,
+              is_anovulatory: cycleLength > 45,
+            })
+            .eq('id', lastCycle.id);
+        } else {
+          // If new date is too close to previous cycle start, delete the old one
+          // This handles the case where user is correcting a mistake
+          await supabase
+            .from('cycles')
+            .delete()
+            .eq('id', lastCycle.id);
+          
+          // Also remove bleeding log for old date
+          await supabase
+            .from('bleeding_logs')
+            .delete()
+            .eq('owner_id', user.id)
+            .eq('log_date', lastCycle.start_date);
+        }
       }
 
       // Start new cycle
@@ -429,6 +448,7 @@ export function useStartCycle() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] });
       queryClient.invalidateQueries({ queryKey: ['cycle-prediction'] });
+      queryClient.invalidateQueries({ queryKey: ['bleeding-logs'] });
     },
   });
 }
@@ -518,8 +538,9 @@ export function calculateCycleStats(cycles: Cycle[]) {
     return { avgLength: null, variability: null, trend: 'onbekend' as const };
   }
 
+  // Filter out invalid cycles (must be at least 7 days and at most 60 days)
   const lengths = cycles
-    .filter(c => c.computed_cycle_length)
+    .filter(c => c.computed_cycle_length && c.computed_cycle_length >= 7 && c.computed_cycle_length <= 60)
     .map(c => c.computed_cycle_length!)
     .slice(0, 6);
 
@@ -584,14 +605,23 @@ export function calculatePhaseAndPredictions(
   const cycleStartDate = new Date(lastCycle.start_date);
   const dayInCycle = differenceInDays(today, cycleStartDate) + 1;
 
+  // Sanity check: if dayInCycle is <= 0 or extremely high, something is wrong with the data
+  if (dayInCycle <= 0 || dayInCycle > 100) {
+    return {
+      ...defaultResult,
+      rationale: 'Cyclusdata lijkt niet te kloppen. Controleer je startdatum via "Eerste dag menstruatie".',
+    };
+  }
+
   // Check if currently bleeding
   const todayBleeding = bleedingLogs.find(l => l.log_date === todayStr);
   const isBleeding = todayBleeding && todayBleeding.intensity !== 'spotting';
 
-  // Calculate stats
+  // Calculate stats - filter out invalid cycle lengths
   const stats = calculateCycleStats(cycles);
-  const avgCycleLength = stats.avgLength || 28;
-  const variability = stats.variability || 3;
+  // Use calculated average, fall back to preferences, then 28
+  const avgCycleLength = Math.max(21, stats.avgLength || preferences?.avg_cycle_length || 28);
+  const variability = stats.variability ?? 3;
 
   // Determine current phase
   let currentPhase: CyclePrediction['current_phase'] = 'onbekend';
