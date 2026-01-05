@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { format, addDays, differenceInDays } from 'date-fns';
+import { format, addDays, differenceInDays, parseISO, startOfDay } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   Snowflake, Leaf, Sun, Wind, ChevronRight, ChevronDown, 
@@ -8,7 +8,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLatestPrediction, useCyclePreferences, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, useCycles, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
 
 // Types
 type Season = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
@@ -439,6 +439,7 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
 export function LookAheadWidget() {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
+  const { data: cycles } = useCycles(1);
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
   const [selectedDay, setSelectedDay] = useState<DayForecast | null>(null);
   
@@ -447,24 +448,26 @@ export function LookAheadWidget() {
     return null;
   }
   
-  const currentSeason = (prediction.current_season || 'onbekend') as Season;
   const avgCycleLength = prediction.avg_cycle_length || preferences.avg_cycle_length || 28;
   const periodLength = preferences.avg_period_length || 5;
   const lutealLength = preferences.luteal_phase_length || 13;
   
-  // Find cycle start from next_period prediction or estimate
-  const today = new Date();
-  let cycleStartDate = today;
-  if (prediction.next_period_start_min) {
-    // Work backwards from predicted next period
-    const nextPeriod = new Date(prediction.next_period_start_min);
-    const daysUntilNext = differenceInDays(nextPeriod, today);
-    const currentDayInCycle = avgCycleLength - daysUntilNext;
-    cycleStartDate = addDays(today, -currentDayInCycle + 1);
+  // Use the actual cycle start date from cycles table (same as CycleWeekWidget)
+  const today = startOfDay(new Date());
+  const latestCycleStart = cycles?.[0]?.start_date 
+    ? startOfDay(parseISO(cycles[0].start_date)) 
+    : null;
+  
+  // If no cycle start, we can't calculate properly
+  if (!latestCycleStart) {
+    return null;
   }
   
-  // Calculate current day in cycle
-  const currentDayInCycle = differenceInDays(today, cycleStartDate) + 1;
+  // Calculate current day in cycle using actual cycle start
+  const currentDayInCycle = differenceInDays(today, latestCycleStart) + 1;
+  
+  // Calculate current season based on actual cycle start (consistent with CycleWeekWidget)
+  const currentSeason = getSeasonForDate(today, latestCycleStart, avgCycleLength, periodLength, lutealLength);
   
   // Generate 5-day forecast
   const forecast: DayForecast[] = [];
@@ -472,8 +475,8 @@ export function LookAheadWidget() {
   
   for (let i = 0; i < 5; i++) {
     const date = addDays(today, i);
-    const dayInCycle = differenceInDays(date, cycleStartDate) + 1;
-    const season = getSeasonForDate(date, cycleStartDate, avgCycleLength, periodLength, lutealLength);
+    const dayInCycle = differenceInDays(date, latestCycleStart) + 1;
+    const season = getSeasonForDate(date, latestCycleStart, avgCycleLength, periodLength, lutealLength);
     const isTransitionDay = prevSeason !== season && i > 0;
     const risks = calculateRiskLevels(season, isTransitionDay);
     
