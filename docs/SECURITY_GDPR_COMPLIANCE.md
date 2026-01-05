@@ -429,6 +429,7 @@ WHERE pronamespace = 'public'::regnamespace AND prosecdef = true;
 
 | Versie | Datum | Wijzigingen |
 |--------|-------|-------------|
+| 2.3 | 2026-01-05 | Community privacy views (SECURITY INVOKER), nutrition_settings RLS fix, exercises/meditations admin-only |
 | 2.2 | 2026-01-04 | FORCE RLS, storage cleanup, consent withdrawal, allowlist AI |
 | 2.1 | 2026-01-04 | Storage in export |
 | 2.0 | 2026-01-04 | SECURITY INVOKER views, storage policies |
