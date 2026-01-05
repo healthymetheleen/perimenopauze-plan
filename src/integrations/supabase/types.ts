@@ -783,6 +783,8 @@ export type Database = {
           id: string
           kcal: number | null
           owner_id: string
+          photo_expires_at: string | null
+          photo_path: string | null
           protein_g: number | null
           quality_flags: Json
           retention_until: string | null
@@ -800,6 +802,8 @@ export type Database = {
           id?: string
           kcal?: number | null
           owner_id: string
+          photo_expires_at?: string | null
+          photo_path?: string | null
           protein_g?: number | null
           quality_flags?: Json
           retention_until?: string | null
@@ -817,6 +821,8 @@ export type Database = {
           id?: string
           kcal?: number | null
           owner_id?: string
+          photo_expires_at?: string | null
+          photo_path?: string | null
           protein_g?: number | null
           quality_flags?: Json
           retention_until?: string | null
@@ -1189,12 +1195,14 @@ export type Database = {
           accepted_at: string | null
           accepted_disclaimer: boolean
           accepted_health_data_processing: boolean
+          accepted_photo_analysis: boolean | null
           accepted_privacy: boolean
           accepted_terms: boolean
           consent_version: string | null
           created_at: string
           id: string
           owner_id: string
+          photo_analysis_consent_at: string | null
           privacy_policy_version: string | null
           terms_version: string | null
           updated_at: string
@@ -1204,12 +1212,14 @@ export type Database = {
           accepted_at?: string | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
+          accepted_photo_analysis?: boolean | null
           accepted_privacy?: boolean
           accepted_terms?: boolean
           consent_version?: string | null
           created_at?: string
           id?: string
           owner_id: string
+          photo_analysis_consent_at?: string | null
           privacy_policy_version?: string | null
           terms_version?: string | null
           updated_at?: string
@@ -1219,12 +1229,14 @@ export type Database = {
           accepted_at?: string | null
           accepted_disclaimer?: boolean
           accepted_health_data_processing?: boolean
+          accepted_photo_analysis?: boolean | null
           accepted_privacy?: boolean
           accepted_terms?: boolean
           consent_version?: string | null
           created_at?: string
           id?: string
           owner_id?: string
+          photo_analysis_consent_at?: string | null
           privacy_policy_version?: string | null
           terms_version?: string | null
           updated_at?: string
@@ -1382,6 +1394,7 @@ export type Database = {
       }
       cleanup_ai_cache: { Args: never; Returns: undefined }
       cleanup_expired_data: { Args: never; Returns: undefined }
+      cleanup_expired_meal_photos: { Args: never; Returns: undefined }
       cleanup_old_data: { Args: never; Returns: undefined }
       delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
       export_user_data: { Args: { user_uuid: string }; Returns: Json }

@@ -2,8 +2,8 @@
 
 ## Perimenopauze Plan App - EU Privacy & Security Audit
 
-**Versie:** 2.2  
-**Datum:** 2026-01-04  
+**Versie:** 2.5  
+**Datum:** 2026-01-05  
 **Status:** ✅ Production Ready
 
 ---
@@ -116,12 +116,39 @@ FORCE RLS voorkomt dat table owners of rollen met elevated privileges RLS bypass
 
 ### Bucket Configuratie
 
-| Bucket | Publiek | FORCE RLS | Doel |
-|--------|---------|-----------|------|
-| `content-images` | ❌ Nee | N/A | App content (meditaties, oefeningen) |
-| `user-uploads` | ❌ Nee | N/A | Gebruikersuploads |
+| Bucket | Publiek | Doel | Auto-Delete |
+|--------|---------|------|-------------|
+| `content-images` | ❌ Nee | App content (meditaties, oefeningen) | Nee |
+| `user-uploads` | ❌ Nee | Gebruikersuploads algemeen | Nee |
+| `meal-photos` | ❌ Nee | Maaltijdfoto's (GDPR-gevoelig) | ✅ 30 dagen |
 
-### Policies
+### Meal Photos Bucket (GDPR-specifiek)
+
+- **Private bucket** - geen public URLs
+- **Per-user folder isolation** - `{user_id}/{meal_id}.jpg`
+- **Signed URLs** - korte geldigheid voor toegang
+- **Max 5MB** - beperkt bestandsgrootte
+- **Alleen JPEG/PNG/WebP** - beperkt mime types
+- **Auto-delete na 30 dagen** - `cleanup_expired_meal_photos()` functie
+
+```sql
+-- Meal photos storage policies
+CREATE POLICY "Users can upload to their own folder"
+ON storage.objects FOR INSERT
+WITH CHECK (
+  bucket_id = 'meal-photos' 
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+
+CREATE POLICY "Users can view their own photos"
+ON storage.objects FOR SELECT
+USING (
+  bucket_id = 'meal-photos'
+  AND auth.uid()::text = (storage.foldername(name))[1]
+);
+```
+
+### Andere Storage Policies
 
 ```sql
 -- User uploads: alleen eigen folder
@@ -143,7 +170,8 @@ FOR SELECT USING (
 
 De `delete_user_data()` functie verwijdert nu ook:
 - Alle bestanden in `user-uploads/{user_id}/`
-- Logs het aantal verwijderde bestanden in audit_logs
+- Alle bestanden in `meal-photos/{user_id}/`
+- Logt het aantal verwijderde bestanden in audit_logs
 
 ---
 
@@ -298,8 +326,9 @@ Effecten:
 | `terms` | ✅ Ja | Kan app niet gebruiken |
 | `privacy` | ✅ Ja | Kan app niet gebruiken |
 | `health_data_processing` | ✅ Ja | Core functionaliteit uit |
-| `ai_processing` | ❌ Nee | AI features uit, handmatig invoeren |
 | `disclaimer` | ✅ Ja | MDR compliance |
+| `photo_analysis` | ❌ Nee | Geen foto-analyse, alleen tekst invoer |
+| `ai_processing` | ❌ Nee | Geen AI inzichten, handmatig invoeren |
 
 ### Consent Record
 
@@ -308,14 +337,30 @@ interface UserConsent {
   accepted_terms: boolean;
   accepted_privacy: boolean;
   accepted_health_data_processing: boolean;
-  accepted_ai_processing: boolean;
   accepted_disclaimer: boolean;
-  consent_version: string;      // e.g., "1.0"
-  terms_version: string;        // e.g., "1.0"
+  accepted_photo_analysis: boolean;      // NIEUW: expliciet voor foto's
+  accepted_ai_processing: boolean;
+  photo_analysis_consent_at: timestamp;  // NIEUW: wanneer foto consent gegeven
+  consent_version: string;               // e.g., "1.0"
+  terms_version: string;
   privacy_policy_version: string;
   accepted_at: timestamp;
 }
 ```
+
+### Foto-analyse Consent (Art. 9 GDPR)
+
+Foto's van eten zijn potentieel gezondheidsdata omdat ze:
+- Gekoppeld zijn aan een account
+- Gebruikt worden om gezondheid/cyclus te duiden
+- Mogelijk herleidbaar zijn naar personen
+
+Daarom:
+- **Expliciete opt-in** vereist voor foto-analyse
+- **Aparte toggle** in onboarding en settings
+- **Camera instructies** tonen wat niet mag (gezichten, kinderen, documenten)
+- **Automatische cleanup** na 30 dagen
+- **Signed URLs** met korte geldigheid
 
 ### Consent History
 
@@ -450,6 +495,7 @@ WHERE pronamespace = 'public'::regnamespace AND prosecdef = true;
 
 | Versie | Datum | Wijzigingen |
 |--------|-------|-------------|
+| 2.5 | 2026-01-05 | Foto consent, private meal-photos bucket, 30-dagen retention, camera instructies, downscaling naar 1280px |
 | 2.4 | 2026-01-05 | EXIF stripping voor foto's, OpenAI ZDR instructies toegevoegd |
 | 2.3 | 2026-01-05 | Community privacy views (SECURITY INVOKER), nutrition_settings RLS fix, exercises/meditations admin-only |
 | 2.2 | 2026-01-04 | FORCE RLS, storage cleanup, consent withdrawal, allowlist AI |

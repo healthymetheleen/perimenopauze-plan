@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
@@ -61,6 +61,23 @@ export default function SettingsPage() {
     } catch {
       toast({
         title: 'Kon AI-instelling niet opslaan',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handlePhotoToggle = async (enabled: boolean) => {
+    try {
+      await updateConsent.mutateAsync({
+        accepted_photo_analysis: enabled,
+        photo_analysis_consent_at: enabled ? new Date().toISOString() : null,
+      });
+      toast({
+        title: enabled ? 'Foto-analyse ingeschakeld' : 'Foto-analyse uitgeschakeld',
+      });
+    } catch {
+      toast({
+        title: 'Kon foto-instelling niet opslaan',
         variant: 'destructive',
       });
     }
@@ -208,9 +225,34 @@ export default function SettingsPage() {
             <CardDescription>Beheer hoe AI je helpt met inzichten</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Photo analysis consent */}
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label htmlFor="ai-analysis">AI-analyse inschakelen</Label>
+                <Label htmlFor="photo-analysis" className="flex items-center gap-2">
+                  <Camera className="h-4 w-4" />
+                  Foto-analyse voor macro's
+                </Label>
+                <p className="text-sm text-muted-foreground">
+                  Foto's van maaltijden worden naar AI gestuurd voor automatische analyse
+                </p>
+              </div>
+              <Switch
+                id="photo-analysis"
+                checked={consent?.accepted_photo_analysis ?? false}
+                onCheckedChange={handlePhotoToggle}
+                disabled={updateConsent.isPending}
+              />
+            </div>
+
+            <Separator />
+
+            {/* AI insights consent */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label htmlFor="ai-analysis" className="flex items-center gap-2">
+                  <Sparkles className="h-4 w-4" />
+                  AI-inzichten inschakelen
+                </Label>
                 <p className="text-sm text-muted-foreground">
                   AI analyseert geanonimiseerde statistieken voor tips
                 </p>

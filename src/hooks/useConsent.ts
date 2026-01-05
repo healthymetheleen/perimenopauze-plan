@@ -13,6 +13,8 @@ export interface UserConsent {
   accepted_disclaimer: boolean;
   accepted_health_data_processing: boolean;
   accepted_ai_processing?: boolean;
+  accepted_photo_analysis?: boolean;
+  photo_analysis_consent_at?: string | null;
   accepted_at: string | null;
   consent_version?: string;
   privacy_policy_version?: string;

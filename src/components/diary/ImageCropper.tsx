@@ -183,8 +183,9 @@ export function ImageCropper({ imageSrc, onCropComplete, onCancel }: ImageCroppe
   return (
     <div className="space-y-4">
       <div className="text-center mb-2">
-        <p className="text-sm text-muted-foreground">
-          Snij bij naar alleen het bord voor betere analyse
+        <p className="text-sm font-medium text-foreground">Snij de foto bij</p>
+        <p className="text-xs text-muted-foreground">
+          Alleen het bord/eten in beeld voor betere analyse en privacy
         </p>
       </div>
 
