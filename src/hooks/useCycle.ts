@@ -136,18 +136,23 @@ export function getSeasonForDate(
   periodLength: number,
   lutealLength: number
 ): 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend' {
+  // Ensure minimum values to prevent division by zero or invalid calculations
+  const safeAvgCycleLength = Math.max(21, avgCycleLength);
+  const safePeriodLength = Math.max(3, Math.min(periodLength, 10));
+  const safeLutealLength = Math.max(10, Math.min(lutealLength, 16));
+  
   const dayInCycle = differenceInDays(startOfDay(date), startOfDay(cycleStartDate)) + 1;
   
   if (dayInCycle < 1) return 'onbekend';
   
-  // Handle cycles that extend beyond avgCycleLength (normalize to position within a cycle)
-  const normalizedDay = ((dayInCycle - 1) % avgCycleLength) + 1;
+  // Normalize day within current cycle (handles cycles extending beyond average)
+  const normalizedDay = ((dayInCycle - 1) % safeAvgCycleLength) + 1;
   
   // Calculate ovulation day: OD = avgCycleLength - lutealLength
-  const ovulationDay = avgCycleLength - lutealLength;
+  const ovulationDay = safeAvgCycleLength - safeLutealLength;
   
   // Winter = menstruatie (dag 1 t/m periodLength)
-  if (normalizedDay <= periodLength) {
+  if (normalizedDay <= safePeriodLength) {
     return 'winter';
   }
   
