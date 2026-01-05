@@ -334,24 +334,45 @@ Elke wijziging wordt gelogd in `consent_history`:
 | Partij | Dienst | Locatie | DPA Status | Data Flow |
 |--------|--------|---------|------------|-----------|
 | Supabase | Database, Auth, Storage | EU (Frankfurt) | ✅ Standaard DPA | Alle data |
-| OpenAI | AI analyse | US | ⚠️ SCCs vereist | Alleen geanonimiseerde features |
+| OpenAI | AI analyse | US | ⚠️ SCCs + ZDR aangevraagd | Alleen geanonimiseerde features |
 | Mollie | Betalingen | NL | ✅ EU-gebaseerd | Alleen payment data |
 
-### OpenAI Doorgifte
+### OpenAI Zero Data Retention (ZDR)
 
-**Data die naar OpenAI gaat:**
-- Categorische features (cyclefase, energieniveau)
-- Geaggregeerde statistieken
-- GEEN: user IDs, emails, namen, datums, exacte tijden
+**Status: 🔄 Aan te vragen**
 
-**Maatregelen:**
-- Allowlist filtering
-- Text redactie
-- Geen logging van prompts/responses
+Voor extra GDPR-compliance bij gezondheidsdata:
 
-**Vereist:**
-- Standard Contractual Clauses (SCCs)
-- Documentatie in privacy policy
+1. **Enterprise Sales aanvragen**: https://openai.com/contact-sales
+2. **API Support ticket**: https://help.openai.com/
+3. **Motivatie**: Healthcare/wellness applicatie met bijzondere persoonsgegevens
+
+**Huidige OpenAI API beschermingen:**
+- ✅ API data wordt NIET gebruikt voor model training (standaard voor API)
+- ✅ Data Processing Addendum (DPA) beschikbaar
+- ⚠️ Content kan tot 30 dagen bewaard worden voor abuse monitoring
+- 🔄 Zero Data Retention kan aangevraagd worden voor gevoelige use cases
+
+### EXIF Stripping (Foto Privacy)
+
+Alle foto-uploads naar OpenAI worden vooraf:
+- ✅ **EXIF metadata gestript** (GPS locatie, device info, timestamps)
+- ✅ **APP1-APP15 markers verwijderd** (metadata segmenten)
+- ✅ Server-side verwerkt in Edge Function
+
+### Data naar OpenAI
+
+**Geanonimiseerd via:**
+- `ai_subject_id` (pseudoniem, niet herleidbaar)
+- Relatieve dagen (D0, D-1) ipv kalenderdatums
+- PII scrubbing (email, telefoon, adres, namen)
+- EXIF stripping (foto metadata)
+
+**NOOIT verzonden:**
+- user IDs, emails, namen
+- Exacte datums of tijden
+- Ruwe notities (altijd gescrubbed)
+- Locatiedata of device identifiers
 
 ---
 
@@ -429,6 +450,7 @@ WHERE pronamespace = 'public'::regnamespace AND prosecdef = true;
 
 | Versie | Datum | Wijzigingen |
 |--------|-------|-------------|
+| 2.4 | 2026-01-05 | EXIF stripping voor foto's, OpenAI ZDR instructies toegevoegd |
 | 2.3 | 2026-01-05 | Community privacy views (SECURITY INVOKER), nutrition_settings RLS fix, exercises/meditations admin-only |
 | 2.2 | 2026-01-04 | FORCE RLS, storage cleanup, consent withdrawal, allowlist AI |
 | 2.1 | 2026-01-04 | Storage in export |

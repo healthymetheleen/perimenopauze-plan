@@ -33,6 +33,105 @@ function scrubPII(input: string): string {
     .replace(/\b(ik ben|mijn naam is|ik heet|my name is|i am)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/gi, '$1 [naam]');
 }
 
+/**
+ * Strip EXIF metadata from base64 image to remove GPS, device, timestamp info
+ * Returns clean JPEG base64 without metadata
+ */
+function stripExifFromBase64(base64Image: string): string {
+  try {
+    // Extract the base64 data part
+    let base64Data = base64Image;
+    let prefix = '';
+    
+    if (base64Image.startsWith('data:')) {
+      const commaIndex = base64Image.indexOf(',');
+      if (commaIndex > -1) {
+        prefix = base64Image.substring(0, commaIndex + 1);
+        base64Data = base64Image.substring(commaIndex + 1);
+      }
+    }
+    
+    // Decode base64 to binary
+    const binaryString = atob(base64Data);
+    const bytes = new Uint8Array(binaryString.length);
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i);
+    }
+    
+    // Check if it's a JPEG (starts with 0xFF 0xD8)
+    if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) {
+      // Not a JPEG, return as-is (PNG doesn't have EXIF in same way)
+      return base64Image;
+    }
+    
+    // Find and remove EXIF segments (APP1 = 0xFF 0xE1)
+    const cleanBytes: number[] = [];
+    let i = 0;
+    
+    while (i < bytes.length) {
+      // Copy SOI marker (start of image)
+      if (i === 0) {
+        cleanBytes.push(bytes[i], bytes[i + 1]);
+        i += 2;
+        continue;
+      }
+      
+      // Check for marker
+      if (bytes[i] === 0xFF) {
+        const marker = bytes[i + 1];
+        
+        // Skip APP1 (EXIF), APP2-APP15 markers (metadata)
+        if (marker >= 0xE1 && marker <= 0xEF) {
+          // Get segment length and skip
+          const segmentLength = (bytes[i + 2] << 8) | bytes[i + 3];
+          i += 2 + segmentLength;
+          continue;
+        }
+        
+        // For other markers, copy them
+        if (marker === 0xD8 || marker === 0xD9) {
+          // SOI or EOI - just the marker
+          cleanBytes.push(bytes[i], bytes[i + 1]);
+          i += 2;
+        } else if (marker >= 0xD0 && marker <= 0xD7) {
+          // RST markers - just the marker
+          cleanBytes.push(bytes[i], bytes[i + 1]);
+          i += 2;
+        } else if (marker === 0x00 || marker === 0xFF) {
+          // Stuffed byte or fill
+          cleanBytes.push(bytes[i]);
+          i += 1;
+        } else {
+          // Segment with length
+          const segmentLength = (bytes[i + 2] << 8) | bytes[i + 3];
+          for (let j = 0; j < segmentLength + 2 && i + j < bytes.length; j++) {
+            cleanBytes.push(bytes[i + j]);
+          }
+          i += 2 + segmentLength;
+        }
+      } else {
+        // Raw data
+        cleanBytes.push(bytes[i]);
+        i += 1;
+      }
+    }
+    
+    // Convert back to base64
+    const cleanArray = new Uint8Array(cleanBytes);
+    let binary = '';
+    for (let i = 0; i < cleanArray.length; i++) {
+      binary += String.fromCharCode(cleanArray[i]);
+    }
+    
+    const cleanBase64 = btoa(binary);
+    return prefix ? prefix + cleanBase64 : cleanBase64;
+    
+  } catch (error) {
+    console.error('EXIF stripping failed, using original:', error);
+    return base64Image;
+  }
+}
+
 // FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning met ranges en confidence
 const foodParsingPrompt = `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
@@ -241,12 +340,14 @@ serve(async (req) => {
     }
     
     if (imageBase64) {
-      // WARNING: Images may contain PII (faces, documents, addresses)
-      // TODO: Consider EXIF stripping and downscaling for production
+      // PRIVACY: Strip EXIF metadata (GPS, device info, timestamps) before sending to OpenAI
+      console.log('Stripping EXIF metadata from image for subject:', aiSubjectId);
+      const cleanImage = stripExifFromBase64(imageBase64);
+      
       userContent.push({
         type: 'image_url',
         image_url: {
-          url: imageBase64.startsWith('data:') ? imageBase64 : `data:image/jpeg;base64,${imageBase64}`
+          url: cleanImage.startsWith('data:') ? cleanImage : `data:image/jpeg;base64,${cleanImage}`
         }
       });
       if (!scrubbedDescription) {
