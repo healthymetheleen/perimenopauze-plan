@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DailyReflectionCard, TodayAtAGlance } from '@/components/insights';
 import { TrialCountdown } from '@/components/subscription/TrialCountdown';
+import { CycleWeekWidget } from '@/components/cycle/CycleWeekWidget';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
 import { useSleepSessions, useActiveSleepSession, useStartSleep, useEndSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
@@ -78,8 +79,11 @@ export default function DashboardPage() {
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
 
+        {/* Cycle 7-day widget */}
+        <CycleWeekWidget />
+
         {/* Daily Check-in - compact CTA */}
-        <Link to="/cycle">
+        <Link to="/cyclus">
           <Card className="glass rounded-2xl hover:shadow-soft transition-all">
             <CardContent className="p-4 flex items-center gap-3">
               <div className="p-2 rounded-full bg-muted/50">
