@@ -6,6 +6,19 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Privacy: generate AI subject ID
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
+}
+
 // Comprehensive monthly analysis prompt with orthomolecular focus
 const monthlyAnalysisPrompt = `ROL & KADER
 
@@ -104,6 +117,8 @@ serve(async (req) => {
       });
     }
 
+    const aiSubjectId = generateAISubjectId(user.id);
+
     // Check consent
     const { data: consent } = await supabase
       .from('user_consents')
@@ -142,20 +157,20 @@ serve(async (req) => {
       });
     }
 
-    // Fetch user data from the last 30 days
+    // Fetch user data from the last 30 days (only aggregate stats, no raw data to AI)
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const [mealsResult, sleepResult, cycleLogsResult, symptomsResult, contextResult, predictionResult] = await Promise.all([
-      supabase.from('meals').select('*').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
-      supabase.from('sleep_sessions').select('*').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
-      supabase.from('cycle_symptom_logs').select('*').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
-      supabase.from('symptoms').select('*').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
-      supabase.from('daily_context').select('*').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
-      supabase.from('cycle_predictions').select('*').eq('owner_id', user.id).order('created_at', { ascending: false }).limit(1),
+      supabase.from('meals').select('protein_g, fiber_g, kcal').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('sleep_sessions').select('quality_score, duration_minutes').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('cycle_symptom_logs').select('mood, energy, hot_flashes, headache').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('symptoms').select('symptom_code').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('daily_context').select('stress_0_10').eq('owner_id', user.id).gte('created_at', thirtyDaysAgo.toISOString()),
+      supabase.from('cycle_predictions').select('current_phase, current_season').eq('owner_id', user.id).order('created_at', { ascending: false }).limit(1),
     ]);
 
-    // Build anonymized context
+    // Build ANONYMIZED AGGREGATES (no PII, no raw data)
     const meals = mealsResult.data || [];
     const sleepSessions = sleepResult.data || [];
     const cycleLogs = cycleLogsResult.data || [];
@@ -163,13 +178,13 @@ serve(async (req) => {
     const contexts = contextResult.data || [];
     const prediction = predictionResult.data?.[0];
 
-    // Calculate aggregates (no personal identifiers)
+    // Calculate aggregates (categorized, not exact)
     const avgProtein = meals.length > 0 ? meals.reduce((sum, m) => sum + (m.protein_g || 0), 0) / meals.length : 0;
     const avgFiber = meals.length > 0 ? meals.reduce((sum, m) => sum + (m.fiber_g || 0), 0) / meals.length : 0;
     const avgSleepQuality = sleepSessions.length > 0 ? sleepSessions.reduce((sum, s) => sum + (s.quality_score || 0), 0) / sleepSessions.length : 0;
     const avgSleepDuration = sleepSessions.length > 0 ? sleepSessions.reduce((sum, s) => sum + (s.duration_minutes || 0), 0) / sleepSessions.length : 0;
     
-    // Symptom frequency
+    // Symptom frequency (categorized)
     const symptomCounts: Record<string, number> = {};
     symptoms.forEach(s => {
       symptomCounts[s.symptom_code] = (symptomCounts[s.symptom_code] || 0) + 1;
@@ -177,39 +192,45 @@ serve(async (req) => {
     const topSymptoms = Object.entries(symptomCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
-      .map(([code, count]) => ({ code, count }));
+      .map(([code, count]) => ({ 
+        code, 
+        frequency: count <= 3 ? 'incidenteel' : count <= 7 ? 'regelmatig' : 'frequent' 
+      }));
 
-    // Cycle symptom patterns
-    const moodAvg = cycleLogs.filter(l => l.mood !== null).reduce((sum, l) => sum + (l.mood || 0), 0) / Math.max(1, cycleLogs.filter(l => l.mood !== null).length);
-    const energyAvg = cycleLogs.filter(l => l.energy !== null).reduce((sum, l) => sum + (l.energy || 0), 0) / Math.max(1, cycleLogs.filter(l => l.energy !== null).length);
+    // Cycle symptom patterns (categorized)
+    const moodLogs = cycleLogs.filter(l => l.mood !== null);
+    const energyLogs = cycleLogs.filter(l => l.energy !== null);
+    const moodAvg = moodLogs.length > 0 ? moodLogs.reduce((sum, l) => sum + (l.mood || 0), 0) / moodLogs.length : 0;
+    const energyAvg = energyLogs.length > 0 ? energyLogs.reduce((sum, l) => sum + (l.energy || 0), 0) / energyLogs.length : 0;
     const hotFlashDays = cycleLogs.filter(l => l.hot_flashes).length;
     const headacheDays = cycleLogs.filter(l => l.headache).length;
 
-    const context = `MAANDOVERZICHT (laatste 30 dagen, geanonimiseerd):
+    // Build MINIMAL CONTEXT PACK with CATEGORICAL data only
+    const context = `MAANDOVERZICHT (laatste 30 dagen, geanonimiseerd - geen persoonlijke identificatoren):
 
 VOEDING:
-- Aantal gelogde maaltijden: ${meals.length}
-- Gemiddeld eiwit per maaltijd: ${avgProtein.toFixed(1)}g
-- Gemiddelde vezels per maaltijd: ${avgFiber.toFixed(1)}g
+- Maaltijden gelogd: ${meals.length === 0 ? 'geen' : meals.length < 10 ? 'weinig' : meals.length < 50 ? 'gemiddeld' : 'veel'}
+- Eiwitinname: ${avgProtein < 30 ? 'laag' : avgProtein < 50 ? 'gemiddeld' : 'goed'}
+- Vezelinname: ${avgFiber < 15 ? 'laag' : avgFiber < 25 ? 'gemiddeld' : 'goed'}
 
 SLAAP:
-- Aantal slaapsessies: ${sleepSessions.length}
-- Gemiddelde slaapkwaliteit: ${avgSleepQuality.toFixed(1)}/10
-- Gemiddelde slaapduur: ${(avgSleepDuration / 60).toFixed(1)} uur
+- Slaapsessies gelogd: ${sleepSessions.length === 0 ? 'geen' : sleepSessions.length < 10 ? 'weinig' : 'regelmatig'}
+- Slaapkwaliteit: ${avgSleepQuality < 4 ? 'laag' : avgSleepQuality < 7 ? 'gemiddeld' : 'goed'}
+- Slaapduur: ${avgSleepDuration < 360 ? 'kort' : avgSleepDuration < 480 ? 'gemiddeld' : 'lang'}
 
 CYCLUS:
 - Huidige fase: ${prediction?.current_phase || 'onbekend'}
 - Huidige seizoen: ${prediction?.current_season || 'onbekend'}
-- Gemiddelde stemming: ${moodAvg.toFixed(1)}/10
-- Gemiddelde energie: ${energyAvg.toFixed(1)}/10
-- Dagen met opvliegers: ${hotFlashDays}
-- Dagen met hoofdpijn: ${headacheDays}
+- Stemming: ${moodAvg < 4 ? 'laag' : moodAvg < 7 ? 'wisselend' : 'goed'}
+- Energie: ${energyAvg < 4 ? 'laag' : energyAvg < 7 ? 'wisselend' : 'goed'}
+- Opvliegers: ${hotFlashDays === 0 ? 'niet gelogd' : hotFlashDays <= 3 ? 'incidenteel' : 'regelmatig'}
+- Hoofdpijn: ${headacheDays === 0 ? 'niet gelogd' : headacheDays <= 3 ? 'incidenteel' : 'regelmatig'}
 
 MEEST VOORKOMENDE ERVARINGEN:
-${topSymptoms.map(s => `- ${s.code}: ${s.count}x`).join('\n')}
+${topSymptoms.map(s => `- ${s.code}: ${s.frequency}`).join('\n') || '- Geen ervaringen gelogd'}
 
-DAGELIJKSE CONTEXT:
-- Gemiddelde stressscore: ${contexts.length > 0 ? (contexts.reduce((sum, c) => sum + (c.stress_0_10 || 0), 0) / contexts.length).toFixed(1) : 'onbekend'}/10
+STRESS:
+- Stressniveau: ${contexts.length === 0 ? 'onbekend' : (contexts.reduce((sum, c) => sum + (c.stress_0_10 || 0), 0) / contexts.length) < 4 ? 'laag' : 'verhoogd'}
 
 Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en hormoonpatronen.`;
 
@@ -219,9 +240,9 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       function_name: 'monthly-analysis' 
     });
 
-    // Call OpenAI
-    const openAIKey = Deno.env.get('ChatGPT');
-    if (!openAIKey) {
+    // Use Lovable AI Gateway (no direct OpenAI calls)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
         message: 'AI-service is niet geconfigureerd.'
@@ -231,24 +252,25 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       });
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    console.log('Generating monthly analysis via Lovable AI, subject:', aiSubjectId);
+
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${openAIKey}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
+        model: 'openai/gpt-5-mini',
         messages: [
           { role: 'system', content: monthlyAnalysisPrompt },
           { role: 'user', content: context }
         ],
-        max_completion_tokens: 1500,
       }),
     });
 
     if (!response.ok) {
-      console.error('OpenAI error:', response.status);
+      console.error('Lovable AI error:', response.status);
       return new Response(JSON.stringify({
         error: 'ai_error',
         message: 'Er ging iets mis bij het genereren van de analyse.'
@@ -281,6 +303,8 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
 
     result.disclaimer = "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.";
     result.generatedAt = new Date().toISOString();
+
+    console.log('Monthly analysis generated for subject:', aiSubjectId);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

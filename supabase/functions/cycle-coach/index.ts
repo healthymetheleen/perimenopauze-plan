@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -8,6 +7,19 @@ const corsHeaders = {
 };
 
 const DAILY_AI_LIMIT = 30;
+
+// Privacy: generate AI subject ID
+function generateAISubjectId(userId: string): string {
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
+}
 
 // COMPLIANCE SYSTEM PROMPT - MDR-proof, niet-medische output
 const systemPrompt = `ROL & KADER
@@ -141,7 +153,7 @@ function anonymizeData(input: {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
+async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -167,6 +179,8 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
+  const aiSubjectId = generateAISubjectId(user.id);
+
   // Check daily AI usage limit server-side
   const today = new Date().toISOString().split('T')[0];
   const { count, error: countError } = await supabase
@@ -189,7 +203,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
     });
   }
 
-  return { user, supabase };
+  return { user, supabase, aiSubjectId };
 }
 
 // Helper: Track AI usage server-side
@@ -214,7 +228,7 @@ serve(async (req) => {
     if (authResult instanceof Response) {
       return authResult;
     }
-    const { user, supabase } = authResult;
+    const { user, supabase, aiSubjectId } = authResult;
 
     const inputData = await req.json();
     
@@ -246,10 +260,10 @@ serve(async (req) => {
       });
     }
     
-    // Use OpenAI API key from Supabase secrets
-    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
-    if (!OPENAI_API_KEY) {
-      throw new Error('OpenAI API key is not configured');
+    // Use Lovable AI Gateway (no direct OpenAI calls)
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      throw new Error('LOVABLE_API_KEY is not configured');
     }
 
     // PRIVACY: Anonimiseer naar categorieën, geen exacte waarden
@@ -258,9 +272,9 @@ serve(async (req) => {
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'cycle-coach');
 
-    console.log('Sending anonymized feature categories to OpenAI (user:', user.id, ')');
+    console.log('Generating cycle coach insight via Lovable AI, subject:', aiSubjectId);
 
-    // Context met ALLEEN categorische kenmerken
+    // Context met ALLEEN categorische kenmerken (geen PII, geen exacte waarden)
     const context = `
 GEANONIMISEERDE KENMERKEN (geen exacte waarden, geen persoonsgegevens):
 
@@ -287,26 +301,24 @@ HUIDIGE FASE (inschatting):
 Geef ondersteunende, niet-medische inzichten. Gebruik voorzichtige taal.
 Verwijs bij twijfel naar een zorgverlener.`;
 
-    // Direct call to OpenAI API
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-nano-2025-08-07',
+        model: 'google/gemini-2.5-flash',
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
         ],
-        max_completion_tokens: 600,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('OpenAI API error:', response.status, errorText);
+      console.error('Lovable AI error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -334,7 +346,7 @@ Verwijs bij twijfel naar een zorgverlener.`;
     const data = await response.json();
     const content = data.choices?.[0]?.message?.content;
     
-    console.log('CycleCoach response received from OpenAI');
+    console.log('Cycle coach response received for subject:', aiSubjectId);
 
     let result;
     try {
@@ -372,7 +384,6 @@ Verwijs bij twijfel naar een zorgverlener.`;
 
   } catch (error) {
     console.error('Error in cycle-coach:', error);
-    // Return generic error message to client, never expose internal details
     return new Response(JSON.stringify({ 
       error: 'service_error',
       message: 'Er ging iets mis. Probeer het later opnieuw.' 

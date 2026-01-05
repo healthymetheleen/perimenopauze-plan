@@ -374,33 +374,59 @@ export function anonymizeForAI(
 }
 
 /**
- * Redact potential PII from free-text fields
- * Use this for user-generated text that must be included
+ * Scrub PII from text before AI calls
+ * Use this for any user-generated text
  * 
- * WARNING: This is a best-effort filter, not a guarantee
- * Consider whether you truly need to send user text to AI
+ * Based on GDPR-compliant pattern matching for Dutch + English PII
+ */
+export function scrubPII(input: string): string {
+  if (!input || typeof input !== 'string') return '';
+  
+  return input
+    // Email addresses
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi, '[email]')
+    // Phone numbers (international and Dutch formats)
+    .replace(/\b(\+?\d[\d\s().-]{7,}\d)\b/g, '[phone]')
+    // Dutch postcodes (1234 AB format)
+    .replace(/\b\d{4}\s?[A-Z]{2}\b/gi, '[postcode]')
+    // Dutch street addresses
+    .replace(/\b(?:straat|laan|weg|plein|singel|gracht|kade|dijk|pad)\b.*?\d+\b/gi, '[address]')
+    // Names after common prefixes
+    .replace(/\b(ik ben|mijn naam is|ik heet|my name is|i am)\s+[A-Z][a-z]+(?:\s+[A-Z][a-z]+)?/gi, '$1 [naam]')
+    // BSN (Dutch social security - 9 digits)
+    .replace(/\b\d{9}\b/g, '[bsn]')
+    // Credit card patterns (16 digits with optional separators)
+    .replace(/\b\d{4}[\s-]?\d{4}[\s-]?\d{4}[\s-]?\d{4}\b/g, '[card]')
+    // IBAN (Dutch and EU formats)
+    .replace(/\b[A-Z]{2}\d{2}[\s]?[A-Z0-9]{4}[\s]?\d{4}[\s]?\d{4}[\s]?\d{0,2}\b/gi, '[iban]');
+}
+
+/**
+ * Redact potential PII from free-text fields
+ * Alias for scrubPII for backwards compatibility
  */
 export function redactPIIFromText(text: string): string {
-  if (!text || typeof text !== 'string') return '';
+  return scrubPII(text);
+}
+
+/**
+ * Convert calendar dates to relative days for AI prompts
+ * This prevents date-based re-identification
+ * 
+ * @param dateStr - ISO date string (YYYY-MM-DD)
+ * @returns Relative day string (D0 = today, D-1 = yesterday, etc.)
+ */
+export function toRelativeDay(dateStr: string): string {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const date = new Date(dateStr);
+  date.setHours(0, 0, 0, 0);
   
-  let redacted = text;
+  const diffDays = Math.round((date.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
   
-  // Email addresses
-  redacted = redacted.replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, '[EMAIL]');
-  
-  // Phone numbers (various formats)
-  redacted = redacted.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,4}\)?[-.\s]?\d{2,4}[-.\s]?\d{2,4}/g, '[PHONE]');
-  
-  // Dutch postcodes
-  redacted = redacted.replace(/\b\d{4}\s?[A-Z]{2}\b/gi, '[POSTCODE]');
-  
-  // Names after common prefixes (Dutch/English)
-  redacted = redacted.replace(/\b(mijn naam is|ik ben|my name is|i am|ik heet)\s+[A-Z][a-z]+/gi, '$1 [NAME]');
-  
-  // Common Dutch names followed by patterns that suggest they're names
-  // This is imperfect but helps
-  
-  return redacted;
+  if (diffDays === 0) return 'D0';
+  if (diffDays > 0) return `D+${diffDays}`;
+  return `D${diffDays}`;
 }
 
 /**
@@ -415,4 +441,25 @@ export function hashData(data: unknown): string {
     hash = hash & hash;
   }
   return hash.toString(16);
+}
+
+/**
+ * Generate an AI subject ID from user ID
+ * This is a one-way hash that cannot be reversed without DB access
+ */
+export function generateAISubjectId(userId: string): string {
+  // Create a deterministic but non-reversible ID
+  let hash = 0;
+  const salt = 'ai_subject_v1_';
+  const input = salt + userId;
+  
+  for (let i = 0; i < input.length; i++) {
+    const char = input.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash;
+  }
+  
+  // Convert to hex and pad to ensure consistent length
+  const hex = Math.abs(hash).toString(16).padStart(8, '0');
+  return `subj_${hex}`;
 }
