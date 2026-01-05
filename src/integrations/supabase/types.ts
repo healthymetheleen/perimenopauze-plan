@@ -140,6 +140,48 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_preferences: {
+        Row: {
+          created_at: string
+          focus_cycle: boolean | null
+          focus_movement: boolean | null
+          focus_nutrition: boolean | null
+          focus_sleep: boolean | null
+          focus_stress: boolean | null
+          focus_symptoms: string[] | null
+          id: string
+          owner_id: string
+          personal_context: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          focus_cycle?: boolean | null
+          focus_movement?: boolean | null
+          focus_nutrition?: boolean | null
+          focus_sleep?: boolean | null
+          focus_stress?: boolean | null
+          focus_symptoms?: string[] | null
+          id?: string
+          owner_id: string
+          personal_context?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          focus_cycle?: boolean | null
+          focus_movement?: boolean | null
+          focus_nutrition?: boolean | null
+          focus_sleep?: boolean | null
+          focus_stress?: boolean | null
+          focus_symptoms?: string[] | null
+          id?: string
+          owner_id?: string
+          personal_context?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       community_comments: {
         Row: {
           content: string
