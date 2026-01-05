@@ -11,6 +11,7 @@ import { ScoreBadge } from '@/components/ui/score-badge';
 import { useDiaryDay, useMeals, useDailyScores } from '@/hooks/useDiary';
 import { AddMealDialog } from '@/components/diary/AddMealDialog';
 import { MealCard } from '@/components/diary/MealCard';
+import { WeeklyInsightCard } from '@/components/diary/WeeklyInsightCard';
 
 // Translate score reason codes to Dutch explanations with detailed advice
 const translateScoreReason = (reason: string): { text: string; advice: string } => {
@@ -91,6 +92,8 @@ export default function DiaryPage() {
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Weekly AI Insight - only on today */}
+        {isToday && <WeeklyInsightCard />}
         {/* Date navigation */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={handlePrevDay}>
