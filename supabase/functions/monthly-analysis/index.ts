@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -240,9 +241,9 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       function_name: 'monthly-analysis' 
     });
 
-    // Use Lovable AI Gateway (no direct OpenAI calls)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
+    // Use direct OpenAI API for full control and GDPR compliance
+    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
+    if (!OPENAI_API_KEY) {
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
         message: 'AI-service is niet geconfigureerd.'
@@ -252,25 +253,27 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       });
     }
 
-    console.log('Generating monthly analysis via Lovable AI, subject:', aiSubjectId);
+    console.log('Generating monthly analysis via OpenAI API, subject:', aiSubjectId);
 
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-5-mini',
+        model: 'gpt-4o',
         messages: [
           { role: 'system', content: monthlyAnalysisPrompt },
           { role: 'user', content: context }
         ],
+        max_tokens: 1500,
+        temperature: 0.7,
       }),
     });
 
     if (!response.ok) {
-      console.error('Lovable AI error:', response.status);
+      console.error('OpenAI API error:', response.status);
       return new Response(JSON.stringify({
         error: 'ai_error',
         message: 'Er ging iets mis bij het genereren van de analyse.'

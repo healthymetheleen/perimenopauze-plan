@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -189,31 +190,34 @@ Geef je analyse in dit exact JSON format:
   "weekdoel": "Één specifiek, haalbaar doel voor komende week"
 }`;
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    // Use direct OpenAI API for full control and GDPR compliance
+    const OPENAI_API_KEY = Deno.env.get("ChatGPT");
+    if (!OPENAI_API_KEY) {
+      throw new Error("OpenAI API key is not configured");
     }
 
-    console.log("Calling Lovable AI for weekly nutrition insight, subject:", aiSubjectId);
+    console.log("Calling OpenAI API for weekly nutrition insight, subject:", aiSubjectId);
 
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Authorization": `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "openai/gpt-5-mini",
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: systemPrompt },
           { role: "user", content: userPrompt },
         ],
+        max_tokens: 1000,
+        temperature: 0.7,
       }),
     });
 
     if (!aiResponse.ok) {
       const errorText = await aiResponse.text();
-      console.error("AI gateway error:", aiResponse.status, errorText);
+      console.error("OpenAI API error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
         return new Response(JSON.stringify({ error: "Te veel verzoeken, probeer het later opnieuw." }), {
@@ -221,13 +225,7 @@ Geef je analyse in dit exact JSON format:
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (aiResponse.status === 402) {
-        return new Response(JSON.stringify({ error: "AI-tegoed op, neem contact op met support." }), {
-          status: 402,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        });
-      }
-      throw new Error("AI gateway error");
+      throw new Error("OpenAI API error");
     }
 
     const aiData = await aiResponse.json();

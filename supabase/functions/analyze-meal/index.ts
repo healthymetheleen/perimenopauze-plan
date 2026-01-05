@@ -220,10 +220,10 @@ serve(async (req) => {
       }
     }
     
-    // Use Lovable AI Gateway (no direct OpenAI calls from Edge Functions)
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured');
+    // Use direct OpenAI API for full control and GDPR compliance
+    const OPENAI_API_KEY = Deno.env.get('ChatGPT');
+    if (!OPENAI_API_KEY) {
+      console.error('OpenAI API key not configured');
       throw new Error('AI service is niet geconfigureerd');
     }
 
@@ -264,27 +264,32 @@ serve(async (req) => {
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'analyze-meal');
 
-    console.log('Analyzing meal via Lovable AI, subject:', aiSubjectId);
+    console.log('Analyzing meal via OpenAI API, subject:', aiSubjectId);
     
-    // Use Lovable AI Gateway with flash model for meal analysis
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+    // TWO-TIER AI STRATEGY: Start with gpt-4o-mini (cheap), fallback to gpt-4o if needed
+    let analysis;
+    let usedFallback = false;
+    
+    // First try with gpt-4o-mini (cheapest, fast)
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+        'Authorization': `Bearer ${OPENAI_API_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
+        model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: foodParsingPrompt },
           { role: 'user', content: userContent }
         ],
+        max_tokens: 1000,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Lovable AI error:', response.status, errorText);
+      console.error('OpenAI API error:', response.status, errorText);
       
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
@@ -292,16 +297,6 @@ serve(async (req) => {
           message: 'Te veel verzoeken. Probeer het later opnieuw.' 
         }), {
           status: 429,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        });
-      }
-      
-      if (response.status === 402) {
-        return new Response(JSON.stringify({ 
-          error: 'service_unavailable',
-          message: 'De AI-service is tijdelijk niet beschikbaar.' 
-        }), {
-          status: 503,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
@@ -315,7 +310,6 @@ serve(async (req) => {
     console.log('Meal analysis received for subject:', aiSubjectId);
 
     // Parse response
-    let analysis;
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -325,21 +319,63 @@ serve(async (req) => {
       }
     } catch (parseError) {
       console.error('Failed to parse AI response for', aiSubjectId);
-      analysis = {
-        description: description || 'Maaltijd',
-        items: [],
-        totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-        ultra_processed_level: null,
-        confidence: 0.3,
-        verification_questions: [{
-          question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
-          options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
-          affects: 'description'
-        }],
-        quality_flags: {},
-        notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
-      };
+      
+      // Fallback to gpt-4o for more complex parsing
+      if (!usedFallback) {
+        console.log('Falling back to gpt-4o for subject:', aiSubjectId);
+        usedFallback = true;
+        
+        const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: foodParsingPrompt },
+              { role: 'user', content: userContent }
+            ],
+            max_tokens: 1000,
+          }),
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const fallbackContent = fallbackData.choices?.[0]?.message?.content;
+          
+          try {
+            const jsonMatch = fallbackContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              analysis = JSON.parse(jsonMatch[0]);
+            }
+          } catch {
+            // Both failed
+          }
+        }
+      }
+      
+      if (!analysis) {
+        analysis = {
+          description: description || 'Maaltijd',
+          items: [],
+          totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
+          ultra_processed_level: null,
+          confidence: 0.3,
+          verification_questions: [{
+            question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+            options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+            affects: 'description'
+          }],
+          quality_flags: {},
+          notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
+        };
+      }
     }
+
+    // Add model info
+    analysis.model_used = usedFallback ? 'gpt-4o' : 'gpt-4o-mini';
 
     // Add late meal flag based on time
     if (mealTime) {
