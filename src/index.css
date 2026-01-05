@@ -418,4 +418,31 @@
       opacity: 1;
     }
   }
+
+  /* Animated season background blobs */
+  @keyframes seasonFloat1 {
+    0% { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+    50% { transform: translate3d(3%, 2%, 0) scale(1.06); }
+    100% { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+  }
+
+  @keyframes seasonFloat2 {
+    0% { transform: translate3d(2%, 2%, 0) scale(1.03); }
+    50% { transform: translate3d(-3%, 1%, 0) scale(1.07); }
+    100% { transform: translate3d(2%, 2%, 0) scale(1.03); }
+  }
+
+  @keyframes seasonFloat3 {
+    0% { transform: translate3d(0%, 0%, 0) scale(1.00); }
+    50% { transform: translate3d(2%, -2%, 0) scale(1.05); }
+    100% { transform: translate3d(0%, 0%, 0) scale(1.00); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-\\[seasonFloat1_18s_ease-in-out_infinite\\],
+    .animate-\\[seasonFloat2_22s_ease-in-out_infinite\\],
+    .animate-\\[seasonFloat3_28s_ease-in-out_infinite\\] {
+      animation: none !important;
+    }
+  }
 }

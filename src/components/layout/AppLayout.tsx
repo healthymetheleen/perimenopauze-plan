@@ -22,7 +22,9 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useLatestPrediction, useCyclePreferences } from '@/hooks/useCycle';
 import { Footer } from './Footer';
+import { AnimatedSeasonBackground } from './AnimatedSeasonBackground';
 import { TrialLockout, TrialBanner } from '@/components/subscription/TrialLockout';
 
 // Pages that should NOT be locked when trial expires
@@ -60,11 +62,19 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
   const { data: isAdmin } = useIsAdmin();
+  const { data: prediction } = useLatestPrediction();
+  const { data: preferences } = useCyclePreferences();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const isPremium = entitlements?.plan === 'premium' || entitlements?.plan === 'starter';
   const isTrialExpired = entitlements?.is_trial_expired ?? false;
   const trialDaysRemaining = entitlements?.trial_days_remaining ?? 0;
+  
+  // Get current cycle season for animated background
+  const currentSeason = useMemo(() => {
+    if (!preferences?.onboarding_completed) return 'onbekend';
+    return (prediction?.current_season as 'winter' | 'lente' | 'zomer' | 'herfst') || 'onbekend';
+  }, [prediction?.current_season, preferences?.onboarding_completed]);
   
   // Check if current path should be locked
   const shouldLockPage = isTrialExpired && !UNLOCKED_PATHS.some(path => location.pathname.startsWith(path));
@@ -75,9 +85,12 @@ export function AppLayout({ children }: AppLayoutProps) {
   }, [isAdmin]);
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      {/* Animated season background */}
+      <AnimatedSeasonBackground season={currentSeason} />
+      
       {/* Mobile header */}
-      <header className="sticky top-0 z-50 lg:hidden border-b border-border bg-gradient-to-r from-primary/10 via-background to-accent/10">
+      <header className="sticky top-0 z-50 lg:hidden border-b border-border/50 bg-background/70 backdrop-blur-md">
         <div className="flex items-center justify-between px-4 h-16">
           <Link to="/dashboard" className="flex items-center gap-2">
             <img
@@ -100,7 +113,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
         {/* Mobile menu */}
         {mobileMenuOpen && (
-          <nav className="absolute top-16 left-0 right-0 bg-card border-b border-border shadow-lg animate-slide-up">
+          <nav className="absolute top-16 left-0 right-0 bg-card/90 backdrop-blur-md border-b border-border/50 shadow-lg animate-slide-up">
             <ul className="py-2">
               {navItems.map((item) => (
                 <li key={item.href}>
@@ -143,7 +156,7 @@ export function AppLayout({ children }: AppLayoutProps) {
 
       <div className="flex flex-1">
         {/* Desktop sidebar */}
-        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card border-r border-border">
+        <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card/70 backdrop-blur-md border-r border-border/50">
           <div className="p-6">
             <Link to="/dashboard" className="text-xl font-semibold text-foreground">
               Perimenopauze Plan
