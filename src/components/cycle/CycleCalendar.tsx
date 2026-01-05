@@ -1,19 +1,26 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   addDays,
+  addMonths,
+  subMonths,
   differenceInDays,
   format,
   isSameDay,
+  isSameMonth,
   isWithinInterval,
   parseISO,
   startOfDay,
+  startOfMonth,
+  endOfMonth,
+  getDay,
 } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { Calendar, Droplet, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Calendar, Droplet, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
 import { BleedingLog, Cycle, CyclePreferences, CyclePrediction, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
 
 interface CycleCalendarProps {
@@ -27,6 +34,7 @@ interface CycleCalendarProps {
 type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
 export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, onDayClick }: CycleCalendarProps) {
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSeasons, setShowSeasons] = useState(true);
   const [showMenstruation, setShowMenstruation] = useState(true);
   const [showFertile, setShowFertile] = useState(!!preferences?.show_fertile_days);
@@ -80,11 +88,25 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
   const calendarDays = useMemo(() => {
     const today0 = startOfDay(new Date());
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(currentMonth);
+    
+    // Get the day of week for the first day (0 = Sunday, 1 = Monday, etc.)
+    // We want Monday as first day, so adjust
+    const firstDayOfWeek = getDay(monthStart);
+    const startOffset = firstDayOfWeek === 0 ? 6 : firstDayOfWeek - 1; // Monday = 0
+    
+    // Calculate how many days to show (including padding for full weeks)
+    const daysInMonth = differenceInDays(monthEnd, monthStart) + 1;
+    const totalDays = startOffset + daysInMonth;
+    const weeksNeeded = Math.ceil(totalDays / 7);
+    const totalCells = weeksNeeded * 7;
 
-    return Array.from({ length: 35 }, (_, i) => {
-      const date = addDays(today0, i - 7);
+    return Array.from({ length: totalCells }, (_, i) => {
+      const date = addDays(monthStart, i - startOffset);
       const dateStr = format(date, 'yyyy-MM-dd');
       const bleeding = bleedingLogs?.find((l) => l.log_date === dateStr);
+      const isCurrentMonth = isSameMonth(date, currentMonth);
 
       const isFertile =
         !!preferences?.show_fertile_days &&
@@ -112,6 +134,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         date,
         dateStr,
         isToday: isSameDay(date, today0),
+        isCurrentMonth,
         bleeding: bleeding?.intensity,
         isFertile,
         isOvulation,
@@ -119,7 +142,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         predictedSeason: season,
       };
     });
-  }, [bleedingLogs, getPredictedSeason, ovulationDateStr, periodLength, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
+  }, [bleedingLogs, currentMonth, getPredictedSeason, ovulationDateStr, periodLength, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
 
   // Build season segments along the 35-day window
   const seasonSegments = useMemo(() => {
@@ -170,13 +193,48 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
   const segmentStarts = useMemo(() => new Set(seasonSegments.map((s) => s.startIdx)), [seasonSegments]);
 
+  const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+
   return (
     <Card className="rounded-2xl">
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg flex items-center gap-2">
-          <Calendar className="h-5 w-5" />
-          Cyclusagenda
-        </CardTitle>
+        {/* Month navigation header */}
+        <div className="flex items-center justify-between mb-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            aria-label="Vorige maand"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div className="flex items-center gap-2">
+            <Calendar className="h-5 w-5" />
+            <CardTitle className="text-lg">
+              {format(currentMonth, 'MMMM yyyy', { locale: nl })}
+            </CardTitle>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            aria-label="Volgende maand"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Go to today button if not viewing current month */}
+        {!isSameMonth(currentMonth, new Date()) && (
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full mb-2"
+            onClick={() => setCurrentMonth(new Date())}
+          >
+            Naar vandaag
+          </Button>
+        )}
 
         {/* Toggles */}
         <div className="flex flex-wrap gap-4 mt-3">
@@ -242,7 +300,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         <div className="relative">
           {/* Season backgrounds (panels) behind a fixed grid */}
           {showSeasons && (
-            <div className="absolute inset-0 grid grid-cols-7 gap-1 pointer-events-none">
+            <div className="absolute inset-0 grid grid-cols-7 gap-1 pointer-events-none" style={{ marginTop: '28px' }}>
               {backgroundPieces.map((p, idx) => (
                 <div
                   key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
@@ -256,6 +314,18 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             </div>
           )}
 
+          {/* Week day headers */}
+          <div className="grid grid-cols-7 gap-1 mb-1">
+            {weekDays.map((day) => (
+              <div
+                key={day}
+                className="text-center text-xs font-medium text-muted-foreground py-1"
+              >
+                {day}
+              </div>
+            ))}
+          </div>
+
           {/* Days */}
           <div className="relative z-10 grid grid-cols-7 gap-1">
             {calendarDays.map((day, idx) => {
@@ -265,7 +335,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               const showOvulation = !!day.isOvulation && showFertile;
 
               const season = day.predictedSeason;
-              const showSeasonLabel = showSeasons && segmentStarts.has(idx) && season !== 'onbekend';
+              const showSeasonLabel = showSeasons && segmentStarts.has(idx) && season !== 'onbekend' && day.isCurrentMonth;
 
               return (
                 <button
@@ -278,6 +348,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     flex flex-col items-center justify-center text-center px-0.5 py-1
                     transition-all hover:bg-background/85 dark:hover:bg-background/40
                     ${day.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                    ${!day.isCurrentMonth ? 'opacity-30' : ''}
                   `}
                 >
                   {/* Season label (first day in a season segment) */}
@@ -305,9 +376,6 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     <span className="absolute top-1 right-1 cycle-ovulation-star text-xs font-bold">★</span>
                   )}
 
-                  <span className="text-[10px] text-muted-foreground leading-none">
-                    {format(day.date, 'EE', { locale: nl }).substring(0, 2)}
-                  </span>
                   <span className="text-lg font-bold leading-tight">
                     {format(day.date, 'd')}
                   </span>
