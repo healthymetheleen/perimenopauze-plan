@@ -14,38 +14,35 @@ interface CycleCalendarProps {
 }
 
 export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, onDayClick }: CycleCalendarProps) {
-  // Calculate day in cycle
+  const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
+  const periodLength = preferences?.avg_period_length || 5;
+  const lutealLength = preferences?.luteal_phase_length || 13;
+  const ovulationDayInCycle = avgCycleLength - lutealLength;
+
+  // Get the actual day number in cycle for a given date (not using modulo for display)
   const getDayInCycle = (date: Date): number => {
-    const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
     if (!cycles?.length) return -1;
     const latestCycle = cycles[0];
     const cycleStart = parseISO(latestCycle.start_date);
-    const daysSinceStart = differenceInDays(date, cycleStart);
-    if (daysSinceStart < 0) {
-      return ((daysSinceStart % avgCycleLength) + avgCycleLength) % avgCycleLength;
-    }
-    return daysSinceStart % avgCycleLength;
+    return differenceInDays(date, cycleStart);
   };
 
-  // Get predicted season for a given date
+  // Get predicted season based on day in cycle - handles multiple cycles
   const getPredictedSeason = (date: Date): string => {
-    const avgCycleLength = prediction.avg_cycle_length || preferences?.avg_cycle_length || 28;
-    const periodLength = preferences?.avg_period_length || 5;
-    const lutealLength = preferences?.luteal_phase_length || 13;
-    
     const dayInCycle = getDayInCycle(date);
     if (dayInCycle < 0) return 'onbekend';
     
-    const ovulationDay = avgCycleLength - lutealLength;
+    // Normalize to position within a cycle
+    const normalizedDay = dayInCycle % avgCycleLength;
     
-    if (dayInCycle < periodLength) return 'winter';
-    if (dayInCycle < ovulationDay - 1) return 'lente';
-    if (dayInCycle <= ovulationDay + 1) return 'zomer';
+    if (normalizedDay < periodLength) return 'winter';
+    if (normalizedDay < ovulationDayInCycle - 1) return 'lente';
+    if (normalizedDay <= ovulationDayInCycle + 1) return 'zomer';
     return 'herfst';
   };
 
   // Ovulation day (single day in the middle of the window)
-  const ovulationDay = (() => {
+  const ovulationDateStr = (() => {
     if (!prediction.ovulation_min || !prediction.ovulation_max) return undefined;
     const min = parseISO(prediction.ovulation_min);
     const max = parseISO(prediction.ovulation_max);
@@ -80,19 +77,19 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
       isToday: isSameDay(date, new Date()),
       bleeding: bleeding?.intensity,
       isFertile,
-      isOvulation: dateStr === ovulationDay,
+      isOvulation: dateStr === ovulationDateStr,
       isPredictedPeriod: isPredictedPeriod && !bleeding,
       predictedSeason: getPredictedSeason(date),
     };
   });
 
-  // Season background colors - very light pastels so events pop
+  // Season background colors - distinct but soft pastels
   const seasonBgClasses: Record<string, string> = {
-    winter: 'bg-blue-50/90 dark:bg-blue-950/40',
-    lente: 'bg-emerald-50/90 dark:bg-emerald-950/40',
-    zomer: 'bg-amber-50/90 dark:bg-amber-950/40',
-    herfst: 'bg-orange-50/90 dark:bg-orange-950/40',
-    onbekend: 'bg-muted/30',
+    winter: 'bg-sky-100/90 dark:bg-sky-900/40',
+    lente: 'bg-emerald-100/90 dark:bg-emerald-900/40',
+    zomer: 'bg-amber-100/90 dark:bg-amber-900/40',
+    herfst: 'bg-orange-100/90 dark:bg-orange-900/40',
+    onbekend: 'bg-muted/50',
   };
 
   // Group days by season for rendering
@@ -130,50 +127,44 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })} - {format(parseISO(prediction.fertile_window_end), 'd MMM', { locale: nl })}
             </Badge>
           )}
-          {preferences?.show_fertile_days && ovulationDay && (
+          {preferences?.show_fertile_days && ovulationDateStr && (
             <Badge variant="outline" className="font-normal gap-1">
               <Sparkles className="h-3 w-3" />
-              Ovulatie {format(parseISO(ovulationDay), 'd MMM', { locale: nl })}
+              Ovulatie {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
             </Badge>
           )}
         </div>
 
-        {/* Two-part legend */}
-        <div className="space-y-2 mt-3 text-xs text-muted-foreground">
-          <div className="flex flex-wrap gap-3">
-            <span className="font-medium text-foreground">Seizoen:</span>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-blue-50 dark:bg-blue-950 border border-border/50" /><span>Winter</span></div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-emerald-50 dark:bg-emerald-950 border border-border/50" /><span>Lente</span></div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-amber-50 dark:bg-amber-950 border border-border/50" /><span>Zomer</span></div>
-            <div className="flex items-center gap-1"><div className="w-3 h-3 rounded bg-orange-50 dark:bg-orange-950 border border-border/50" /><span>Herfst</span></div>
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <span className="font-medium text-foreground">Events:</span>
-            <div className="flex items-center gap-1"><div className="w-1 h-3 rounded-full bg-destructive" /><span>Menstruatie</span></div>
-            <div className="flex items-center gap-1"><div className="w-1 h-3 rounded-full bg-destructive/40" style={{ backgroundImage: 'repeating-linear-gradient(to bottom, transparent, transparent 2px, hsl(var(--destructive)/0.4) 2px, hsl(var(--destructive)/0.4) 4px)' }} /><span>Verwacht</span></div>
-            {preferences?.show_fertile_days && (
-              <>
-                <div className="flex items-center gap-1"><div className="w-3 h-3 rounded border-2 border-teal-400" /><span>Vruchtbaar</span></div>
-                <div className="flex items-center gap-1"><span className="text-amber-500">★</span><span>Ovulatie</span></div>
-              </>
-            )}
-          </div>
+        {/* Two-part legend - compact */}
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-sky-100 dark:bg-sky-900 border border-border/50" /><span>Winter</span></div>
+          <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-emerald-100 dark:bg-emerald-900 border border-border/50" /><span>Lente</span></div>
+          <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-amber-100 dark:bg-amber-900 border border-border/50" /><span>Zomer</span></div>
+          <div className="flex items-center gap-1"><div className="w-2.5 h-2.5 rounded-sm bg-orange-100 dark:bg-orange-900 border border-border/50" /><span>Herfst</span></div>
+          <div className="flex items-center gap-1"><span className="text-destructive">●</span><span>Menstruatie</span></div>
+          <div className="flex items-center gap-1"><span className="text-destructive/50">○</span><span>Verwacht</span></div>
+          {preferences?.show_fertile_days && (
+            <>
+              <div className="flex items-center gap-1"><span className="text-teal-500">◆</span><span>Vruchtbaar</span></div>
+              <div className="flex items-center gap-1"><span className="text-amber-500">★</span><span>Ovulatie</span></div>
+            </>
+          )}
         </div>
       </CardHeader>
       
-      <CardContent className="pt-0 space-y-4">
+      <CardContent className="pt-0 space-y-3">
         {groupedBySeason.map((group, groupIdx) => (
-          <div key={`${group.season}-${groupIdx}`} className={`rounded-xl p-3 ${seasonBgClasses[group.season]}`}>
+          <div key={`${group.season}-${groupIdx}`} className={`rounded-xl p-2 ${seasonBgClasses[group.season]}`}>
             {/* Season header */}
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium">{seasonLabels[group.season]}</span>
+            <div className="flex items-center gap-2 mb-1.5 px-1">
+              <span className="text-sm font-semibold">{seasonLabels[group.season]}</span>
               <span className="text-xs text-muted-foreground">
                 {format(group.days[0].date, 'd MMM', { locale: nl })} - {format(group.days[group.days.length - 1].date, 'd MMM', { locale: nl })}
               </span>
             </div>
             
-            {/* 7-column grid */}
-            <div className="grid grid-cols-7 gap-1">
+            {/* 7-column grid - smaller gaps, larger text */}
+            <div className="grid grid-cols-7 gap-0.5">
               {group.days.map((day) => {
                 const { date, dateStr, isToday, bleeding, isFertile, isOvulation, isPredictedPeriod } = day;
                 
@@ -186,41 +177,28 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     key={dateStr}
                     onClick={() => onDayClick(dateStr)}
                     className={`
-                      relative aspect-square min-h-[40px] rounded-lg bg-background/60 dark:bg-background/20
-                      flex flex-col items-center justify-center text-center
-                      transition-all hover:bg-background/80 dark:hover:bg-background/40
+                      relative min-h-[38px] rounded-md bg-background/70 dark:bg-background/30
+                      flex flex-col items-center justify-center text-center p-0.5
+                      transition-all hover:bg-background/90 dark:hover:bg-background/50
                       ${isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-transparent' : ''}
                     `}
                   >
-                    {/* Menstruation - red left bar */}
-                    {hasBleeding && (
-                      <div className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full bg-destructive" />
-                    )}
-                    {/* Predicted period - dashed red left bar */}
-                    {showPredicted && !hasBleeding && (
-                      <div 
-                        className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-full"
-                        style={{ 
-                          background: 'repeating-linear-gradient(to bottom, hsl(var(--destructive)/0.5), hsl(var(--destructive)/0.5) 3px, transparent 3px, transparent 6px)'
-                        }} 
-                      />
-                    )}
-                    {/* Fertile - teal ring around tile */}
-                    {showFertile && (
-                      <div className="absolute inset-0.5 rounded-lg border-2 border-teal-400/60" />
-                    )}
-                    {/* Ovulation - star top right */}
-                    {isOvulation && (
-                      <div className="absolute top-0.5 right-1 text-amber-500 text-xs font-bold">★</div>
-                    )}
-                    
-                    {/* Day content */}
-                    <span className="text-[10px] text-muted-foreground leading-tight">
-                      {format(date, 'EE', { locale: nl }).substring(0, 2)}
+                    {/* Day name - smaller */}
+                    <span className="text-[9px] text-muted-foreground leading-none">
+                      {format(date, 'EEEEEE', { locale: nl })}
                     </span>
-                    <span className="text-base font-bold leading-tight">
+                    {/* Date - larger and bold */}
+                    <span className="text-lg font-bold leading-tight">
                       {format(date, 'd')}
                     </span>
+                    
+                    {/* Event indicators - small icons below the date */}
+                    <div className="flex items-center gap-0.5 h-3">
+                      {hasBleeding && <span className="text-destructive text-[10px]">●</span>}
+                      {showPredicted && !hasBleeding && <span className="text-destructive/50 text-[10px]">○</span>}
+                      {showFertile && <span className="text-teal-500 text-[8px]">◆</span>}
+                      {isOvulation && <span className="text-amber-500 text-[10px]">★</span>}
+                    </div>
                   </button>
                 );
               })}
