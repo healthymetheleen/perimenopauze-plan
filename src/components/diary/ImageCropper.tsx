@@ -2,6 +2,7 @@ import { useState, useRef, useCallback, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import { RotateCw, ZoomIn, Check, X, AlertCircle } from 'lucide-react';
+import { supportsWebP } from '@/lib/imageUtils';
 
 interface ImageCropperProps {
   imageSrc: string;
@@ -139,11 +140,13 @@ export function ImageCropper({ imageSrc, onCropComplete, onCancel }: ImageCroppe
     setIsDragging(false);
   }, []);
 
-  // Handle crop complete with error handling
+  // Handle crop complete with error handling - use WebP for better compression
   const handleCropComplete = () => {
     if (!canvasRef.current) return;
     try {
-      const croppedImage = canvasRef.current.toDataURL('image/jpeg', 0.7);
+      // Use WebP if supported (25-34% smaller than JPEG), fallback to JPEG
+      const format = supportsWebP() ? 'image/webp' : 'image/jpeg';
+      const croppedImage = canvasRef.current.toDataURL(format, 0.8);
       onCropComplete(croppedImage);
     } catch (e) {
       console.error('Crop export error:', e);

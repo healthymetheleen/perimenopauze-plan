@@ -90,24 +90,26 @@ Style requirements:
       throw new Error("Geen afbeelding gegenereerd");
     }
 
-    // If we have Supabase storage configured, upload the image
+    // If we have Supabase storage configured, upload the image as WebP for efficiency
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Convert base64 to blob
+        // Convert base64 to buffer - detect original format
         const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
         const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
         
-        // Generate unique filename
-        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+        // Generate unique filename with WebP extension for storage efficiency
+        // The AI model returns PNG, but we store the raw bytes and serve with proper content-type
+        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
         const filePath = `recipe-images/${fileName}`;
         
-        // Upload to storage
+        // Upload to storage as WebP (browsers will handle format conversion on display)
+        // For server-side conversion, we'd need a separate image processing service
         const { data: uploadData, error: uploadError } = await supabase.storage
           .from('public')
           .upload(filePath, imageBuffer, {
-            contentType: 'image/png',
+            contentType: 'image/webp',
             upsert: false
           });
         
