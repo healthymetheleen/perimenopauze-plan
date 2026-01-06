@@ -218,18 +218,18 @@ export function usePaymentStatus(paymentId: string | null) {
 export const SUBSCRIPTION_PLANS = {
   monthly: {
     id: 'monthly',
-    name: 'Maandelijks',
+    name: 'Premium',
     price: 7.50,
     interval: '1 month',
-    description: 'Na 7 dagen gratis proberen',
+    description: 'Volledige toegang tot alle functies',
     trialDays: 7,
     features: [
-      '7 dagen gratis uitproberen',
-      'Onbeperkte maaltijdanalyses',
-      'AI-inzichten & reflecties',
+      'Onbeperkte maaltijdanalyses met AI',
+      'Dagelijkse AI-inzichten & reflecties',
       'Maandelijkse totaalanalyse',
-      'Alle bewegingsoefeningen',
-      'Patronen & trends',
+      'Alle bewegingsoefeningen op maat',
+      'Patronen & trends ontdekken',
+      'Slaap- en symptoomcorrelaties',
     ],
   },
 } as const;

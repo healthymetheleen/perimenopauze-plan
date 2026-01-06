@@ -78,10 +78,13 @@ export default function LoginPage() {
     <div className="min-h-screen flex items-center justify-center px-4 relative">
       <AnimatedSeasonBackground season="primary" />
       <Card className="w-full max-w-md rounded-2xl bg-card/80 backdrop-blur-md border-border/50">
-        <CardHeader className="text-center">
+        <CardHeader className="text-center space-y-3">
           <CardTitle className="text-2xl">Perimenopauze Plan</CardTitle>
-          <CardDescription>
-            Volg je eetpatroon en ontdek verbanden met hoe je je voelt
+          <CardDescription className="space-y-2">
+            <span className="block">Speciaal ontwikkeld voor vrouwen in de perimenopauze</span>
+            <span className="block text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full inline-block">
+              ✨ AI-inzichten afgestemd op jouw cyclus & symptomen
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -19,22 +19,25 @@ export function TrialLockout({ children, isTrialExpired, trialDaysRemaining }: T
     <div className="min-h-[60vh] flex items-center justify-center p-4">
       <Card className="max-w-md w-full glass-strong rounded-2xl">
         <CardHeader className="text-center">
-          <div className="mx-auto p-4 rounded-full bg-primary/10 w-fit mb-4">
-            <Lock className="h-8 w-8 text-primary" />
+          <div className="mx-auto p-4 rounded-full bg-destructive/10 w-fit mb-4">
+            <Lock className="h-8 w-8 text-destructive" />
           </div>
           <CardTitle className="text-xl">Je proefperiode is verlopen</CardTitle>
-          <CardDescription>
-            Je 7 dagen gratis proberen zijn voorbij. Upgrade naar Premium om door te gaan.
+          <CardDescription className="space-y-2">
+            <span className="block">Je 7 dagen gratis proberen zijn voorbij.</span>
+            <span className="block text-xs text-destructive">
+              Je kunt geen nieuwe gegevens meer invoeren tot je upgradet.
+            </span>
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-3">
             <p className="text-sm font-medium flex items-center gap-2">
               <Crown className="h-4 w-4 text-primary" />
-              Met Premium krijg je:
+              Met Premium krijg je weer toegang tot:
             </p>
             <ul className="text-sm text-muted-foreground space-y-2 ml-6">
-              {SUBSCRIPTION_PLANS.monthly.features.slice(1).map((feature, i) => (
+              {SUBSCRIPTION_PLANS.monthly.features.map((feature, i) => (
                 <li key={i} className="flex items-center gap-2">
                   <Sparkles className="h-3 w-3 text-primary" />
                   {feature}
@@ -45,7 +48,7 @@ export function TrialLockout({ children, isTrialExpired, trialDaysRemaining }: T
 
           <div className="text-center p-4 bg-primary/5 rounded-lg">
             <p className="text-2xl font-bold text-primary">€{SUBSCRIPTION_PLANS.monthly.price}/maand</p>
-            <p className="text-sm text-muted-foreground">Direct toegang na betaling</p>
+            <p className="text-sm text-muted-foreground">Direct volledige toegang na betaling</p>
           </div>
 
           <Button asChild size="lg" className="w-full btn-gradient">
@@ -55,9 +58,18 @@ export function TrialLockout({ children, isTrialExpired, trialDaysRemaining }: T
             </Link>
           </Button>
 
-          <p className="text-xs text-center text-muted-foreground">
-            Veilig betalen via Mollie. Elk moment opzegbaar.
-          </p>
+          <div className="text-xs text-center text-muted-foreground space-y-1">
+            <p>Veilig betalen via Mollie. Elk moment opzegbaar.</p>
+            <p className="text-destructive/70">
+              Let op: zonder abonnement wordt je data na 30 dagen automatisch verwijderd.
+            </p>
+          </div>
+
+          <Button asChild variant="ghost" size="sm" className="w-full text-muted-foreground">
+            <Link to="/account">
+              Of verwijder je gegevens
+            </Link>
+          </Button>
         </CardContent>
       </Card>
     </div>
@@ -65,19 +77,25 @@ export function TrialLockout({ children, isTrialExpired, trialDaysRemaining }: T
 }
 
 export function TrialBanner({ daysRemaining }: { daysRemaining: number }) {
-  if (daysRemaining <= 0 || daysRemaining > 3) return null;
+  if (daysRemaining <= 0 || daysRemaining > 7) return null;
+
+  const isUrgent = daysRemaining <= 3;
 
   return (
-    <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-3 mb-4">
+    <div className={`rounded-lg p-3 mb-4 ${
+      isUrgent 
+        ? 'bg-amber-500/10 border border-amber-500/20' 
+        : 'bg-primary/10 border border-primary/20'
+    }`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Crown className="h-4 w-4 text-amber-600" />
-          <span className="text-sm font-medium text-amber-700">
-            Nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'} gratis proberen
+          <Crown className={`h-4 w-4 ${isUrgent ? 'text-amber-600' : 'text-primary'}`} />
+          <span className={`text-sm font-medium ${isUrgent ? 'text-amber-700' : 'text-primary'}`}>
+            Proefperiode: nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'}
           </span>
         </div>
         <Button asChild size="sm" variant="outline" className="text-xs">
-          <Link to="/subscription">Upgraden</Link>
+          <Link to="/subscription">Bekijk Premium</Link>
         </Button>
       </div>
     </div>
