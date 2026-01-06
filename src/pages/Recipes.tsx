@@ -196,10 +196,10 @@ export default function RecipesPage() {
 
         {/* Cycle phase suggestions */}
         {showCycleSuggestions && (
-          <Card className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
+          <Card className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-purple-600" />
+                <Sparkles className="h-5 w-5 text-primary" />
                 Aanbevolen voor {seasonLabels[currentCycleSeason]?.toLowerCase() || currentCyclePhase}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
@@ -395,8 +395,8 @@ export default function RecipesPage() {
                           <Heart 
                             className={`h-5 w-5 transition-colors ${
                               isFavorite(recipe.id) 
-                                ? 'fill-red-500 text-red-500' 
-                                : 'text-muted-foreground hover:text-red-400'
+                                ? 'fill-primary text-primary' 
+                                : 'text-muted-foreground hover:text-primary/70'
                             }`} 
                           />
                         </button>
