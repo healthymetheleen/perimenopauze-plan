@@ -1001,6 +1001,42 @@ export type Database = {
         }
         Relationships: []
       }
+      premium_grants: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string | null
+          granted_by: string
+          id: string
+          is_active: boolean
+          reason: string | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at?: string | null
+          granted_by: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string | null
+          granted_by?: string
+          id?: string
+          is_active?: boolean
+          reason?: string | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accepted_body_data: boolean | null
