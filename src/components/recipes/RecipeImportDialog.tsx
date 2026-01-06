@@ -94,7 +94,26 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       if (data.error) throw new Error(data.error);
 
       const recipes: ParsedRecipe[] = data.recipes.map((r: any) => ({
-        ...r,
+        title: r.title || 'Naamloos recept',
+        description: r.description || null,
+        instructions: r.instructions || '',
+        prep_time_minutes: r.prep_time_minutes || null,
+        cook_time_minutes: r.cook_time_minutes || null,
+        servings: r.servings || 4,
+        meal_type: r.meal_type || 'diner',
+        seasons: r.seasons || [],
+        diet_tags: r.diet_tags || [],
+        // Filter out is_seasonal from ingredients as it's not in the DB schema
+        ingredients: (r.ingredients || []).map((i: any) => ({
+          name: i.name || '',
+          amount: String(i.amount || ''),
+          unit: i.unit || '',
+        })),
+        kcal: r.kcal || null,
+        protein_g: r.protein_g || null,
+        carbs_g: r.carbs_g || null,
+        fat_g: r.fat_g || null,
+        fiber_g: r.fiber_g || null,
         is_published: false,
         _selected: true,
       }));
