@@ -9,7 +9,15 @@ import {
   Trash2,
   RotateCcw,
   BookOpen,
-  History
+  History,
+  Moon,
+  Zap,
+  Brain,
+  Heart,
+  Flower2,
+  Leaf,
+  Sun,
+  type LucideIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
@@ -43,15 +51,20 @@ import {
   useDeleteTestResult,
   TestAnswers,
   TestResult,
-  calculateDomainScore,
 } from '@/hooks/usePerimenopauseTest';
 import { toast } from 'sonner';
 
-const DOMAIN_LABELS = {
-  cycle: { label: 'Cyclus & Hormonen', icon: '🌙' },
-  energy: { label: 'Energie & Slaap', icon: '⚡' },
-  mental: { label: 'Mentaal & Emotioneel', icon: '🧠' },
-  body: { label: 'Lichaam & Herstel', icon: '💪' },
+const DOMAIN_LABELS: Record<string, { label: string; Icon: LucideIcon }> = {
+  cycle: { label: 'Cyclus & Hormonen', Icon: Moon },
+  energy: { label: 'Energie & Slaap', Icon: Zap },
+  mental: { label: 'Mentaal & Emotioneel', Icon: Brain },
+  body: { label: 'Lichaam & Herstel', Icon: Heart },
+};
+
+const RESULT_ICONS: Record<string, LucideIcon> = {
+  low: Leaf,
+  moderate: Sun,
+  high: Flower2,
 };
 
 type Step = 'intro' | 'questions' | 'result' | 'history';
@@ -124,13 +137,14 @@ export default function PerimenopauseTest() {
     }
   };
 
-  const renderScoreBar = (score: number, max: number, label: string, icon: string) => {
+  const renderScoreBar = (score: number, max: number, label: string, Icon: LucideIcon) => {
     const percentage = (score / max) * 100;
     return (
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium flex items-center gap-2">
-            <span>{icon}</span> {label}
+            <Icon className="h-4 w-4 text-primary" />
+            {label}
           </span>
           <span className="text-sm text-muted-foreground">{score}/{max}</span>
         </div>
@@ -173,7 +187,7 @@ export default function PerimenopauseTest() {
             <Card>
               <CardHeader className="text-center">
                 <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-3xl">🌸</span>
+                  <Flower2 className="h-8 w-8 text-primary" />
                 </div>
                 <CardTitle className="text-2xl">Perimenopauze Zelftest</CardTitle>
                 <CardDescription className="text-base">
@@ -272,10 +286,15 @@ export default function PerimenopauseTest() {
                 </div>
                 <Progress value={progress} className="h-2" />
                 <div className="pt-4">
-                  <CardTitle className="flex items-center gap-2">
-                    <span>{DOMAIN_LABELS[currentDomain].icon}</span>
-                    {DOMAIN_LABELS[currentDomain].label}
-                  </CardTitle>
+                  {(() => {
+                    const DomainIcon = DOMAIN_LABELS[currentDomain].Icon;
+                    return (
+                      <CardTitle className="flex items-center gap-2">
+                        <DomainIcon className="h-5 w-5 text-primary" />
+                        {DOMAIN_LABELS[currentDomain].label}
+                      </CardTitle>
+                    );
+                  })()}
                 </div>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -350,13 +369,14 @@ export default function PerimenopauseTest() {
           >
             <Card>
               <CardHeader className="text-center">
-                <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="text-3xl">
-                    {savedResult.result_category === 'low' && '🌱'}
-                    {savedResult.result_category === 'moderate' && '🌻'}
-                    {savedResult.result_category === 'high' && '🌸'}
-                  </span>
-                </div>
+                {(() => {
+                  const ResultIcon = RESULT_ICONS[savedResult.result_category];
+                  return (
+                    <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
+                      <ResultIcon className="h-8 w-8 text-primary" />
+                    </div>
+                  );
+                })()}
                 <CardTitle className="text-2xl">Jouw Testresultaat</CardTitle>
                 <CardDescription>
                   {format(new Date(savedResult.created_at), 'd MMMM yyyy', { locale: nl })}
@@ -383,25 +403,25 @@ export default function PerimenopauseTest() {
                     savedResult.domain_cycle_score, 
                     MAX_SCORES.cycle, 
                     DOMAIN_LABELS.cycle.label,
-                    DOMAIN_LABELS.cycle.icon
+                    DOMAIN_LABELS.cycle.Icon
                   )}
                   {renderScoreBar(
                     savedResult.domain_energy_score, 
                     MAX_SCORES.energy, 
                     DOMAIN_LABELS.energy.label,
-                    DOMAIN_LABELS.energy.icon
+                    DOMAIN_LABELS.energy.Icon
                   )}
                   {renderScoreBar(
                     savedResult.domain_mental_score, 
                     MAX_SCORES.mental, 
                     DOMAIN_LABELS.mental.label,
-                    DOMAIN_LABELS.mental.icon
+                    DOMAIN_LABELS.mental.Icon
                   )}
                   {renderScoreBar(
                     savedResult.domain_body_score, 
                     MAX_SCORES.body, 
                     DOMAIN_LABELS.body.label,
-                    DOMAIN_LABELS.body.icon
+                    DOMAIN_LABELS.body.Icon
                   )}
                 </div>
 
@@ -493,7 +513,7 @@ export default function PerimenopauseTest() {
                         </div>
                         
                         <div className="grid grid-cols-4 gap-2 text-xs">
-                          {Object.entries(DOMAIN_LABELS).map(([key, { label, icon }]) => {
+                          {Object.entries(DOMAIN_LABELS).map(([key, { label, Icon }]) => {
                             const score = key === 'cycle' ? test.domain_cycle_score :
                                          key === 'energy' ? test.domain_energy_score :
                                          key === 'mental' ? test.domain_mental_score :
@@ -501,7 +521,7 @@ export default function PerimenopauseTest() {
                             const max = MAX_SCORES[key as keyof typeof MAX_SCORES];
                             return (
                               <div key={key} className="text-center p-2 bg-muted/50 rounded">
-                                <span>{icon}</span>
+                                <Icon className="h-4 w-4 text-primary mx-auto mb-1" />
                                 <div className="font-medium">{score}/{max}</div>
                               </div>
                             );
