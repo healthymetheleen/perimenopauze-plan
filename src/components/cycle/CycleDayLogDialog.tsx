@@ -26,6 +26,7 @@ interface CycleDayLogDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   date: string;
+  defaultTab?: 'bleeding' | 'symptoms';
 }
 
 const intensityOptions = [
@@ -45,7 +46,7 @@ const symptomChips = [
   { key: 'irritability', label: 'Prikkelbaar' },
 ] as const;
 
-export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialogProps) {
+export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symptoms' }: CycleDayLogDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
   const logBleeding = useLogBleeding();
@@ -54,7 +55,7 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
   const deleteBleeding = useDeleteBleeding();
 
   // State
-  const [tab, setTab] = useState<'bleeding' | 'symptoms'>('bleeding');
+  const [tab, setTab] = useState<'bleeding' | 'symptoms'>(defaultTab);
   const [intensity, setIntensity] = useState<BleedingLog['intensity'] | null>(null);
   const [painScore, setPainScore] = useState<number[]>([0]);
   const [isIntermenstrual, setIsIntermenstrual] = useState(false);
@@ -93,6 +94,13 @@ export function CycleDayLogDialog({ open, onOpenChange, date }: CycleDayLogDialo
     },
     enabled: !!user && open,
   });
+
+  // Reset tab when dialog opens with new defaultTab
+  useEffect(() => {
+    if (open) {
+      setTab(defaultTab);
+    }
+  }, [open, defaultTab]);
 
   // Populate form with existing data
   useEffect(() => {
