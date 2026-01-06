@@ -143,7 +143,8 @@ export const CycleSyncingSection = memo(() => {
           transition={{ duration: 0.5 }}
           className="mb-12 p-4 md:p-6 bg-card rounded-2xl border border-border shadow-sm max-w-4xl mx-auto"
         >
-          <div className="flex items-center justify-center gap-4 md:gap-8 mb-4 flex-wrap text-sm">
+          {/* Legend */}
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-4 text-sm">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-400" />
               <span className="text-muted-foreground">Menstruatie</span>
@@ -162,6 +163,26 @@ export const CycleSyncingSection = memo(() => {
             </div>
           </div>
           
+          {/* Season legend */}
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-6 text-sm">
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-blue-200" />
+              <span className="text-muted-foreground">Winter</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-green-200" />
+              <span className="text-muted-foreground">Lente</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-yellow-200" />
+              <span className="text-muted-foreground">Zomer</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="w-3 h-3 rounded bg-orange-200" />
+              <span className="text-muted-foreground">Herfst</span>
+            </div>
+          </div>
+          
           <div className="space-y-2">
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-1 md:gap-2">
@@ -173,77 +194,65 @@ export const CycleSyncingSection = memo(() => {
             </div>
             
             {/* Week 1 - Winter (Menstruatie) */}
-            <div className="relative">
-              <span className="absolute -left-2 md:left-0 top-1/2 -translate-y-1/2 -translate-x-full text-xs font-medium text-blue-600 hidden md:block">Winter</span>
-              <div className="grid grid-cols-7 gap-1 md:gap-2">
-                <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
-                  <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
-                  5
-                </div>
-                <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium border-2 border-primary relative">
-                  <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
-                  6
-                </div>
-                <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
-                  <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
-                  7
-                </div>
-                <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
-                  <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
-                  8
-                </div>
-                <div className="aspect-square rounded-lg bg-blue-50 flex items-center justify-center text-sm font-medium">9</div>
-                <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">10</div>
-                <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">11</div>
+            <div className="grid grid-cols-7 gap-1 md:gap-2">
+              <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
+                <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
+                5
               </div>
-              <span className="absolute -right-2 md:right-0 top-1/2 -translate-y-1/2 translate-x-full text-xs font-medium text-green-600 hidden md:block">Lente</span>
+              <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium border-2 border-primary relative">
+                <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
+                6
+              </div>
+              <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
+                <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
+                7
+              </div>
+              <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
+                <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
+                8
+              </div>
+              <div className="aspect-square rounded-lg bg-blue-50 flex items-center justify-center text-sm font-medium">9</div>
+              <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">10</div>
+              <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">11</div>
             </div>
             
             {/* Week 2 - Lente/Zomer with fertile window */}
-            <div className="relative">
-              <div className="grid grid-cols-7 gap-1 md:gap-2">
-                <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">12</div>
-                <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">13</div>
-                {/* Fertile window with green border */}
-                <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">14</div>
-                <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">15</div>
-                <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">16</div>
-                <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">17</div>
-                <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium">18</div>
-              </div>
-              <span className="absolute -right-2 md:right-0 top-1/2 -translate-y-1/2 translate-x-full text-xs font-medium text-yellow-600 hidden md:block">Zomer</span>
+            <div className="grid grid-cols-7 gap-1 md:gap-2">
+              <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">12</div>
+              <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">13</div>
+              {/* Fertile window with green border */}
+              <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">14</div>
+              <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">15</div>
+              <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">16</div>
+              <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">17</div>
+              <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium">18</div>
             </div>
             
             {/* Week 3 - Zomer/Herfst with ovulation */}
-            <div className="relative">
-              <span className="absolute -left-2 md:left-0 top-1/2 -translate-y-1/2 -translate-x-full text-xs font-medium text-orange-600 hidden md:block">Herfst</span>
-              <div className="grid grid-cols-7 gap-1 md:gap-2">
-                <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium relative ring-2 ring-green-500 ring-offset-1">
-                  <span className="absolute top-0.5 right-0.5 text-yellow-500 text-xs">★</span>
-                  19
-                </div>
-                <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">20</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">21</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">22</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">23</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">24</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">25</div>
+            <div className="grid grid-cols-7 gap-1 md:gap-2">
+              <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium relative ring-2 ring-green-500 ring-offset-1">
+                <span className="absolute top-0.5 right-0.5 text-yellow-500 text-xs">★</span>
+                19
               </div>
+              <div className="aspect-square rounded-lg bg-yellow-100 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">20</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">21</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">22</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">23</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">24</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">25</div>
             </div>
             
             {/* Week 4 - Herfst/Winter (pre-menstruation) */}
-            <div className="relative">
-              <div className="grid grid-cols-7 gap-1 md:gap-2">
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">26</div>
-                <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">27</div>
-                <div className="aspect-square rounded-lg bg-orange-50 flex items-center justify-center text-sm font-medium">28</div>
-                <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">29</div>
-                <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">30</div>
-                <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">31</div>
-                <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
-                  <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
-                  1
-                </div>
+            <div className="grid grid-cols-7 gap-1 md:gap-2">
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">26</div>
+              <div className="aspect-square rounded-lg bg-orange-100 flex items-center justify-center text-sm font-medium">27</div>
+              <div className="aspect-square rounded-lg bg-orange-50 flex items-center justify-center text-sm font-medium">28</div>
+              <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">29</div>
+              <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">30</div>
+              <div className="aspect-square rounded-lg bg-pink-100 flex items-center justify-center text-sm font-medium">31</div>
+              <div className="aspect-square rounded-lg bg-blue-100 flex items-center justify-center text-sm font-medium relative">
+                <span className="absolute top-1 left-1 w-2 h-2 rounded-full bg-red-400" />
+                1
               </div>
             </div>
           </div>
