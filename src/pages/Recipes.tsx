@@ -88,6 +88,7 @@ export default function RecipesPage() {
     toggleRecipe,
     isSelected,
     removeRecipe,
+    updateServings,
     clearAll,
     shoppingList,
   } = useShoppingList();
@@ -336,6 +337,7 @@ export default function RecipesPage() {
         selectedRecipes={selectedRecipes}
         shoppingList={shoppingList}
         onRemoveRecipe={removeRecipe}
+        onUpdateServings={updateServings}
         onClearAll={clearAll}
       />
     </AppLayout>

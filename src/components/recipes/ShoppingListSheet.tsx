@@ -3,18 +3,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { ShoppingItem, useShoppingList } from '@/hooks/useShoppingList';
-import { Recipe } from '@/hooks/useRecipes';
-import { ShoppingCart, Trash2, ChefHat, Copy, Check } from 'lucide-react';
+import { ShoppingItem, SelectedRecipe } from '@/hooks/useShoppingList';
+import { ShoppingCart, Trash2, ChefHat, Copy, Check, Minus, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 
 interface ShoppingListSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  selectedRecipes: Recipe[];
+  selectedRecipes: SelectedRecipe[];
   shoppingList: ShoppingItem[];
   onRemoveRecipe: (recipeId: string) => void;
+  onUpdateServings?: (recipeId: string, servings: number) => void;
   onClearAll: () => void;
 }
 
@@ -24,6 +24,7 @@ export function ShoppingListSheet({
   selectedRecipes,
   shoppingList,
   onRemoveRecipe,
+  onUpdateServings,
   onClearAll,
 }: ShoppingListSheetProps) {
   const { toast } = useToast();
@@ -80,27 +81,51 @@ export function ShoppingListSheet({
           </div>
         ) : (
           <div className="mt-6 space-y-6">
-            {/* Selected recipes */}
-            <div className="space-y-2">
+            {/* Selected recipes with servings control */}
+            <div className="space-y-3">
               <h3 className="text-sm font-medium text-muted-foreground">Geselecteerde recepten</h3>
-              <div className="flex flex-wrap gap-2">
+              <div className="space-y-2">
                 {selectedRecipes.map((recipe) => (
-                  <Badge
+                  <div
                     key={recipe.id}
-                    variant="secondary"
-                    className="flex items-center gap-1 pr-1"
+                    className="flex items-center justify-between p-2 rounded-lg bg-muted/50"
                   >
-                    <ChefHat className="h-3 w-3" />
-                    {recipe.title}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-4 w-4 ml-1 hover:bg-destructive/20"
-                      onClick={() => onRemoveRecipe(recipe.id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </Badge>
+                    <div className="flex items-center gap-2 min-w-0">
+                      <ChefHat className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                      <span className="text-sm font-medium truncate">{recipe.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {/* Servings control */}
+                      <div className="flex items-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => onUpdateServings?.(recipe.id, Math.max(1, recipe.selectedServings - 1))}
+                          disabled={recipe.selectedServings <= 1}
+                        >
+                          <Minus className="h-3 w-3" />
+                        </Button>
+                        <span className="text-xs w-6 text-center">{recipe.selectedServings}p</span>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => onUpdateServings?.(recipe.id, recipe.selectedServings + 1)}
+                        >
+                          <Plus className="h-3 w-3" />
+                        </Button>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-6 w-6 hover:bg-destructive/20"
+                        onClick={() => onRemoveRecipe(recipe.id)}
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>

@@ -1,6 +1,10 @@
 import { useState, useMemo, useCallback } from 'react';
 import { Recipe, Ingredient } from './useRecipes';
 
+export interface SelectedRecipe extends Recipe {
+  selectedServings: number;
+}
+
 export interface ShoppingItem {
   name: string;
   amounts: { amount: string; unit: string; recipeTitle: string }[];
@@ -41,11 +45,24 @@ function parseAmount(amount: string): number | null {
   return isNaN(num) ? null : num;
 }
 
-export function useShoppingList() {
-  const [selectedRecipes, setSelectedRecipes] = useState<Map<string, Recipe>>(new Map());
+function formatAmount(num: number): string {
+  const rounded = Math.round(num * 100) / 100;
+  // Use nice fractions for common values
+  if (rounded === 0.25) return '¼';
+  if (rounded === 0.5) return '½';
+  if (rounded === 0.75) return '¾';
+  if (rounded === 0.33) return '⅓';
+  if (rounded === 0.67) return '⅔';
+  return String(rounded);
+}
 
-  const addRecipe = useCallback((recipe: Recipe) => {
-    setSelectedRecipes(prev => new Map(prev).set(recipe.id, recipe));
+export function useShoppingList() {
+  // Store recipes with their selected servings
+  const [selectedRecipes, setSelectedRecipes] = useState<Map<string, SelectedRecipe>>(new Map());
+
+  const addRecipe = useCallback((recipe: Recipe, servings?: number) => {
+    const selectedServings = servings || recipe.servings || 4;
+    setSelectedRecipes(prev => new Map(prev).set(recipe.id, { ...recipe, selectedServings }));
   }, []);
 
   const removeRecipe = useCallback((recipeId: string) => {
@@ -56,28 +73,46 @@ export function useShoppingList() {
     });
   }, []);
 
-  const toggleRecipe = useCallback((recipe: Recipe) => {
+  const toggleRecipe = useCallback((recipe: Recipe, servings?: number) => {
     if (selectedRecipes.has(recipe.id)) {
       removeRecipe(recipe.id);
     } else {
-      addRecipe(recipe);
+      addRecipe(recipe, servings);
     }
   }, [selectedRecipes, addRecipe, removeRecipe]);
 
+  const updateServings = useCallback((recipeId: string, newServings: number) => {
+    setSelectedRecipes(prev => {
+      const next = new Map(prev);
+      const existing = next.get(recipeId);
+      if (existing) {
+        next.set(recipeId, { ...existing, selectedServings: newServings });
+      }
+      return next;
+    });
+  }, []);
+
   const isSelected = useCallback((recipeId: string) => {
     return selectedRecipes.has(recipeId);
+  }, [selectedRecipes]);
+
+  const getSelectedServings = useCallback((recipeId: string) => {
+    return selectedRecipes.get(recipeId)?.selectedServings;
   }, [selectedRecipes]);
 
   const clearAll = useCallback(() => {
     setSelectedRecipes(new Map());
   }, []);
 
-  // Aggregate ingredients
+  // Aggregate ingredients with scaled amounts
   const shoppingList = useMemo(() => {
     const ingredientMap = new Map<string, ShoppingItem>();
 
     selectedRecipes.forEach((recipe) => {
       const ingredients = recipe.ingredients || [];
+      const originalServings = recipe.servings || 4;
+      const scaleFactor = recipe.selectedServings / originalServings;
+
       ingredients.forEach((ing: Ingredient) => {
         const key = ing.name.toLowerCase().trim();
         
@@ -88,11 +123,18 @@ export function useShoppingList() {
           });
         }
 
+        // Scale the amount
+        const parsedAmount = parseAmount(ing.amount);
+        let scaledAmountStr = ing.amount;
+        if (parsedAmount !== null) {
+          scaledAmountStr = formatAmount(parsedAmount * scaleFactor);
+        }
+
         const item = ingredientMap.get(key)!;
         item.amounts.push({
-          amount: ing.amount,
+          amount: scaledAmountStr,
           unit: ing.unit,
-          recipeTitle: recipe.title,
+          recipeTitle: `${recipe.title} (${recipe.selectedServings}p)`,
         });
       });
     });
@@ -123,7 +165,7 @@ export function useShoppingList() {
         result.push({
           name: item.name,
           amounts: item.amounts,
-          totalAmount: String(Math.round(total * 100) / 100),
+          totalAmount: formatAmount(total),
           unit,
         });
       } else {
@@ -144,7 +186,9 @@ export function useShoppingList() {
     addRecipe,
     removeRecipe,
     toggleRecipe,
+    updateServings,
     isSelected,
+    getSelectedServings,
     clearAll,
     shoppingList,
   };
