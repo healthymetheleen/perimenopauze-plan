@@ -971,6 +971,36 @@ export type Database = {
         }
         Relationships: []
       }
+      page_analytics_monthly: {
+        Row: {
+          created_at: string
+          id: string
+          month_date: string
+          page_path: string
+          unique_sessions: number
+          updated_at: string
+          view_count: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          month_date: string
+          page_path: string
+          unique_sessions?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          month_date?: string
+          page_path?: string
+          unique_sessions?: number
+          updated_at?: string
+          view_count?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           accepted_body_data: boolean | null
@@ -1464,6 +1494,8 @@ export type Database = {
       delete_user_data: { Args: { user_uuid: string }; Returns: boolean }
       export_user_data: { Args: { user_uuid: string }; Returns: Json }
       export_user_data_complete: { Args: { user_uuid: string }; Returns: Json }
+      get_admin_stats: { Args: never; Returns: Json }
+      get_ai_usage_breakdown: { Args: never; Returns: Json }
       get_ai_usage_remaining: {
         Args: { monthly_limit?: number; user_id: string }
         Returns: number
@@ -1475,6 +1507,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_page_view: { Args: { p_page_path: string }; Returns: undefined }
       withdraw_consent: {
         Args: { consent_type: string; user_uuid: string }
         Returns: boolean

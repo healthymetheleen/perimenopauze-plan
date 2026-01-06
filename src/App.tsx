@@ -38,6 +38,7 @@ import IntendedUse from "./pages/IntendedUse";
 import MonthlyAnalysisPage from "./pages/MonthlyAnalysis";
 import SubscriptionPage from "./pages/Subscription";
 import NutritionAdminPage from "./pages/NutritionAdmin";
+import AdminDashboardPage from "./pages/AdminDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -261,6 +262,12 @@ function AppRoutes() {
           <NutritionAdminPage />
         </ProtectedRoute>
       } />
+      <Route path="/admin" element={
+        <ProtectedRoute>
+          <AdminDashboardPage />
+        </ProtectedRoute>
+      } />
+      
       
       {/* Catch all */}
       <Route path="*" element={<NotFound />} />
