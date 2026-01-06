@@ -46,6 +46,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
   const [cookTime, setCookTime] = useState('');
   const [servings, setServings] = useState('2');
   const [imageUrl, setImageUrl] = useState('');
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [mealType, setMealType] = useState('ontbijt');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
   const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
@@ -69,7 +70,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       setCookTime(existingRecipe.cook_time_minutes?.toString() || '');
       setServings(existingRecipe.servings?.toString() || '2');
       setImageUrl(existingRecipe.image_url || '');
-      setMealType(existingRecipe.meal_type);
+      setThumbnailUrl(existingRecipe.thumbnail_url || '');
       setSelectedSeasons(existingRecipe.seasons);
       setSelectedDietTags(existingRecipe.diet_tags);
       setIngredients(existingRecipe.ingredients.length > 0 
@@ -91,6 +92,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       setCookTime('');
       setServings('2');
       setImageUrl('');
+      setThumbnailUrl('');
       setMealType('ontbijt');
       setSelectedSeasons([]);
       setSelectedDietTags([]);
@@ -150,6 +152,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       cook_time_minutes: cookTime ? parseInt(cookTime) : null,
       servings: servings ? parseInt(servings) : null,
       image_url: imageUrl.trim() || null,
+      thumbnail_url: thumbnailUrl.trim() || null,
       meal_type: mealType,
       seasons: selectedSeasons,
       diet_tags: selectedDietTags,
@@ -236,12 +239,15 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
                         return;
                       }
                       try {
-                        const url = await generateImage.mutateAsync({
+                        const result = await generateImage.mutateAsync({
                           recipeTitle: title,
                           recipeDescription: description,
                           mealType,
                         });
-                        setImageUrl(url);
+                        setImageUrl(result.imageUrl);
+                        if (result.thumbnailUrl) {
+                          setThumbnailUrl(result.thumbnailUrl);
+                        }
                         toast({
                           title: 'Afbeelding gegenereerd',
                           description: 'De AI heeft een afbeelding voor dit recept gemaakt.',
