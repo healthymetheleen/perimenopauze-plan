@@ -325,11 +325,11 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         <div className="relative">
           {/* Season backgrounds (panels) behind a fixed grid */}
           {showSeasons && (
-            <div className="absolute inset-0 grid grid-cols-7 gap-1.5 pointer-events-none" style={{ marginTop: '28px' }}>
+            <div className="absolute inset-0 grid grid-cols-7 gap-2 pointer-events-none" style={{ marginTop: '28px' }}>
               {backgroundPieces.map((p, idx) => (
                 <div
                   key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
-                  className={`rounded-lg ${seasonSurfaceClass[p.season]} opacity-90`}
+                  className={`rounded-xl ${seasonSurfaceClass[p.season]} opacity-90`}
                   style={{
                     gridRow: `${p.row} / ${p.row + 1}`,
                     gridColumn: `${p.colStart} / ${p.colEnd + 1}`,
@@ -352,7 +352,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           </div>
 
           {/* Days */}
-          <div className="relative z-10 grid grid-cols-7 gap-1.5">
+          <div className="relative z-10 grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
               const hasBleeding = !!day.bleeding && showMenstruation;
               const showPredicted = !!day.isPredictedPeriod && showMenstruation;
@@ -367,7 +367,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                   key={day.dateStr}
                   onClick={() => onDayClick(day.dateStr)}
                   className={`
-                    relative min-h-[48px] rounded
+                    relative min-h-[48px] rounded-lg
                     bg-background/70 dark:bg-background/25
                     border border-border/40
                     flex flex-col items-center justify-end text-center px-0.5 py-1.5
