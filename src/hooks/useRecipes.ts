@@ -109,7 +109,8 @@ export const dietTags = [
 export function useRecipes(filters?: {
   mealType?: string;
   season?: string;
-  dietTag?: string;
+  cyclePhase?: string;
+  dietTags?: string[];
   search?: string;
 }) {
   return useQuery({
@@ -127,8 +128,14 @@ export function useRecipes(filters?: {
       if (filters?.season) {
         query = query.contains('seasons', [filters.season]);
       }
-      if (filters?.dietTag) {
-        query = query.contains('diet_tags', [filters.dietTag]);
+      if (filters?.cyclePhase) {
+        query = query.contains('cycle_phases', [filters.cyclePhase]);
+      }
+      if (filters?.dietTags && filters.dietTags.length > 0) {
+        // Filter recipes that contain ALL selected diet tags
+        for (const tag of filters.dietTags) {
+          query = query.contains('diet_tags', [tag]);
+        }
       }
       if (filters?.search) {
         query = query.ilike('title', `%${filters.search}%`);
