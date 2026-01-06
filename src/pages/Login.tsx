@@ -109,7 +109,7 @@ export default function LoginPage() {
           <CardDescription className="space-y-2">
             <span className="block">Speciaal ontwikkeld voor vrouwen in de perimenopauze</span>
             <span className="block text-xs bg-primary/10 text-primary px-3 py-1.5 rounded-full inline-block">
-              ✨ AI-inzichten afgestemd op jouw cyclus & symptomen
+              AI-inzichten afgestemd op jouw cyclus & symptomen
             </span>
           </CardDescription>
         </CardHeader>

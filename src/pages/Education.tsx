@@ -56,28 +56,28 @@ const timelineData = [
     ageRange: "35-45 jaar",
     duration: "2-4 jaar",
     description: "Eerste schommelingen kunnen beginnen. Cycli worden soms korter of langer, eerste subtiele symptomen kunnen optreden.",
-    color: "bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800",
+    color: "bg-primary/5 border-primary/20",
   },
   {
     phase: "Late Perimenopauze",
     ageRange: "45-51 jaar",
     duration: "2-4 jaar",
     description: "Sterke hormoonschommelingen, onregelmatige cycli, duidelijke symptomen zoals opvliegers en slaapproblemen.",
-    color: "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800",
+    color: "bg-primary/10 border-primary/30",
   },
   {
     phase: "Menopauze",
     ageRange: "45-55 jaar",
     duration: "1 dag",
     description: "Het moment dat je 12 maanden geen menstruatie hebt gehad. De leeftijd varieert per vrouw.",
-    color: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800",
+    color: "bg-primary/15 border-primary/40",
   },
   {
     phase: "Post-menopauze",
     ageRange: "Na menopauze",
     duration: "Rest van je leven",
     description: "Hormonen stabiliseren op een lager niveau. Veel symptomen verminderen, maar nieuwe aandachtspunten ontstaan.",
-    color: "bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800",
+    color: "bg-primary/20 border-primary/50",
   },
 ];
 
@@ -316,8 +316,8 @@ const Education = () => {
                     tijdens de perimenopauze. Dit veroorzaakt veel van de bekende symptomen.
                   </p>
                 </div>
-                <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-4">
-                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-2">Progesteron</h4>
+                <div className="bg-primary/15 rounded-lg p-4">
+                  <h4 className="font-semibold text-primary mb-2">Progesteron</h4>
                   <p className="text-sm text-muted-foreground">
                     Het "kalmerende" hormoon. Daalt als eerste en sneller dan oestrogeen. 
                     Dit kan leiden tot angst, slaapproblemen en onregelmatige cycli.

@@ -22,7 +22,7 @@ export function TrendsSymptomsBlock({ symptoms, period }: TrendsSymptomsBlockPro
       <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Activity className="h-5 w-5 text-rose-500" />
+            <Activity className="h-5 w-5 text-primary" />
             Top 5 klachten
           </CardTitle>
         </CardHeader>
@@ -38,7 +38,7 @@ export function TrendsSymptomsBlock({ symptoms, period }: TrendsSymptomsBlockPro
     <Card className="rounded-2xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Activity className="h-5 w-5 text-rose-500" />
+          <Activity className="h-5 w-5 text-primary" />
           Top 5 klachten
         </CardTitle>
         <CardDescription>

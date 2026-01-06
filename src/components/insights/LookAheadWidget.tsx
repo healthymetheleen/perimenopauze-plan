@@ -354,15 +354,15 @@ function DayCard({ day, onClick }: { day: DayForecast; onClick: () => void }) {
       </Badge>
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">😴</span>
+          <span className="text-[9px] text-muted-foreground">Slaap</span>
           <RiskDots level={day.sleep} />
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">🍫</span>
+          <span className="text-[9px] text-muted-foreground">Cravings</span>
           <RiskDots level={day.cravings} />
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">😰</span>
+          <span className="text-[9px] text-muted-foreground">Onrust</span>
           <RiskDots level={day.unrest} />
         </div>
       </div>
@@ -565,7 +565,7 @@ export function LookAheadWidget() {
         {/* Season Quote Header */}
         <div className="p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-b">
           <p className="text-sm font-medium text-center text-foreground">
-            ✨ {template.quote}
+            {template.quote}
           </p>
         </div>
         

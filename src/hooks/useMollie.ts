@@ -234,12 +234,12 @@ export const SUBSCRIPTION_PLANS = {
   },
 } as const;
 
-// Payment method icons
+// Payment method icons (text labels, no emojis)
 export const PAYMENT_METHOD_ICONS: Record<string, string> = {
-  ideal: '🏦',
-  creditcard: '💳',
-  bancontact: '🇧🇪',
-  paypal: '🅿️',
-  applepay: '🍎',
-  googlepay: '📱',
+  ideal: 'iDEAL',
+  creditcard: 'Card',
+  bancontact: 'BC',
+  paypal: 'PayPal',
+  applepay: 'Apple',
+  googlepay: 'Google',
 };

@@ -191,7 +191,7 @@ export default function CycleOnboardingPage() {
                 </div>
               </RadioGroup>
               {data.show_fertile_days && (
-                <div className="p-3 rounded-lg bg-amber-50 text-amber-800 text-sm">
+                <div className="p-3 rounded-lg bg-primary/10 text-primary text-sm">
                   <strong>Let op:</strong> Voorspellingen van vruchtbare dagen zijn schattingen en niet bedoeld als anticonceptie. Overleg bij kinderwens of het vermijden van zwangerschap met een professional.
                 </div>
               )}
