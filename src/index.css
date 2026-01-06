@@ -4,6 +4,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Utility class to hide scrollbar but keep scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* HormoonBalans Dagboek Design System
    All colors in HSL format
    Palette: warm, calm, supportive

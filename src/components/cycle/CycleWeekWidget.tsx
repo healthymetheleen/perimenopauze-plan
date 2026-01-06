@@ -127,12 +127,12 @@ export function CycleWeekWidget() {
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </div>
 
-          {/* Legend chips - styled like calendar page */}
-          <div className="flex flex-wrap gap-2 text-xs">
+          {/* Legend chips - horizontally scrollable on mobile */}
+          <div className="flex gap-2 text-xs overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
             {prediction?.next_period_start_min && (
               <Badge 
                 variant="outline" 
-                className="font-normal pl-5 relative bg-background/80"
+                className="font-normal pl-5 relative bg-background/80 flex-shrink-0"
               >
                 <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive" />
                 {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
@@ -141,7 +141,7 @@ export function CycleWeekWidget() {
             {preferences?.show_fertile_days && prediction?.fertile_window_start && (
               <Badge 
                 variant="outline" 
-                className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80"
+                className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80 flex-shrink-0 whitespace-nowrap"
               >
                 Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
               </Badge>
@@ -149,7 +149,7 @@ export function CycleWeekWidget() {
             {preferences?.show_fertile_days && ovulationDateStr && (
               <Badge 
                 variant="outline" 
-                className="font-normal pr-5 relative bg-background/80"
+                className="font-normal pr-5 relative bg-background/80 flex-shrink-0"
               >
                 {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
                 <span className="absolute -top-0.5 -right-0.5 cycle-ovulation-star text-[10px] font-bold">★</span>

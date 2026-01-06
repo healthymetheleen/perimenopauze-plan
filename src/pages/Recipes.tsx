@@ -167,19 +167,19 @@ export default function RecipesPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-full overflow-x-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-semibold text-foreground">Recepten</h1>
-            <p className="text-muted-foreground">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-semibold text-foreground truncate">Recepten</h1>
+            <p className="text-muted-foreground text-sm">
               Gezonde recepten afgestemd op seizoen & cyclus
             </p>
           </div>
           <Button
             variant={selectedCount > 0 ? 'default' : 'outline'}
             onClick={() => setShowShoppingList(true)}
-            className="relative"
+            className="relative flex-shrink-0 w-full sm:w-auto"
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
             Boodschappen
@@ -257,19 +257,19 @@ export default function RecipesPage() {
         )}
 
         {/* Quick filters and search */}
-        <div className="space-y-3">
-          {/* Quick dropdowns row */}
-          <div className="flex gap-2 flex-wrap items-center">
+        <div className="space-y-3 max-w-full">
+          {/* Quick dropdowns row - scrollable on mobile */}
+          <div className="flex gap-2 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
             {/* Favorites toggle */}
             {user && (
               <Button
                 variant={showFavoritesOnly ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
-                className="gap-1"
+                className="gap-1 flex-shrink-0"
               >
                 <Heart className={`h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                Favorieten
+                <span className="hidden sm:inline">Favorieten</span>
                 {favoriteIds.length > 0 && (
                   <Badge variant="secondary" className="ml-1 h-5 px-1.5">
                     {favoriteIds.length}
@@ -279,7 +279,7 @@ export default function RecipesPage() {
             )}
 
             <Select value={mealType} onValueChange={setMealType}>
-              <SelectTrigger className="w-[140px] bg-background">
+              <SelectTrigger className="w-[120px] sm:w-[140px] bg-background flex-shrink-0">
                 <SelectValue placeholder="Maaltijd" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -293,7 +293,7 @@ export default function RecipesPage() {
             </Select>
 
             <Select value={timeCategory} onValueChange={setTimeCategory}>
-              <SelectTrigger className="w-[140px] bg-background">
+              <SelectTrigger className="w-[100px] sm:w-[140px] bg-background flex-shrink-0">
                 <SelectValue placeholder="Tijd" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
@@ -311,7 +311,7 @@ export default function RecipesPage() {
                 variant="ghost" 
                 size="sm" 
                 onClick={() => { setMealType(''); setTimeCategory(''); }}
-                className="text-muted-foreground"
+                className="text-muted-foreground flex-shrink-0"
               >
                 Wissen
               </Button>
