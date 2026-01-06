@@ -372,8 +372,9 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     border border-border/40
                     flex flex-col items-center justify-end text-center px-0.5 py-1.5
                     transition-all hover:bg-background/85 dark:hover:bg-background/40
-                    ${day.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                    ${day.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
                     ${!day.isCurrentMonth ? 'opacity-30' : ''}
+                    ${showFertileDay ? 'outline outline-2 outline-offset-1 outline-green-500' : ''}
                   `}
                 >
                   {/* Season label (first day in a season segment) */}
@@ -392,10 +393,6 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive/35 ring-1 ring-destructive/30" />
                   )}
 
-                  {/* Fertile ring */}
-                  {showFertileDay && (
-                    <span className="absolute inset-1 rounded cycle-ring-fertile" />
-                  )}
                   {/* Ovulation star */}
                   {showOvulation && (
                     <span className="absolute top-1 right-1 cycle-ovulation-star text-xs font-bold">★</span>
