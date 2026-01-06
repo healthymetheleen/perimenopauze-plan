@@ -91,31 +91,8 @@ export function useGenerateMonthlyAnalysis() {
       if (error) throw error;
       if (data.error) throw new Error(data.message || data.error);
 
-      const analysis = data as MonthlyAnalysis;
-      const monthKey = format(startOfMonth(new Date()), 'yyyy-MM-dd');
-
-      // Save to ai_insights_cache for persistence
-      if (user) {
-        // First try to delete existing, then insert new
-        await supabase
-          .from('ai_insights_cache')
-          .delete()
-          .eq('owner_id', user.id)
-          .eq('insight_type', 'monthly-analysis')
-          .eq('insight_date', monthKey);
-
-        await supabase
-          .from('ai_insights_cache')
-          .insert({
-            owner_id: user.id,
-            insight_type: 'monthly-analysis',
-            insight_date: monthKey,
-            // Cast to the expected JSON type
-            insight_data: JSON.parse(JSON.stringify(analysis)),
-          });
-      }
-
-      return analysis;
+      // The edge function now handles caching, so we just return the result
+      return data as MonthlyAnalysis;
     },
     onSuccess: () => {
       const monthKey = format(startOfMonth(new Date()), 'yyyy-MM-dd');
