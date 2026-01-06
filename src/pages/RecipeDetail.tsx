@@ -5,10 +5,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
-import { useRecipe, mealTypes, seasons, cyclePhases, dietTags, Ingredient } from '@/hooks/useRecipes';
+import { useRecipe, useFavoriteIds, useAddFavorite, useRemoveFavorite, mealTypes, seasons, cyclePhases, dietTags, Ingredient } from '@/hooks/useRecipes';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { sanitizeImageUrl } from '@/lib/sanitize';
-import { ArrowLeft, Clock, Users, ChefHat, Flame, Beef, Wheat, Droplet, Minus, Plus, ShoppingCart, Check } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
+import { ArrowLeft, Clock, Users, ChefHat, Flame, Beef, Wheat, Droplet, Minus, Plus, ShoppingCart, Check, Heart } from 'lucide-react';
 
 // Scale ingredient amount based on servings
 function scaleIngredient(ingredient: Ingredient, originalServings: number, newServings: number): { amount: string; unit: string; name: string } {
@@ -35,9 +36,25 @@ function scaleIngredient(ingredient: Ingredient, originalServings: number, newSe
 }
 
 export default function RecipeDetailPage() {
+  const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const { data: recipe, isLoading } = useRecipe(id || null);
   const { isSelected, toggleRecipe, getSelectedServings } = useShoppingList();
+  
+  // Favorites
+  const { data: favoriteIds = [] } = useFavoriteIds();
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
+  const isFavorite = id ? favoriteIds.includes(id) : false;
+  
+  const handleToggleFavorite = () => {
+    if (!user || !id) return;
+    if (isFavorite) {
+      removeFavorite.mutate(id);
+    } else {
+      addFavorite.mutate(id);
+    }
+  };
   
   // Local serving size state
   const [localServings, setLocalServings] = useState<number | null>(null);
@@ -129,7 +146,24 @@ export default function RecipeDetailPage() {
 
         {/* Title and meta */}
         <div>
-          <h1 className="text-2xl font-bold">{recipe.title}</h1>
+          <div className="flex items-start justify-between gap-4">
+            <h1 className="text-2xl font-bold">{recipe.title}</h1>
+            {user && (
+              <button
+                onClick={handleToggleFavorite}
+                className="p-2 hover:scale-110 transition-transform flex-shrink-0"
+                aria-label={isFavorite ? "Verwijder uit favorieten" : "Voeg toe aan favorieten"}
+              >
+                <Heart 
+                  className={`h-6 w-6 transition-colors ${
+                    isFavorite 
+                      ? 'fill-red-500 text-red-500' 
+                      : 'text-muted-foreground hover:text-red-400'
+                  }`} 
+                />
+              </button>
+            )}
+          </div>
           {recipe.description && (
             <p className="text-muted-foreground mt-2">{recipe.description}</p>
           )}

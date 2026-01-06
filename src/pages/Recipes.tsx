@@ -9,14 +9,15 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useRecipes, useCyclePhaseRecipes, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
+import { useRecipes, useCyclePhaseRecipes, useFavoriteIds, useFavoriteRecipes, useAddFavorite, useRemoveFavorite, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
 import { useRecipePreferences } from '@/hooks/useRecipePreferences';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
 import { RecipeFilters } from '@/components/recipes/RecipeFilters';
 import { sanitizeImageUrl } from '@/lib/sanitize';
-import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart } from 'lucide-react';
+import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart, Heart } from 'lucide-react';
+import { useAuth } from '@/lib/auth';
 
 // Time categories for filtering
 const timeCategories = [
@@ -44,11 +45,13 @@ function getCurrentCalendarSeason(): string {
 }
 
 export default function RecipesPage() {
+  const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [mealType, setMealType] = useState<string>('');
   const [timeCategory, setTimeCategory] = useState<string>('');
   const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
+  const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
 
   // Persisted preferences
@@ -111,6 +114,28 @@ export default function RecipesPage() {
 
   const { data: cycleRecipes } = useCyclePhaseRecipes(currentCyclePhase);
 
+  // Favorites
+  const { data: favoriteIds = [] } = useFavoriteIds();
+  const { data: favoriteRecipes = [], isLoading: favoritesLoading } = useFavoriteRecipes();
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
+
+  const isFavorite = (recipeId: string) => favoriteIds.includes(recipeId);
+  
+  const toggleFavorite = (recipeId: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!user) return;
+    if (isFavorite(recipeId)) {
+      removeFavorite.mutate(recipeId);
+    } else {
+      addFavorite.mutate(recipeId);
+    }
+  };
+
+  // Use favorites or regular recipes based on toggle
+  const displayRecipes = showFavoritesOnly ? favoriteRecipes : recipes;
+
   const {
     selectedRecipes,
     selectedCount,
@@ -137,8 +162,8 @@ export default function RecipesPage() {
     setSearch('');
   };
 
-  // Show suggestions only when no manual filters are active
-  const showCycleSuggestions = hasCycleData && cycleRecipes && cycleRecipes.length > 0 && !hasManualFilters && !showFilters;
+  // Show suggestions only when no manual filters are active and not showing favorites
+  const showCycleSuggestions = hasCycleData && cycleRecipes && cycleRecipes.length > 0 && !hasManualFilters && !showFilters && !showFavoritesOnly;
 
   return (
     <AppLayout>
@@ -234,7 +259,25 @@ export default function RecipesPage() {
         {/* Quick filters and search */}
         <div className="space-y-3">
           {/* Quick dropdowns row */}
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex gap-2 flex-wrap items-center">
+            {/* Favorites toggle */}
+            {user && (
+              <Button
+                variant={showFavoritesOnly ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setShowFavoritesOnly(!showFavoritesOnly)}
+                className="gap-1"
+              >
+                <Heart className={`h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
+                Favorieten
+                {favoriteIds.length > 0 && (
+                  <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                    {favoriteIds.length}
+                  </Badge>
+                )}
+              </Button>
+            )}
+
             <Select value={mealType} onValueChange={setMealType}>
               <SelectTrigger className="w-[140px] bg-background">
                 <SelectValue placeholder="🍽️ Maaltijd" />
@@ -329,20 +372,35 @@ export default function RecipesPage() {
         </div>
 
         {/* Recipe list */}
-        {isLoading ? (
-          <LoadingState message="Recepten laden..." />
-        ) : recipes && recipes.length > 0 ? (
+        {(showFavoritesOnly ? favoritesLoading : isLoading) ? (
+          <LoadingState message={showFavoritesOnly ? "Favorieten laden..." : "Recepten laden..."} />
+        ) : displayRecipes && displayRecipes.length > 0 ? (
           <div className="grid gap-4">
-            {recipes.map((recipe) => (
+            {displayRecipes.map((recipe) => (
               <Card key={recipe.id} className="rounded-2xl hover:shadow-md transition-shadow">
                 <CardContent className="p-4">
                   <div className="flex gap-4">
-                    <div className="flex items-center">
+                    <div className="flex items-center gap-2">
                       <Checkbox
                         checked={isSelected(recipe.id)}
                         onCheckedChange={() => toggleRecipe(recipe)}
                         className="flex-shrink-0"
                       />
+                      {user && (
+                        <button
+                          onClick={(e) => toggleFavorite(recipe.id, e)}
+                          className="p-1 hover:scale-110 transition-transform"
+                          aria-label={isFavorite(recipe.id) ? "Verwijder uit favorieten" : "Voeg toe aan favorieten"}
+                        >
+                          <Heart 
+                            className={`h-5 w-5 transition-colors ${
+                              isFavorite(recipe.id) 
+                                ? 'fill-red-500 text-red-500' 
+                                : 'text-muted-foreground hover:text-red-400'
+                            }`} 
+                          />
+                        </button>
+                      )}
                     </div>
                     <Link to={`/recepten/${recipe.id}`} className="flex gap-4 flex-1 min-w-0">
                       {sanitizeImageUrl(recipe.image_url) ? (
@@ -398,9 +456,9 @@ export default function RecipesPage() {
           </div>
         ) : (
           <EmptyState
-            icon={<ChefHat className="h-12 w-12" />}
-            title="Geen recepten gevonden"
-            description={hasManualFilters ? "Probeer andere filters" : "Er zijn nog geen recepten toegevoegd"}
+            icon={showFavoritesOnly ? <Heart className="h-12 w-12" /> : <ChefHat className="h-12 w-12" />}
+            title={showFavoritesOnly ? "Nog geen favorieten" : "Geen recepten gevonden"}
+            description={showFavoritesOnly ? "Klik op het hartje bij een recept om het toe te voegen" : (hasManualFilters ? "Probeer andere filters" : "Er zijn nog geen recepten toegevoegd")}
           />
         )}
       </div>
