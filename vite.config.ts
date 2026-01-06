@@ -54,26 +54,21 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          // Bundle alle lucide icons samen (voorkomt 20+ separate requests)
-          'lucide-icons': ['lucide-react'],
-          // React vendor bundle
-          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
-          // UI components bundle
-          'ui-radix': [
-            '@radix-ui/react-dialog',
-            '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-select',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-slot',
-            '@radix-ui/react-popover',
-            '@radix-ui/react-tooltip',
-          ],
-          // Charting library
-          'charts': ['recharts'],
-          // Framer motion
-          'motion': ['framer-motion'],
+        manualChunks: (id) => {
+          // Bundle lucide icons together (prevents 20+ separate requests)
+          if (id.includes('lucide-react')) {
+            return 'lucide-icons';
+          }
+          // Bundle Radix UI components together
+          if (id.includes('@radix-ui')) {
+            return 'ui-radix';
+          }
+          // Bundle recharts separately (large library)
+          if (id.includes('recharts') || id.includes('d3-')) {
+            return 'charts';
+          }
+          // Let Vite handle react, react-dom, framer-motion automatically
+          // to avoid duplicate React instances
         },
       },
     },
