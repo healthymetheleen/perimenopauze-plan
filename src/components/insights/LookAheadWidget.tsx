@@ -34,31 +34,31 @@ const seasonIcons: Record<Season, React.ReactNode> = {
   onbekend: <Sparkles className="h-4 w-4" />,
 };
 
-// Season badge colors using semantic tokens
+// Season badge colors 
 const seasonBadgeColors: Record<Season, string> = {
-  winter: 'bg-muted text-foreground',
-  lente: 'bg-primary/10 text-primary',
-  zomer: 'bg-primary/20 text-primary',
-  herfst: 'bg-muted text-muted-foreground',
-  onbekend: 'bg-muted text-muted-foreground',
+  winter: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300',
+  lente: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300',
+  zomer: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300',
+  herfst: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-300',
+  onbekend: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
 };
 
 // Season block background colors for Nu/Daarna pills
 const seasonBlockColors: Record<Season, string> = {
-  winter: 'bg-muted/50 border border-border',
-  lente: 'bg-primary/5 border border-primary/20',
-  zomer: 'bg-primary/10 border border-primary/30',
-  herfst: 'bg-muted/30 border border-border',
-  onbekend: 'bg-muted/30',
+  winter: 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800',
+  lente: 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800',
+  zomer: 'bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800',
+  herfst: 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800',
+  onbekend: 'bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700',
 };
 
 // Season text colors for labels
 const seasonTextColors: Record<Season, string> = {
-  winter: 'text-foreground',
-  lente: 'text-primary',
-  zomer: 'text-primary',
-  herfst: 'text-muted-foreground',
-  onbekend: 'text-muted-foreground',
+  winter: 'text-blue-700 dark:text-blue-300',
+  lente: 'text-green-700 dark:text-green-300',
+  zomer: 'text-amber-700 dark:text-amber-300',
+  herfst: 'text-orange-700 dark:text-orange-300',
+  onbekend: 'text-gray-700 dark:text-gray-300',
 };
 
 // Risk level indicator colors

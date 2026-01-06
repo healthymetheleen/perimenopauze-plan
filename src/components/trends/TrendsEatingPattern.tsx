@@ -16,7 +16,7 @@ export function TrendsEatingPattern({ stats }: TrendsEatingPatternProps) {
       <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Timer className="h-5 w-5 text-primary" />
+            <Timer className="h-5 w-5 text-teal-500" />
             Eetpatroon structuur
           </CardTitle>
         </CardHeader>
@@ -31,7 +31,7 @@ export function TrendsEatingPattern({ stats }: TrendsEatingPatternProps) {
     <Card className="rounded-2xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Timer className="h-5 w-5 text-primary" />
+          <Timer className="h-5 w-5 text-teal-500" />
           Eetpatroon structuur
         </CardTitle>
         <CardDescription>

@@ -84,7 +84,7 @@ export function TrendsDayDialog({ day, open, onOpenChange }: TrendsDayDialogProp
           {day.sleepDurationMin !== null && (
             <div className="p-3 rounded-lg border">
               <div className="flex items-center gap-2 mb-2">
-                <Moon className="h-4 w-4 text-primary" />
+                <Moon className="h-4 w-4 text-indigo-500" />
                 <span className="text-sm font-medium">Slaap</span>
               </div>
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -104,7 +104,7 @@ export function TrendsDayDialog({ day, open, onOpenChange }: TrendsDayDialogProp
           {hasSymptoms && (
             <div className="p-3 rounded-lg border">
               <div className="flex items-center gap-2 mb-2">
-                <Activity className="h-4 w-4 text-primary" />
+                <Activity className="h-4 w-4 text-rose-500" />
                 <span className="text-sm font-medium">Klachten</span>
               </div>
               <div className="flex flex-wrap gap-1">
