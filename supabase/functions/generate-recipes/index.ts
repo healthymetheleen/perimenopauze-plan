@@ -72,7 +72,30 @@ Genereer ${count} recepten in JSON format met deze exacte structuur:
 {
   "title": "string",
   "description": "string (1-2 zinnen, noem functional medicine voordeel)",
-  "instructions": "string (stapsgewijze instructies)",
+  "instructions": "string (GESTRUCTUREERD stappenplan met Markdown formatting:
+    - Gebruik ## kopjes voor onderdelen (bijv. ## Deeg, ## Saus, ## Afwerking, ## Bereiding)
+    - Gebruik genummerde stappen onder elk kopje (1. Doe dit... 2. Dan dit...)
+    - Gebruik ALLEEN onderdeel-kopjes als het recept meerdere componenten heeft
+    - Voor simpele recepten: direct genummerde stappen zonder kopjes
+    - Voeg timing toe waar relevant (bijv. 'Bak 5 minuten' of 'Laat 10 min rusten')
+    - Voorbeeld met onderdelen:
+      ## Deeg
+      1. Meng de bloem met het zout
+      2. Voeg het water toe en kneed 5 minuten
+      
+      ## Vulling
+      1. Fruit de ui glazig
+      2. Voeg de groenten toe
+      
+      ## Afwerking
+      1. Vul het deeg met de vulling
+      2. Bak af in de oven op 180°C, 25 minuten
+    - Voorbeeld simpel recept:
+      1. Snijd de groenten in blokjes
+      2. Verhit de olie in een pan
+      3. Bak de groenten 5-7 minuten
+      4. Breng op smaak met kruiden
+  )",
   "prep_time_minutes": number,
   "cook_time_minutes": number,
   "servings": number,
