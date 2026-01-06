@@ -128,7 +128,7 @@ export default function SubscriptionPage() {
             Abonnement
           </h1>
           <p className="text-muted-foreground">
-            Beheer je HormoonBalans abonnement
+            Beheer je Perimenopauze Plan abonnement
           </p>
         </div>
 
