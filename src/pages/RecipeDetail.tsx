@@ -146,26 +146,52 @@ export default function RecipeDetailPage() {
           </div>
         </div>
 
-        {/* Tags */}
-        {(recipe.seasons.length > 0 || recipe.cycle_phases?.length > 0 || recipe.diet_tags.length > 0) && (
-          <div className="flex flex-wrap gap-2">
-            {recipe.seasons.map((s) => (
-              <Badge key={s} variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                🌿 {seasons.find(season => season.value === s)?.label || s}
-              </Badge>
-            ))}
-            {recipe.cycle_phases?.map((p) => (
-              <Badge key={p} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                🌙 {cyclePhases.find(phase => phase.value === p)?.label || p}
-              </Badge>
-            ))}
-            {recipe.diet_tags.map((tag) => (
-              <Badge key={tag} variant="outline">
-                {dietTags.find(t => t.value === tag)?.label || tag}
-              </Badge>
-            ))}
-          </div>
-        )}
+        {/* Tags - only show if specific (not all options selected) */}
+        {(() => {
+          // Don't show seasons if ALL 4 are selected (implies year-round)
+          const showSeasons = recipe.seasons.length > 0 && recipe.seasons.length < 4;
+          // Don't show cycle phases if ALL 4 are selected (implies all phases)
+          const showCyclePhases = recipe.cycle_phases && recipe.cycle_phases.length > 0 && recipe.cycle_phases.length < 4;
+          // Prioritize important diet tags, limit display
+          const priorityTags = ['vegetarisch', 'veganistisch', 'pescotarisch', 'glutenvrij', 'zuivelvrij', 'lactosevrij', 'eivrij', 'notenvrij', 'zwangerschapsveilig', 'kinderwensvriendelijk'];
+          const sortedDietTags = [...recipe.diet_tags].sort((a, b) => {
+            const aIdx = priorityTags.indexOf(a);
+            const bIdx = priorityTags.indexOf(b);
+            if (aIdx === -1 && bIdx === -1) return 0;
+            if (aIdx === -1) return 1;
+            if (bIdx === -1) return -1;
+            return aIdx - bIdx;
+          });
+          const displayDietTags = sortedDietTags.slice(0, 6); // Max 6 tags
+          const hasMoreTags = sortedDietTags.length > 6;
+
+          if (!showSeasons && !showCyclePhases && displayDietTags.length === 0) return null;
+
+          return (
+            <div className="flex flex-wrap gap-2">
+              {showSeasons && recipe.seasons.map((s) => (
+                <Badge key={s} variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                  🌿 {seasons.find(season => season.value === s)?.label || s}
+                </Badge>
+              ))}
+              {showCyclePhases && recipe.cycle_phases?.map((p) => (
+                <Badge key={p} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                  🌙 {cyclePhases.find(phase => phase.value === p)?.label || p}
+                </Badge>
+              ))}
+              {displayDietTags.map((tag) => (
+                <Badge key={tag} variant="outline">
+                  {dietTags.find(t => t.value === tag)?.label || tag}
+                </Badge>
+              ))}
+              {hasMoreTags && (
+                <Badge variant="outline" className="text-muted-foreground">
+                  +{sortedDietTags.length - 6} meer
+                </Badge>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Servings selector */}
         <Card className="rounded-2xl">
