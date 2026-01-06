@@ -158,7 +158,8 @@ export function CycleWeekWidget() {
                   relative min-h-[44px] rounded
                   flex flex-col items-center justify-center text-center
                   ${seasonTileClass[d.predictedSeason]}
-                  ${d.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
+                  ${d.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
+                  ${d.isFertile ? 'outline outline-2 outline-offset-1 outline-green-500' : ''}
                 `}
               >
                 {/* Menstruation marker */}
@@ -168,10 +169,6 @@ export function CycleWeekWidget() {
                 {/* Predicted marker */}
                 {d.isPredictedPeriod && !d.hasBleeding && (
                   <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive/35 ring-1 ring-destructive/30" />
-                )}
-                {/* Fertile ring */}
-                {d.isFertile && (
-                  <span className="absolute inset-1 rounded cycle-ring-fertile" />
                 )}
                 {/* Ovulation star */}
                 {d.isOvulation && (
