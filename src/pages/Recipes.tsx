@@ -5,13 +5,16 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useRecipes, useSeasonRecipes, mealTypes, seasons, dietTags } from '@/hooks/useRecipes';
+import { useRecipes, useSeasonRecipes, mealTypes, seasons, dietTags, Recipe } from '@/hooks/useRecipes';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
+import { useShoppingList } from '@/hooks/useShoppingList';
+import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
 import { sanitizeImageUrl } from '@/lib/sanitize';
-import { Search, Clock, Users, ChefHat, Sparkles, Filter, X } from 'lucide-react';
+import { Search, Clock, Users, ChefHat, Sparkles, Filter, X, ShoppingCart } from 'lucide-react';
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('');
@@ -19,6 +22,7 @@ export default function RecipesPage() {
   const [season, setSeason] = useState<string>('');
   const [dietTag, setDietTag] = useState<string>('');
   const [showFilters, setShowFilters] = useState(false);
+  const [showShoppingList, setShowShoppingList] = useState(false);
 
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
@@ -34,6 +38,16 @@ export default function RecipesPage() {
 
   const { data: seasonRecipes } = useSeasonRecipes(currentSeason);
 
+  const {
+    selectedRecipes,
+    selectedCount,
+    toggleRecipe,
+    isSelected,
+    removeRecipe,
+    clearAll,
+    shoppingList,
+  } = useShoppingList();
+
   const hasFilters = mealType || season || dietTag || search;
 
   const clearFilters = () => {
@@ -43,15 +57,39 @@ export default function RecipesPage() {
     setSearch('');
   };
 
+  const handleRecipeCheckbox = (recipe: Recipe, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleRecipe(recipe);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Recepten</h1>
-          <p className="text-muted-foreground">
-            Gezonde recepten afgestemd op je cyclusfase
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-foreground">Recepten</h1>
+            <p className="text-muted-foreground">
+              Gezonde recepten afgestemd op je cyclusfase
+            </p>
+          </div>
+          <Button
+            variant={selectedCount > 0 ? 'default' : 'outline'}
+            onClick={() => setShowShoppingList(true)}
+            className="relative"
+          >
+            <ShoppingCart className="h-4 w-4 mr-2" />
+            Boodschappen
+            {selectedCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
+              >
+                {selectedCount}
+              </Badge>
+            )}
+          </Button>
         </div>
 
         {/* Season suggestions */}
@@ -69,37 +107,47 @@ export default function RecipesPage() {
             <CardContent>
               <div className="grid gap-3">
                 {seasonRecipes.slice(0, 3).map((recipe) => (
-                  <Link
+                  <div
                     key={recipe.id}
-                    to={`/recepten/${recipe.id}`}
                     className="flex items-center gap-3 p-3 rounded-lg bg-background hover:bg-muted transition-colors"
                   >
-                    {sanitizeImageUrl(recipe.image_url) ? (
-                      <img
-                        src={sanitizeImageUrl(recipe.image_url)}
-                        alt={recipe.title}
-                        className="w-16 h-16 rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-                        <ChefHat className="h-6 w-6 text-muted-foreground" />
+                    <Checkbox
+                      checked={isSelected(recipe.id)}
+                      onCheckedChange={() => toggleRecipe(recipe)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="flex-shrink-0"
+                    />
+                    <Link
+                      to={`/recepten/${recipe.id}`}
+                      className="flex items-center gap-3 flex-1 min-w-0"
+                    >
+                      {sanitizeImageUrl(recipe.image_url) ? (
+                        <img
+                          src={sanitizeImageUrl(recipe.image_url)}
+                          alt={recipe.title}
+                          className="w-16 h-16 rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                          <ChefHat className="h-6 w-6 text-muted-foreground" />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium truncate">{recipe.title}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {recipe.prep_time_minutes && (
+                            <span className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              {recipe.prep_time_minutes + (recipe.cook_time_minutes || 0)} min
+                            </span>
+                          )}
+                          <Badge variant="secondary" className="text-xs">
+                            {mealTypes.find(m => m.value === recipe.meal_type)?.label}
+                          </Badge>
+                        </div>
                       </div>
-                    )}
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium truncate">{recipe.title}</p>
-                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                        {recipe.prep_time_minutes && (
-                          <span className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            {recipe.prep_time_minutes + (recipe.cook_time_minutes || 0)} min
-                          </span>
-                        )}
-                        <Badge variant="secondary" className="text-xs">
-                          {mealTypes.find(m => m.value === recipe.meal_type)?.label}
-                        </Badge>
-                      </div>
-                    </div>
-                  </Link>
+                    </Link>
+                  </div>
                 ))}
               </div>
             </CardContent>
@@ -184,10 +232,17 @@ export default function RecipesPage() {
         ) : recipes && recipes.length > 0 ? (
           <div className="grid gap-4">
             {recipes.map((recipe) => (
-              <Link key={recipe.id} to={`/recepten/${recipe.id}`}>
-                <Card className="rounded-2xl hover:shadow-md transition-shadow">
-                  <CardContent className="p-4">
-                    <div className="flex gap-4">
+              <Card key={recipe.id} className="rounded-2xl hover:shadow-md transition-shadow">
+                <CardContent className="p-4">
+                  <div className="flex gap-4">
+                    <div className="flex items-center">
+                      <Checkbox
+                        checked={isSelected(recipe.id)}
+                        onCheckedChange={() => toggleRecipe(recipe)}
+                        className="flex-shrink-0"
+                      />
+                    </div>
+                    <Link to={`/recepten/${recipe.id}`} className="flex gap-4 flex-1 min-w-0">
                       {sanitizeImageUrl(recipe.image_url) ? (
                         <img
                           src={sanitizeImageUrl(recipe.image_url)}
@@ -233,10 +288,10 @@ export default function RecipesPage() {
                           </div>
                         )}
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
         ) : (
@@ -247,6 +302,15 @@ export default function RecipesPage() {
           />
         )}
       </div>
+
+      <ShoppingListSheet
+        open={showShoppingList}
+        onOpenChange={setShowShoppingList}
+        selectedRecipes={selectedRecipes}
+        shoppingList={shoppingList}
+        onRemoveRecipe={removeRecipe}
+        onClearAll={clearAll}
+      />
     </AppLayout>
   );
 }

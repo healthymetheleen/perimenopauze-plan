@@ -8,12 +8,14 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useMyRecipes, useDeleteRecipe, mealTypes } from '@/hooks/useRecipes';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, ChefHat, Pencil, Trash2, Eye, EyeOff } from 'lucide-react';
+import { Plus, ChefHat, Pencil, Trash2, Eye, EyeOff, Upload } from 'lucide-react';
 import { RecipeFormDialog } from '@/components/recipes/RecipeFormDialog';
+import { RecipeImportDialog } from '@/components/recipes/RecipeImportDialog';
 
 export default function RecipeAdminPage() {
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
+  const [showImport, setShowImport] = useState(false);
   const [editingRecipe, setEditingRecipe] = useState<string | null>(null);
 
   const { data: recipes, isLoading } = useMyRecipes();
@@ -40,10 +42,16 @@ export default function RecipeAdminPage() {
               Beheer je recepten
             </p>
           </div>
-          <Button onClick={() => setShowForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Nieuw recept
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setShowImport(true)}>
+              <Upload className="h-4 w-4 mr-2" />
+              Importeren
+            </Button>
+            <Button onClick={() => setShowForm(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Nieuw recept
+            </Button>
+          </div>
         </div>
 
         {/* Recipe list */}
@@ -129,6 +137,11 @@ export default function RecipeAdminPage() {
           }
         }}
         recipeId={editingRecipe}
+      />
+
+      <RecipeImportDialog
+        open={showImport}
+        onOpenChange={setShowImport}
       />
     </AppLayout>
   );
