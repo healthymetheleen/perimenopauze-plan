@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { format, subDays, addDays } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { ChevronLeft, ChevronRight, Plus, Utensils } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -15,63 +16,36 @@ import { MealCard } from '@/components/diary/MealCard';
 import { WeeklyInsightCard } from '@/components/diary/WeeklyInsightCard';
 import { useToast } from '@/hooks/use-toast';
 
-// Translate score reason codes to Dutch explanations with detailed advice
-const translateScoreReason = (reason: string): { text: string; advice: string } => {
-  const translations: Record<string, { text: string; advice: string }> = {
-    'low_protein': {
-      text: 'Weinig eiwit vandaag',
-      advice: 'Eiwit is essentieel voor hormoonbalans, spieronderhoud en verzadiging. Streef naar 20-30g per maaltijd. Goede bronnen: eieren, vis, peulvruchten, noten, zuivel, vlees.'
-    },
-    'low_fiber': {
-      text: 'Weinig vezels',
-      advice: 'Vezels ondersteunen je darmen, hormoonafvoer en bloedsuikerregulatie. Voeg extra groenten, peulvruchten, havermout of chiazaad toe. Streef naar 25-30g per dag.'
-    },
-    'high_ultra_processed': {
-      text: 'Veel ultrabewerkte producten',
-      advice: 'Ultrabewerkte voeding kan ontstekingen verhogen en je bloedsuiker destabiliseren. Kies waar mogelijk voor onbewerkte alternatieven met herkenbare ingrediënten.'
-    },
-    'few_meals': {
-      text: 'Weinig maaltijden gelogd',
-      advice: 'Regelmatig eten (3-4x per dag) houdt je bloedsuiker stabiel en voorkomt energiedips. Overslaan van maaltijden kan cortisol verhogen.'
-    },
-    'no_breakfast': {
-      text: 'Geen ontbijt geregistreerd',
-      advice: 'Een eiwitrijk ontbijt binnen 1-2 uur na opstaan helpt je stresshormonen te reguleren en geeft een stabiele start van de dag.'
-    },
-    'late_eating': {
-      text: 'Laat gegeten',
-      advice: 'Eten dicht voor het slapen kan je slaapkwaliteit beïnvloeden. Probeer je laatste maaltijd 2-3 uur voor bedtijd af te ronden.'
-    },
-    'skipped_meal': {
-      text: 'Maaltijd overgeslagen',
-      advice: 'Het overslaan van maaltijden kan je stresssysteem activeren, vooral in de luteale fase. Probeer regelmatig te eten, ook al heb je weinig trek.'
-    },
-    'good_protein': {
-      text: 'Goede eiwitinname',
-      advice: 'Mooi! Voldoende eiwit ondersteunt je spieren, hormonen en verzadiging. Blijf dit volhouden.'
-    },
-    'good_fiber': {
-      text: 'Voldoende vezels',
-      advice: 'Top! Je vezelinname ziet er goed uit. Dit helpt je darmen en hormoonbalans.'
-    },
-    'balanced_meals': {
-      text: 'Gebalanceerde maaltijden',
-      advice: 'Uitstekend! Je maaltijden zijn goed samengesteld met een goede balans van macronutriënten.'
-    },
-  };
-  return translations[reason] || { text: reason, advice: '' };
-};
-
 export default function DiaryPage() {
+  const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showAddMeal, setShowAddMeal] = useState(false);
   const openMealHandledRef = useRef(false);
   
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const { data: diaryDay, isLoading: dayLoading, createDay } = useDiaryDay(selectedDate);
   const { data: meals, isLoading: mealsLoading } = useMeals(diaryDay?.id || null);
   const { data: scores } = useDailyScores(7);
+
+  // Translate score reason codes
+  const translateScoreReason = (reason: string): { text: string; advice: string } => {
+    const reasonKey = reason as keyof typeof reasonMap;
+    const reasonMap = {
+      'low_protein': { text: t('diary.score_reasons.low_protein'), advice: t('diary.score_reasons.low_protein_advice') },
+      'low_fiber': { text: t('diary.score_reasons.low_fiber'), advice: t('diary.score_reasons.low_fiber_advice') },
+      'high_ultra_processed': { text: t('diary.score_reasons.high_ultra_processed'), advice: t('diary.score_reasons.high_ultra_processed_advice') },
+      'few_meals': { text: t('diary.score_reasons.few_meals'), advice: t('diary.score_reasons.few_meals_advice') },
+      'no_breakfast': { text: t('diary.score_reasons.no_breakfast'), advice: t('diary.score_reasons.no_breakfast_advice') },
+      'late_eating': { text: t('diary.score_reasons.late_eating'), advice: t('diary.score_reasons.late_eating_advice') },
+      'skipped_meal': { text: t('diary.score_reasons.skipped_meal'), advice: t('diary.score_reasons.skipped_meal_advice') },
+      'good_protein': { text: t('diary.score_reasons.good_protein'), advice: t('diary.score_reasons.good_protein_advice') },
+      'good_fiber': { text: t('diary.score_reasons.good_fiber'), advice: t('diary.score_reasons.good_fiber_advice') },
+      'balanced_meals': { text: t('diary.score_reasons.balanced_meals'), advice: t('diary.score_reasons.balanced_meals_advice') },
+    };
+    return reasonMap[reasonKey] || { text: reason, advice: '' };
+  };
 
   // Open meal dialog if query param is set (e.g. Dashboard quick action)
   useEffect(() => {
@@ -92,15 +66,15 @@ export default function DiaryPage() {
       } catch (err) {
         console.error('[Diary] openMeal failed', err);
         toast({
-          title: 'Kon maaltijdscherm niet openen',
-          description: 'Probeer het opnieuw.',
+          title: t('diary.could_not_open'),
+          description: t('diary.try_again'),
           variant: 'destructive',
         });
       }
     };
 
     void openMealFromDashboard();
-  }, [searchParams, setSearchParams, dayLoading, diaryDay, createDay, toast]);
+  }, [searchParams, setSearchParams, dayLoading, diaryDay, createDay, toast, t]);
   
   const todayScore = scores?.find(s => s.day_date === selectedDate);
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
@@ -133,11 +107,11 @@ export default function DiaryPage() {
           </Button>
           <div className="text-center">
             <h1 className="text-xl font-semibold text-foreground">
-              {isToday ? 'Vandaag' : format(new Date(selectedDate), "EEEE d MMMM", { locale: nl })}
+              {isToday ? t('common.today') : format(new Date(selectedDate), "EEEE d MMMM", { locale: dateLocale })}
             </h1>
             {!isToday && (
               <p className="text-sm text-muted-foreground">
-                {format(new Date(selectedDate), "d MMMM yyyy", { locale: nl })}
+                {format(new Date(selectedDate), "d MMMM yyyy", { locale: dateLocale })}
               </p>
             )}
           </div>
@@ -154,9 +128,9 @@ export default function DiaryPage() {
                 <div className="flex items-center gap-4">
                   <ScoreBadge score={todayScore.day_score} size="lg" />
                   <div>
-                    <p className="font-medium">Dagscore</p>
+                    <p className="font-medium">{t('diary.day_score')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {todayScore.meals_count || 0} maaltijden
+                      {t('diary.meals_count', { count: todayScore.meals_count || 0 })}
                     </p>
                   </div>
                 </div>
@@ -165,24 +139,24 @@ export default function DiaryPage() {
                 <div className="grid grid-cols-4 gap-2 p-3 rounded-xl bg-muted/50">
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.kcal_total || 0)}</p>
-                    <p className="text-xs text-muted-foreground">kcal</p>
+                    <p className="text-xs text-muted-foreground">{t('diary.kcal')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.protein_g || 0)}g</p>
-                    <p className="text-xs text-muted-foreground">eiwit</p>
+                    <p className="text-xs text-muted-foreground">{t('diary.protein')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.carbs_g || 0)}g</p>
-                    <p className="text-xs text-muted-foreground">koolh</p>
+                    <p className="text-xs text-muted-foreground">{t('diary.carbs')}</p>
                   </div>
                   <div className="text-center">
                     <p className="text-lg font-bold text-foreground">{Math.round(todayScore.fiber_g || 0)}g</p>
-                    <p className="text-xs text-muted-foreground">vezels</p>
+                    <p className="text-xs text-muted-foreground">{t('diary.fiber')}</p>
                   </div>
                 </div>
                 {todayScore.score_reasons && todayScore.score_reasons.length > 0 && (
                   <div className="space-y-3 pt-3 border-t">
-                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Analyse & Tips</p>
+                    <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">{t('diary.analysis_tips')}</p>
                     <div className="space-y-3">
                       {todayScore.score_reasons.map((reason, i) => {
                         const translated = translateScoreReason(reason);
@@ -213,11 +187,11 @@ export default function DiaryPage() {
           <CardHeader className="flex flex-row items-center justify-between pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Utensils className="h-5 w-5 text-primary" />
-              Maaltijden
+              {t('diary.meals')}
             </CardTitle>
             <Button size="sm" onClick={handleAddMeal}>
               <Plus className="h-4 w-4 mr-1" />
-              Toevoegen
+              {t('common.add')}
             </Button>
           </CardHeader>
           <CardContent>
@@ -232,10 +206,10 @@ export default function DiaryPage() {
             ) : (
               <EmptyState
                 icon={<Utensils className="h-8 w-8" />}
-                title="Nog geen maaltijden"
-                description={isToday ? "Voeg je eerste maaltijd toe" : "Geen maaltijden geregistreerd"}
+                title={t('diary.no_meals')}
+                description={isToday ? t('diary.add_first') : t('diary.no_meals_logged')}
                 action={isToday ? {
-                  label: 'Maaltijd toevoegen',
+                  label: t('diary.add_meal'),
                   onClick: handleAddMeal,
                 } : undefined}
               />
