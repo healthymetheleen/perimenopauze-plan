@@ -125,7 +125,7 @@ export default function DiaryPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6">
+      <div className="space-y-6 max-w-full overflow-x-hidden">
         {/* Date navigation */}
         <div className="flex items-center justify-between">
           <Button variant="ghost" size="icon" onClick={handlePrevDay}>
