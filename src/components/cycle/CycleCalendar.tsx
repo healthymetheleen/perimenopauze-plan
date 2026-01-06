@@ -426,17 +426,21 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               const showPredicted = !!day.isPredictedPeriod && showMenstruation;
               const showFertileDay = !!day.isFertile && showFertile;
               const showOvulation = !!day.isOvulation && showFertile;
+              const today = startOfDay(new Date());
+              const isFutureDay = day.date > today;
 
               return (
                 <button
                   key={day.dateStr}
-                  onClick={() => onDayClick(day.dateStr)}
+                  onClick={() => !isFutureDay && onDayClick(day.dateStr)}
+                  disabled={isFutureDay}
                   className={`
                     relative min-h-[52px] rounded-lg
                     bg-background/80 dark:bg-background/30
                     border border-border/40
                     flex flex-col items-center justify-end text-center px-0.5 py-1.5
-                    transition-all hover:bg-background/90 dark:hover:bg-background/50
+                    transition-all
+                    ${isFutureDay ? 'cursor-not-allowed opacity-50' : 'hover:bg-background/90 dark:hover:bg-background/50'}
                     ${day.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
                     ${!day.isCurrentMonth ? 'opacity-30' : ''}
                     ${showFertileDay ? 'outline outline-2 outline-offset-1 outline-green-500' : ''}
