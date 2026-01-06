@@ -177,9 +177,15 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
     return segments;
   }, [calendarDays]);
 
-  // Convert segments into grid background pieces (split per row so we keep a fixed 7x5 grid)
+  // Convert segments into grid background pieces with label info
   const backgroundPieces = useMemo(() => {
-    const pieces: Array<{ season: SeasonKey; row: number; colStart: number; colEnd: number }> = [];
+    const pieces: Array<{ 
+      season: SeasonKey; 
+      row: number; 
+      colStart: number; 
+      colEnd: number;
+      showLabel: boolean;
+    }> = [];
 
     for (const seg of seasonSegments) {
       const startRow = Math.floor(seg.startIdx / 7) + 1;
@@ -188,24 +194,34 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
       const endCol = (seg.endIdx % 7) + 1;
 
       if (startRow === endRow) {
-        pieces.push({ season: seg.season, row: startRow, colStart: startCol, colEnd: endCol });
+        pieces.push({ 
+          season: seg.season, 
+          row: startRow, 
+          colStart: startCol, 
+          colEnd: endCol,
+          showLabel: seg.season !== 'onbekend' && calendarDays[seg.startIdx]?.isCurrentMonth
+        });
         continue;
       }
 
-      // First row (partial)
-      pieces.push({ season: seg.season, row: startRow, colStart: startCol, colEnd: 7 });
+      // First row (partial) - show label here
+      pieces.push({ 
+        season: seg.season, 
+        row: startRow, 
+        colStart: startCol, 
+        colEnd: 7,
+        showLabel: seg.season !== 'onbekend' && calendarDays[seg.startIdx]?.isCurrentMonth
+      });
       // Middle rows (full)
       for (let r = startRow + 1; r <= endRow - 1; r++) {
-        pieces.push({ season: seg.season, row: r, colStart: 1, colEnd: 7 });
+        pieces.push({ season: seg.season, row: r, colStart: 1, colEnd: 7, showLabel: false });
       }
       // Last row (partial)
-      pieces.push({ season: seg.season, row: endRow, colStart: 1, colEnd: endCol });
+      pieces.push({ season: seg.season, row: endRow, colStart: 1, colEnd: endCol, showLabel: false });
     }
 
     return pieces;
-  }, [seasonSegments]);
-
-  const segmentStarts = useMemo(() => new Set(seasonSegments.map((s) => s.startIdx)), [seasonSegments]);
+  }, [seasonSegments, calendarDays]);
 
   const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
 
@@ -323,24 +339,45 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
       <CardContent className="pt-0">
         <div className="relative">
-          {/* Season backgrounds (panels) behind a fixed grid */}
+          {/* Season backgrounds with labels ABOVE the day cells */}
           {showSeasons && (
-            <div className="absolute inset-0 grid grid-cols-7 gap-2 pointer-events-none">
+            <div 
+              className="absolute inset-0 pointer-events-none"
+              style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(7, 1fr)',
+                gridTemplateRows: `repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)`,
+                gap: '0.5rem',
+                // Extend the background slightly so labels fit above
+                margin: '-1rem -0.25rem 0 -0.25rem',
+                padding: '1rem 0.25rem 0 0.25rem',
+              }}
+            >
               {backgroundPieces.map((p, idx) => (
                 <div
                   key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
-                  className={`rounded-xl ${seasonSurfaceClass[p.season]} opacity-90`}
+                  className={`relative rounded-xl ${seasonSurfaceClass[p.season]} opacity-90`}
                   style={{
                     gridRow: `${p.row} / ${p.row + 1}`,
                     gridColumn: `${p.colStart} / ${p.colEnd + 1}`,
+                    marginTop: p.showLabel ? '-1.25rem' : '0',
+                    paddingTop: p.showLabel ? '1.25rem' : '0',
                   }}
-                />
+                >
+                  {/* Season label above the cells */}
+                  {p.showLabel && (
+                    <span 
+                      className={`absolute -top-0.5 left-1.5 text-[11px] font-bold leading-none ${seasonTextClass[p.season]}`}
+                    >
+                      {seasonLabels[p.season]}
+                    </span>
+                  )}
+                </div>
               ))}
             </div>
           )}
 
-
-          {/* Days */}
+          {/* Days grid */}
           <div className="relative z-10 grid grid-cols-7 gap-2">
             {calendarDays.map((day, idx) => {
               const hasBleeding = !!day.bleeding && showMenstruation;
@@ -348,31 +385,21 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               const showFertileDay = !!day.isFertile && showFertile;
               const showOvulation = !!day.isOvulation && showFertile;
 
-              const season = day.predictedSeason;
-              const showSeasonLabel = showSeasons && segmentStarts.has(idx) && season !== 'onbekend' && day.isCurrentMonth;
-
               return (
                 <button
                   key={day.dateStr}
                   onClick={() => onDayClick(day.dateStr)}
                   className={`
-                    relative min-h-[48px] rounded-lg
-                    bg-background/70 dark:bg-background/25
+                    relative min-h-[52px] rounded-lg
+                    bg-background/80 dark:bg-background/30
                     border border-border/40
                     flex flex-col items-center justify-end text-center px-0.5 py-1.5
-                    transition-all hover:bg-background/85 dark:hover:bg-background/40
+                    transition-all hover:bg-background/90 dark:hover:bg-background/50
                     ${day.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
                     ${!day.isCurrentMonth ? 'opacity-30' : ''}
                     ${showFertileDay ? 'outline outline-2 outline-offset-1 outline-green-500' : ''}
                   `}
                 >
-                  {/* Season label (first day in a season segment) */}
-                  {showSeasonLabel && (
-                    <span className={`absolute top-0.5 left-1 text-[10px] font-semibold leading-none ${seasonTextClass[season as SeasonKey]}`}>
-                      {seasonLabels[season as SeasonKey]}
-                    </span>
-                  )}
-
                   {/* Menstruation marker */}
                   {hasBleeding && (
                     <span className="absolute left-1 top-1/2 -translate-y-1/2 h-2.5 w-2.5 rounded-full bg-destructive" />
