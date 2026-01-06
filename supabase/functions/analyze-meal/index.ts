@@ -370,7 +370,7 @@ serve(async (req) => {
 
     console.log('Analyzing meal via OpenAI API, subject:', aiSubjectId);
     
-    // TWO-TIER AI STRATEGY: Start with gpt-4o-mini (cheap), fallback to gpt-4o if needed
+    // TWO-TIER AI STRATEGY: Start with gpt-4o-mini (cheap), fallback to gpt-4o if confidence low
     let analysis;
     let usedFallback = false;
     
@@ -390,6 +390,9 @@ serve(async (req) => {
         max_tokens: 1000,
       }),
     });
+
+    const tokensUsed = { prompt: 0, completion: 0 };
+    const costEur = { mini: 0, full: 0, total: 0 };
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -411,6 +414,14 @@ serve(async (req) => {
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
     
+    // Track token usage for cost calculation
+    if (aiData.usage) {
+      tokensUsed.prompt += aiData.usage.prompt_tokens || 0;
+      tokensUsed.completion += aiData.usage.completion_tokens || 0;
+      // gpt-4o-mini pricing: $0.15/1M input, $0.60/1M output → EUR (approx 0.93 factor)
+      costEur.mini = ((tokensUsed.prompt * 0.15 + tokensUsed.completion * 0.60) / 1000000) * 0.93;
+    }
+    
     console.log('Meal analysis received for subject:', aiSubjectId);
 
     // Parse response
@@ -420,6 +431,56 @@ serve(async (req) => {
         analysis = JSON.parse(jsonMatch[0]);
       } else {
         throw new Error('No JSON found in response');
+      }
+      
+      // CHECK FOR LOW CONFIDENCE - escalate to gpt-4o if photo analysis and confidence < 0.65
+      const confidenceNum = typeof analysis.confidence === 'number' ? analysis.confidence : 0.5;
+      if (imageBase64 && confidenceNum < 0.65 && !usedFallback) {
+        console.log(`Low confidence (${confidenceNum}) for photo analysis, escalating to gpt-4o for subject:`, aiSubjectId);
+        usedFallback = true;
+        
+        const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${OPENAI_API_KEY}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'gpt-4o',
+            messages: [
+              { role: 'system', content: foodParsingPrompt },
+              { role: 'user', content: userContent }
+            ],
+            max_tokens: 1000,
+          }),
+        });
+
+        if (fallbackResponse.ok) {
+          const fallbackData = await fallbackResponse.json();
+          const fallbackContent = fallbackData.choices?.[0]?.message?.content;
+          
+          // Track fallback token usage
+          if (fallbackData.usage) {
+            tokensUsed.prompt += fallbackData.usage.prompt_tokens || 0;
+            tokensUsed.completion += fallbackData.usage.completion_tokens || 0;
+            // gpt-4o pricing: $2.50/1M input, $10/1M output → EUR
+            costEur.full = ((fallbackData.usage.prompt_tokens * 2.50 + fallbackData.usage.completion_tokens * 10) / 1000000) * 0.93;
+          }
+          
+          try {
+            const jsonMatch = fallbackContent.match(/\{[\s\S]*\}/);
+            if (jsonMatch) {
+              const fallbackAnalysis = JSON.parse(jsonMatch[0]);
+              // Only use fallback if it has higher confidence
+              if (typeof fallbackAnalysis.confidence === 'number' && fallbackAnalysis.confidence > confidenceNum) {
+                analysis = fallbackAnalysis;
+                console.log(`Fallback improved confidence: ${confidenceNum} → ${fallbackAnalysis.confidence}`);
+              }
+            }
+          } catch {
+            console.log('Fallback parsing failed, keeping original analysis');
+          }
+        }
       }
     } catch (parseError) {
       console.error('Failed to parse AI response for', aiSubjectId);
@@ -478,8 +539,11 @@ serve(async (req) => {
       }
     }
 
-    // Add model info
+    // Add model info and cost tracking
     analysis.model_used = usedFallback ? 'gpt-4o' : 'gpt-4o-mini';
+    costEur.total = costEur.mini + costEur.full;
+    analysis.tokens_used = tokensUsed.prompt + tokensUsed.completion;
+    analysis.cost_eur = Math.round(costEur.total * 10000) / 10000; // Round to 4 decimals
 
     // Add late meal flag based on time
     if (mealTime) {
