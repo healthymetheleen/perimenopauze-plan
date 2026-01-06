@@ -13,12 +13,12 @@ serve(async (req) => {
 
   try {
     const { recipeTitle, recipeDescription, mealType } = await req.json();
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
+    const OPENAI_API_KEY = Deno.env.get("ChatGPT");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
+    if (!OPENAI_API_KEY) {
+      throw new Error("ChatGPT API key is not configured");
     }
 
     if (!recipeTitle) {
@@ -30,42 +30,44 @@ serve(async (req) => {
 
     console.log(`Generating image for recipe: ${recipeTitle}`);
 
-    // Construct a detailed prompt for consistent style
-    const imagePrompt = `Food photography, overhead view from directly above, looking down at a beautiful ${mealType || 'dish'}: ${recipeTitle}. ${recipeDescription || ''}
+    // Detailed prompt for consistent, feminine, fresh style
+    // No loose items on table, varied beautiful plates, soft colors
+    const imagePrompt = `Professional food photography, overhead bird's eye view looking straight down at a beautiful ${mealType || 'dish'}: ${recipeTitle}. ${recipeDescription || ''}
 
-Style requirements:
-- Shot from directly above (bird's eye view / flat lay)
-- Rustic light oak wooden table as background
-- Natural soft daylight from the side
-- Minimal props - just the dish on a simple white or cream ceramic plate
-- Fresh herbs or ingredients scattered naturally around
-- Clean, minimalist, Scandinavian aesthetic
-- Soft, muted colors - not oversaturated
-- Professional food photography quality
-- Feminine and fresh feeling
-- No text, no watermarks, no logos`;
+CRITICAL STYLE REQUIREMENTS:
+- Shot from directly above (flat lay composition)
+- Light oak wooden dining table as clean background
+- Soft natural daylight from the side, bright and airy
+- The dish served on a beautiful ceramic plate - vary between: pastel colored plates, Portuguese azulejo-style plates, cream white plates, soft terracotta plates
+- Clean minimalist composition - NO loose items scattered on the table (no pepper flakes, no scattered herbs, no crumbs, no loose ingredients)
+- ALLOWED decorations: a folded linen napkin, a small spoon or fork on a napkin, a coaster under a glass, a simple placemat under the plate
+- Optionally include: a nice glass of water or complementary drink placed to the side
+- Fresh, light, feminine, Scandinavian aesthetic
+- Soft muted pastel colors - not oversaturated, not dark
+- Ultra clean and polished look
+- No text, no watermarks, no logos
+- Square format 1:1 aspect ratio`;
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    const response = await fetch("https://api.openai.com/v1/images/generations", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${OPENAI_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-flash-image-preview",
-        messages: [
-          {
-            role: "user",
-            content: imagePrompt
-          }
-        ],
-        modalities: ["image", "text"]
+        model: "gpt-image-1",
+        prompt: imagePrompt,
+        n: 1,
+        size: "1024x1024",
+        quality: "medium",
+        output_format: "webp",
+        output_compression: 80,
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("AI gateway error:", response.status, errorText);
+      console.error("OpenAI API error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -75,38 +77,35 @@ Style requirements:
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Krediet op, voeg tegoed toe aan je workspace." }),
+          JSON.stringify({ error: "Krediet op, voeg tegoed toe." }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      throw new Error("AI image service niet beschikbaar");
+      throw new Error("OpenAI image service niet beschikbaar");
     }
 
     const data = await response.json();
-    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    const base64Image = data.data?.[0]?.b64_json;
     
-    if (!imageData) {
+    if (!base64Image) {
       console.error("No image in response:", JSON.stringify(data));
       throw new Error("Geen afbeelding gegenereerd");
     }
 
-    // If we have Supabase storage configured, upload the image as WebP for efficiency
+    // Upload to Supabase storage if configured
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Convert base64 to buffer - detect original format
-        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        // Convert base64 to buffer
+        const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
         
-        // Generate unique filename with WebP extension for storage efficiency
-        // The AI model returns PNG, but we store the raw bytes and serve with proper content-type
+        // Generate unique filename
         const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
         const filePath = `recipe-images/${fileName}`;
         
-        // Upload to storage as WebP (browsers will handle format conversion on display)
-        // For server-side conversion, we'd need a separate image processing service
-        const { data: uploadData, error: uploadError } = await supabase.storage
+        // Upload to storage as WebP
+        const { error: uploadError } = await supabase.storage
           .from('public')
           .upload(filePath, imageBuffer, {
             contentType: 'image/webp',
@@ -117,7 +116,7 @@ Style requirements:
           console.error("Storage upload error:", uploadError);
           // Fall back to returning base64
           return new Response(
-            JSON.stringify({ imageUrl: imageData }),
+            JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -137,7 +136,7 @@ Style requirements:
         console.error("Storage error:", storageError);
         // Fall back to returning base64
         return new Response(
-          JSON.stringify({ imageUrl: imageData }),
+          JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -145,7 +144,7 @@ Style requirements:
 
     // Return base64 if no storage configured
     return new Response(
-      JSON.stringify({ imageUrl: imageData }),
+      JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

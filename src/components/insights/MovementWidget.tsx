@@ -13,9 +13,9 @@ const intensityLabels: Record<string, string> = {
 };
 
 const intensityColors: Record<string, string> = {
-  low: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  moderate: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  high: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
+  low: 'bg-primary/10 text-primary',
+  moderate: 'bg-muted text-foreground',
+  high: 'bg-primary/20 text-primary',
 };
 
 interface SeasonAdvice {
@@ -101,7 +101,7 @@ export function MovementWidget() {
           <div className="grid grid-cols-3 gap-4 pt-3 border-t border-border/50">
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <Heart className="h-4 w-4 text-rose-500" />
+                <Heart className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold text-foreground">Gevoel</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">
@@ -112,7 +112,7 @@ export function MovementWidget() {
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <Users className="h-4 w-4 text-blue-500" />
+                <Users className="h-4 w-4 text-primary" />
                 <span className="text-sm font-semibold text-foreground">Gezin</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">
@@ -123,7 +123,7 @@ export function MovementWidget() {
             </div>
             <div>
               <div className="flex items-center gap-1.5 mb-2">
-                <Briefcase className="h-4 w-4 text-amber-600" />
+                <Briefcase className="h-4 w-4 text-foreground" />
                 <span className="text-sm font-semibold text-foreground">Werk</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">

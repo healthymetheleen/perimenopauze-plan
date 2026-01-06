@@ -99,27 +99,27 @@ export default function DashboardPage() {
         <div className="grid grid-cols-3 gap-3">
           <button
             onClick={() => navigate('/cycle?openCheckin=true')}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-soft transition-all"
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 hover:shadow-soft transition-all"
           >
-            <div className="p-2.5 rounded-full bg-purple-100 dark:bg-purple-900/50">
-              <Heart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            <div className="p-2.5 rounded-full bg-primary/10 dark:bg-primary/20">
+              <Heart className="h-5 w-5 text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-purple-900 dark:text-purple-100">Check-in</p>
-              <p className="text-[10px] text-purple-600 dark:text-purple-400 leading-tight">Energie & gevoel</p>
+              <p className="text-sm font-semibold text-foreground">Check-in</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">Energie & gevoel</p>
             </div>
           </button>
 
           <button
             onClick={() => navigate('/dagboek?openMeal=true')}
-            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-soft transition-all"
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-primary/5 dark:bg-primary/10 border border-primary/20 dark:border-primary/30 hover:shadow-soft transition-all"
           >
-            <div className="p-2.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
-              <UtensilsCrossed className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            <div className="p-2.5 rounded-full bg-primary/10 dark:bg-primary/20">
+              <UtensilsCrossed className="h-5 w-5 text-primary" />
             </div>
             <div className="text-center">
-              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Maaltijd</p>
-              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 leading-tight">Toevoegen</p>
+              <p className="text-sm font-semibold text-foreground">Maaltijd</p>
+              <p className="text-[10px] text-muted-foreground leading-tight">Toevoegen</p>
             </div>
           </button>
 
@@ -127,28 +127,28 @@ export default function DashboardPage() {
             <button
               onClick={handleWakeUp}
               disabled={endSleep.isPending}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 hover:shadow-soft transition-all disabled:opacity-50"
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-accent/10 dark:bg-accent/20 border border-accent/30 dark:border-accent/40 hover:shadow-soft transition-all disabled:opacity-50"
             >
-              <div className="p-2.5 rounded-full bg-amber-200 dark:bg-amber-800/50">
-                <Sun className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+              <div className="p-2.5 rounded-full bg-accent/20 dark:bg-accent/30">
+                <Sun className="h-5 w-5 text-foreground" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Wakker</p>
-                <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight">Slaap stoppen</p>
+                <p className="text-sm font-semibold text-foreground">Wakker</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">Slaap stoppen</p>
               </div>
             </button>
           ) : (
             <button
               onClick={handleStartSleep}
               disabled={startSleep.isPending}
-              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 hover:shadow-soft transition-all disabled:opacity-50"
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-muted/50 dark:bg-muted/30 border border-border hover:shadow-soft transition-all disabled:opacity-50"
             >
-              <div className="p-2.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
-                <Moon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              <div className="p-2.5 rounded-full bg-muted dark:bg-muted/50">
+                <Moon className="h-5 w-5 text-foreground" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">Slaap</p>
-                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 leading-tight">Starten</p>
+                <p className="text-sm font-semibold text-foreground">Slaap</p>
+                <p className="text-[10px] text-muted-foreground leading-tight">Starten</p>
               </div>
             </button>
           )}
@@ -254,10 +254,10 @@ export default function DashboardPage() {
         {/* Monthly Analysis CTA - only if ready */}
         {canGenerateMonthly && (
           <Link to="/analyse">
-            <Card className="glass rounded-2xl bg-gradient-to-r from-purple-500/5 via-primary/5 to-rose-500/5 hover:shadow-soft transition-all">
+            <Card className="glass rounded-2xl bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 hover:shadow-soft transition-all">
               <CardContent className="p-4 flex items-center gap-3">
-                <div className="p-2 rounded-full bg-purple-500/10">
-                  <FileText className="h-4 w-4 text-purple-600" />
+                <div className="p-2 rounded-full bg-primary/10">
+                  <FileText className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
                   <p className="font-medium text-foreground">Maandelijkse Analyse</p>
@@ -265,7 +265,7 @@ export default function DashboardPage() {
                     Uitgebreide inzichten over je cyclus & voeding
                   </p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-purple-600" />
+                <ArrowRight className="h-4 w-4 text-primary" />
               </CardContent>
             </Card>
           </Link>

@@ -161,10 +161,10 @@ export default function SleepPage() {
   }
 
   const getScoreColor = (score: number) => {
-    if (score >= 80) return 'text-green-600 bg-green-100';
-    if (score >= 60) return 'text-yellow-600 bg-yellow-100';
-    if (score >= 40) return 'text-orange-600 bg-orange-100';
-    return 'text-red-600 bg-red-100';
+    if (score >= 80) return 'text-primary bg-primary/10';
+    if (score >= 60) return 'text-foreground bg-muted';
+    if (score >= 40) return 'text-muted-foreground bg-muted/50';
+    return 'text-muted-foreground bg-muted/30';
   };
 
   return (
@@ -187,13 +187,13 @@ export default function SleepPage() {
         </div>
 
         {/* Sleep Score */}
-        <Card className="rounded-2xl bg-gradient-to-br from-slate-50 to-indigo-50/50 border-slate-100">
+        <Card className="rounded-2xl bg-gradient-to-br from-background to-primary/5 border-border">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-indigo-600">Slaapscore</p>
-                <p className="text-4xl font-bold text-indigo-900">{sleepScore}</p>
-                <p className="text-xs text-indigo-600 mt-1">
+                <p className="text-sm font-medium text-primary">Slaapscore</p>
+                <p className="text-4xl font-bold text-foreground">{sleepScore}</p>
+                <p className="text-xs text-muted-foreground mt-1">
                   Gebaseerd op afgelopen 7 dagen
                 </p>
               </div>
@@ -209,7 +209,7 @@ export default function SleepPage() {
           <CardContent className="pt-6">
             {activeSession ? (
               <div className="text-center space-y-4">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-100 text-indigo-800">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
                   <Moon className="h-4 w-4 animate-pulse" />
                   <span className="text-sm font-medium">Je slaapt nu</span>
                 </div>
@@ -221,7 +221,7 @@ export default function SleepPage() {
                 </p>
                 <Button
                   size="lg"
-                  className="w-full bg-amber-500 hover:bg-amber-600"
+                  className="w-full"
                   onClick={handleWakeUp}
                   disabled={endSleep.isPending}
                 >
@@ -236,7 +236,7 @@ export default function SleepPage() {
                 </p>
                 <Button
                   size="lg"
-                  className="w-full bg-indigo-400/80 hover:bg-indigo-500/90 text-white"
+                  className="w-full"
                   onClick={handleStartSleep}
                   disabled={startSleep.isPending}
                 >
@@ -262,8 +262,8 @@ export default function SleepPage() {
             <Card className="rounded-2xl">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-purple-100">
-                    <Clock className="h-4 w-4 text-purple-600" />
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <Clock className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Gem. slaapduur</p>
@@ -276,8 +276,8 @@ export default function SleepPage() {
             <Card className="rounded-2xl">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-indigo-100">
-                    <TrendingUp className="h-4 w-4 text-indigo-600" />
+                  <div className="p-2 rounded-full bg-primary/10">
+                    <TrendingUp className="h-4 w-4 text-primary" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Consistentie</p>
@@ -290,8 +290,8 @@ export default function SleepPage() {
             <Card className="rounded-2xl">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-blue-100">
-                    <BedDouble className="h-4 w-4 text-blue-600" />
+                  <div className="p-2 rounded-full bg-muted">
+                    <BedDouble className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Gem. bedtijd</p>
@@ -304,8 +304,8 @@ export default function SleepPage() {
             <Card className="rounded-2xl">
               <CardContent className="pt-4 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-amber-100">
-                    <AlarmClock className="h-4 w-4 text-amber-600" />
+                  <div className="p-2 rounded-full bg-muted">
+                    <AlarmClock className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
                     <p className="text-xs text-muted-foreground">Gem. wektijd</p>
@@ -350,7 +350,7 @@ export default function SleepPage() {
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
-              <Lightbulb className="h-5 w-5 text-amber-500" />
+              <Lightbulb className="h-5 w-5 text-primary" />
               Slaaptips
             </CardTitle>
             <CardDescription>
@@ -362,7 +362,7 @@ export default function SleepPage() {
               <ul className="space-y-3">
                 {advice.map((tip, index) => (
                   <li key={index} className="flex items-start gap-2 text-sm">
-                    <span className="text-amber-500 mt-0.5">•</span>
+                    <span className="text-primary mt-0.5">•</span>
                     <span>{tip}</span>
                   </li>
                 ))}

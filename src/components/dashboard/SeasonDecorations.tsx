@@ -12,22 +12,22 @@ export function SeasonDecorations({ season }: SeasonDecorationsProps) {
     winter: {
       icon: Snowflake,
       count: 6,
-      colorClass: 'text-blue-500 dark:text-blue-400',
+      colorClass: 'text-primary/60 dark:text-primary/50',
     },
     lente: {
       icon: Leaf,
       count: 5,
-      colorClass: 'text-green-600 dark:text-green-400',
+      colorClass: 'text-primary/60 dark:text-primary/50',
     },
     zomer: {
       icon: Sun,
       count: 4,
-      colorClass: 'text-amber-500 dark:text-amber-400',
+      colorClass: 'text-primary/60 dark:text-primary/50',
     },
     herfst: {
       icon: Wind,
       count: 6,
-      colorClass: 'text-orange-500 dark:text-orange-400',
+      colorClass: 'text-primary/60 dark:text-primary/50',
     },
   };
 

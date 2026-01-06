@@ -186,20 +186,20 @@ export default function SubscriptionPage() {
                   
                   if (daysRemaining > 0) {
                     return (
-                      <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                      <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
                         <div className="flex items-center justify-between mb-2">
                           <div className="flex items-center gap-2">
-                            <Clock className="h-4 w-4 text-amber-600" />
-                            <span className="text-sm font-medium text-amber-700">
+                            <Clock className="h-4 w-4 text-primary" />
+                            <span className="text-sm font-medium text-primary">
                               Gratis trial: nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'}
                             </span>
                           </div>
-                          <span className="text-xs text-amber-600">
+                          <span className="text-xs text-muted-foreground">
                             t/m {format(trialEndDate, 'd MMM', { locale: nl })}
                           </span>
                         </div>
                         <Progress value={trialProgress} className="h-2" />
-                        <p className="text-xs text-amber-600 mt-2">
+                        <p className="text-xs text-muted-foreground mt-2">
                           Na de trial wordt €7,50/maand automatisch afgeschreven
                         </p>
                       </div>

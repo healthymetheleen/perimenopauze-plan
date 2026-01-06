@@ -29,14 +29,14 @@ export function TrialCountdown() {
 
   return (
     <Link to="/subscription">
-      <Card className="glass rounded-2xl bg-gradient-to-r from-amber-500/10 via-orange-500/5 to-amber-500/10 hover:shadow-soft transition-all">
+      <Card className="glass rounded-2xl bg-gradient-to-r from-primary/10 via-primary/5 to-primary/10 hover:shadow-soft transition-all">
         <CardContent className="p-4">
           <div className="flex items-center gap-4">
-            <div className="p-3 rounded-full bg-amber-500/20">
+            <div className="p-3 rounded-full bg-primary/20">
               {daysRemaining <= 2 ? (
-                <Clock className="h-5 w-5 text-amber-600" />
+                <Clock className="h-5 w-5 text-primary" />
               ) : (
-                <Sparkles className="h-5 w-5 text-amber-600" />
+                <Sparkles className="h-5 w-5 text-primary" />
               )}
             </div>
             <div className="flex-1">
@@ -89,7 +89,7 @@ export function TrialBadge() {
   return (
     <div className={`flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium ${
       daysRemaining <= 2 
-        ? 'bg-amber-500/20 text-amber-700' 
+        ? 'bg-muted text-foreground' 
         : 'bg-primary/10 text-primary'
     }`}>
       {daysRemaining <= 2 ? (
