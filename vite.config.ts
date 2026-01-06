@@ -15,6 +15,7 @@ export default defineConfig(({ mode }) => ({
     mode === "development" && componentTagger(),
     VitePWA({
       registerType: "autoUpdate",
+      injectRegister: false, // Defer SW registration to improve LCP
       includeAssets: ["favicon.svg", "favicon.ico", "robots.txt"],
       manifest: {
         name: "Perimenopauze Plan",
