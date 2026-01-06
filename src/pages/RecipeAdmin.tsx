@@ -6,9 +6,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useMyRecipes, useDeleteRecipe, mealTypes } from '@/hooks/useRecipes';
+import { useMyRecipes, useDeleteRecipe, useBulkPublishRecipes, mealTypes } from '@/hooks/useRecipes';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, ChefHat, Pencil, Trash2, Eye, EyeOff, Upload } from 'lucide-react';
+import { Plus, ChefHat, Pencil, Trash2, Eye, EyeOff, Upload, CheckCircle } from 'lucide-react';
 import { RecipeFormDialog } from '@/components/recipes/RecipeFormDialog';
 import { RecipeImportDialog } from '@/components/recipes/RecipeImportDialog';
 
@@ -20,6 +20,9 @@ export default function RecipeAdminPage() {
 
   const { data: recipes, isLoading } = useMyRecipes();
   const deleteRecipe = useDeleteRecipe();
+  const bulkPublish = useBulkPublishRecipes();
+
+  const draftRecipes = recipes?.filter(r => !r.is_published) || [];
 
   const handleDelete = async (id: string, title: string) => {
     if (!confirm(`Weet je zeker dat je "${title}" wilt verwijderen?`)) return;
@@ -28,6 +31,17 @@ export default function RecipeAdminPage() {
       toast({ title: 'Recept verwijderd' });
     } catch {
       toast({ title: 'Kon recept niet verwijderen', variant: 'destructive' });
+    }
+  };
+
+  const handleBulkPublish = async () => {
+    if (draftRecipes.length === 0) return;
+    if (!confirm(`Wil je ${draftRecipes.length} concept-recepten publiceren?`)) return;
+    try {
+      await bulkPublish.mutateAsync(draftRecipes.map(r => r.id));
+      toast({ title: `${draftRecipes.length} recepten gepubliceerd` });
+    } catch {
+      toast({ title: 'Kon recepten niet publiceren', variant: 'destructive' });
     }
   };
 
@@ -43,6 +57,16 @@ export default function RecipeAdminPage() {
             </p>
           </div>
           <div className="flex gap-2">
+            {draftRecipes.length > 0 && (
+              <Button 
+                variant="outline" 
+                onClick={handleBulkPublish}
+                disabled={bulkPublish.isPending}
+              >
+                <CheckCircle className="h-4 w-4 mr-2" />
+                {bulkPublish.isPending ? 'Publiceren...' : `${draftRecipes.length} publiceren`}
+              </Button>
+            )}
             <Button variant="outline" onClick={() => setShowImport(true)}>
               <Upload className="h-4 w-4 mr-2" />
               Importeren

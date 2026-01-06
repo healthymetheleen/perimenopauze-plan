@@ -15,6 +15,7 @@ export interface Recipe {
   image_url: string | null;
   meal_type: string;
   seasons: string[];
+  cycle_phases: string[];
   diet_tags: string[];
   ingredients: Ingredient[];
   kcal: number | null;
@@ -43,6 +44,7 @@ export type RecipeInsert = {
   servings?: number | null;
   image_url?: string | null;
   seasons?: string[];
+  cycle_phases?: string[];
   diet_tags?: string[];
   ingredients?: Ingredient[];
   kcal?: number | null;
@@ -61,27 +63,46 @@ export const mealTypes = [
   { value: 'diner', label: 'Diner' },
   { value: 'snack', label: 'Snack' },
   { value: 'tussendoortje', label: 'Tussendoortje' },
+  { value: 'drankje', label: 'Drankje' },
+  { value: 'smoothie', label: 'Smoothie' },
 ] as const;
 
+// Weather/calendar seasons
 export const seasons = [
-  { value: 'winter', label: 'Winter (menstruatie)' },
-  { value: 'lente', label: 'Lente (folliculair)' },
-  { value: 'zomer', label: 'Zomer (ovulatie)' },
-  { value: 'herfst', label: 'Herfst (luteaal)' },
+  { value: 'lente', label: 'Lente' },
+  { value: 'zomer', label: 'Zomer' },
+  { value: 'herfst', label: 'Herfst' },
+  { value: 'winter', label: 'Winter' },
+] as const;
+
+// Menstrual cycle phases
+export const cyclePhases = [
+  { value: 'menstruatie', label: 'Menstruatie', description: 'Rustfase, ijzerrijk' },
+  { value: 'folliculair', label: 'Folliculair', description: 'Energie opbouwen' },
+  { value: 'ovulatie', label: 'Ovulatie', description: 'Piek energie' },
+  { value: 'luteaal', label: 'Luteaal', description: 'Comfort, magnesium' },
 ] as const;
 
 export const dietTags = [
   { value: 'vegetarisch', label: 'Vegetarisch' },
   { value: 'veganistisch', label: 'Veganistisch' },
+  { value: 'pescotarisch', label: 'Pescotarisch' },
   { value: 'glutenvrij', label: 'Glutenvrij' },
   { value: 'zuivelvrij', label: 'Zuivelvrij' },
   { value: 'lactosevrij', label: 'Lactosevrij' },
+  { value: 'eivrij', label: 'Eivrij' },
+  { value: 'notenvrij', label: 'Notenvrij' },
+  { value: 'sojavrij', label: 'Sojavrij' },
   { value: 'keto', label: 'Keto' },
   { value: 'low-carb', label: 'Low-carb' },
   { value: 'eiwitrijk', label: 'Eiwitrijk' },
   { value: 'vezelrijk', label: 'Vezelrijk' },
   { value: 'anti-inflammatoir', label: 'Anti-inflammatoir' },
   { value: 'bloedsuikerstabiel', label: 'Bloedsuikerstabiel' },
+  { value: 'zwangerschapsveilig', label: 'Zwangerschapsveilig' },
+  { value: 'kinderwensvriendelijk', label: 'Kinderwensvriendelijk' },
+  { value: 'ijzerrijk', label: 'IJzerrijk' },
+  { value: 'foliumzuurrijk', label: 'Foliumzuurrijk' },
 ] as const;
 
 // Fetch all published recipes
@@ -230,6 +251,28 @@ export function useDeleteRecipe() {
   });
 }
 
+// Bulk publish recipes
+export function useBulkPublishRecipes() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (ids: string[]) => {
+      if (!user) throw new Error('Niet ingelogd');
+      const { error } = await supabase
+        .from('recipes')
+        .update({ is_published: true })
+        .in('id', ids)
+        .eq('owner_id', user.id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipes'] });
+      queryClient.invalidateQueries({ queryKey: ['my-recipes'] });
+    },
+  });
+}
+
 // Get season-based suggestions
 export function useSeasonRecipes(currentSeason: string) {
   return useQuery({
@@ -245,5 +288,23 @@ export function useSeasonRecipes(currentSeason: string) {
       return data as unknown as Recipe[];
     },
     enabled: !!currentSeason && currentSeason !== 'onbekend',
+  });
+}
+
+// Get cycle phase-based suggestions
+export function useCyclePhaseRecipes(cyclePhase: string) {
+  return useQuery({
+    queryKey: ['cycle-phase-recipes', cyclePhase],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .eq('is_published', true)
+        .contains('cycle_phases', [cyclePhase])
+        .limit(6);
+      if (error) throw error;
+      return data as unknown as Recipe[];
+    },
+    enabled: !!cyclePhase,
   });
 }
