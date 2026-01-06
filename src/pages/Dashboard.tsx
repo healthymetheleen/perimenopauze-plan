@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { differenceInMinutes } from 'date-fns';
+import { differenceInMinutes, format } from 'date-fns';
+import { nl } from 'date-fns/locale';
 import { 
-  ArrowRight, Moon, Sun, FileText, UtensilsCrossed, Heart
+  ArrowRight, Moon, Sun, FileText, UtensilsCrossed, Heart, ChevronDown, ChevronRight as ChevronRightIcon
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -10,6 +11,7 @@ import { Button } from '@/components/ui/button';
 import { DailyReflectionCard, TodayAtAGlance, LookAheadWidget } from '@/components/insights';
 import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { CycleWeekWidget } from '@/components/cycle/CycleWeekWidget';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
 import { useSleepSessions, useActiveSleepSession, useStartSleep, useEndSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
@@ -31,7 +33,7 @@ export default function DashboardPage() {
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [qualityScore, setQualityScore] = useState([7]);
   const [wakeFeeling, setWakeFeeling] = useState<string>('');
-  
+  const [sleepExpanded, setSleepExpanded] = useState(false);
   const { data: scores } = useDailyScores(7);
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
@@ -158,27 +160,83 @@ export default function DashboardPage() {
         {/* Blik Vooruit - Look Ahead Widget */}
         <LookAheadWidget />
 
-        {/* Sleep Card - compact */}
+        {/* Sleep Card - collapsible with session list */}
         <Card className="glass rounded-2xl">
           <CardContent className="p-4">
-            <Link to="/slaap" className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-full bg-muted/50">
-                  <Moon className="h-5 w-5" />
+            <Collapsible open={sleepExpanded} onOpenChange={setSleepExpanded}>
+              <CollapsibleTrigger className="w-full">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-muted/50">
+                      <Moon className="h-5 w-5" />
+                    </div>
+                    <div className="text-left">
+                      <p className="text-sm font-medium">Slaap</p>
+                      {sleepStats && sleepStats.totalSessions > 0 ? (
+                        <p className="text-xs text-muted-foreground">
+                          Gem. {sleepStats.avgDurationHours.toFixed(1)}u · Score {sleepScore}
+                        </p>
+                      ) : (
+                        <p className="text-xs text-muted-foreground">Nog geen data</p>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {sleepExpanded ? (
+                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                    ) : (
+                      <ChevronRightIcon className="h-4 w-4 text-muted-foreground" />
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <p className="text-sm font-medium">Slaap</p>
-                  {sleepStats && sleepStats.totalSessions > 0 ? (
-                    <p className="text-xs text-muted-foreground">
-                      Gem. {sleepStats.avgDurationHours.toFixed(1)}u · Score {sleepScore}
-                    </p>
-                  ) : (
-                    <p className="text-xs text-muted-foreground">Nog geen data</p>
-                  )}
-                </div>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </Link>
+              </CollapsibleTrigger>
+              
+              <CollapsibleContent className="pt-4">
+                {sleepSessions && sleepSessions.length > 0 ? (
+                  <div className="space-y-2 border-t pt-3">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">Recente sessies</p>
+                    {sleepSessions.slice(0, 5).map((session) => {
+                      const sessionDate = new Date(session.sleep_start);
+                      return (
+                        <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
+                          <div className="text-sm">
+                            <span className="font-medium">
+                              {format(sessionDate, 'EEEE', { locale: nl })}
+                            </span>
+                            <span className="text-muted-foreground ml-1">
+                              {format(sessionDate, 'd MMM', { locale: nl })}
+                            </span>
+                          </div>
+                          <div className="text-sm text-muted-foreground">
+                            {session.duration_minutes 
+                              ? `${(session.duration_minutes / 60).toFixed(1)}u`
+                              : 'Bezig...'
+                            }
+                            {session.quality_score && (
+                              <span className="ml-2">· {session.quality_score}/10</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    <Link 
+                      to="/slaap" 
+                      className="flex items-center justify-center gap-1 text-xs text-primary hover:underline pt-2"
+                    >
+                      Alle slaapdata bekijken
+                      <ArrowRight className="h-3 w-3" />
+                    </Link>
+                  </div>
+                ) : (
+                  <div className="text-center py-4 text-sm text-muted-foreground">
+                    <p>Nog geen slaapsessies gelogd</p>
+                    <Link to="/slaap" className="text-primary hover:underline">
+                      Start je eerste sessie →
+                    </Link>
+                  </div>
+                )}
+              </CollapsibleContent>
+            </Collapsible>
           </CardContent>
         </Card>
 

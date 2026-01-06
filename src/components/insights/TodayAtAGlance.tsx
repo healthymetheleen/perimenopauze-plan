@@ -1,4 +1,4 @@
-import { format, isWithinInterval, parseISO } from 'date-fns';
+import { format, isWithinInterval, parseISO, startOfDay, differenceInDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { 
   Sparkles, Utensils, Dumbbell, Heart, AlertCircle,
@@ -7,7 +7,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useLatestPrediction, seasonLabels, useCyclePreferences, phaseLabels } from '@/hooks/useCycle';
+import { useLatestPrediction, seasonLabels, useCyclePreferences, useCycles, phaseLabels, getSeasonForDate } from '@/hooks/useCycle';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useNutritionCoach } from '@/hooks/useNutritionCoach';
 import { useDailyAnalysis } from '@/hooks/useDailyAnalysis';
@@ -77,14 +77,29 @@ const seasonSymptoms: Record<string, string[]> = {
 export function TodayAtAGlance() {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
+  const { data: cycles } = useCycles(1);
   const { data: scores } = useDailyScores(2);
   const { data: coaching } = useNutritionCoach();
   const { data: dailyAnalysis } = useDailyAnalysis();
   
   const today = format(new Date(), 'yyyy-MM-dd');
+  const todayDate = startOfDay(new Date());
   const todayScore = scores?.find(s => s.day_date === today);
   
-  const currentSeason = prediction?.current_season || 'onbekend';
+  // Calculate season consistently with LookAheadWidget (using cycles data)
+  const avgCycleLength = prediction?.avg_cycle_length || preferences?.avg_cycle_length || 28;
+  const periodLength = preferences?.avg_period_length || 5;
+  const lutealLength = preferences?.luteal_phase_length || 13;
+  
+  const latestCycleStart = cycles?.[0]?.start_date 
+    ? startOfDay(parseISO(cycles[0].start_date)) 
+    : null;
+  
+  // Use calculated season (consistent with LookAheadWidget) if we have cycle data, otherwise fallback to prediction
+  const currentSeason = latestCycleStart 
+    ? getSeasonForDate(todayDate, latestCycleStart, avgCycleLength, periodLength, lutealLength)
+    : (prediction?.current_season || 'onbekend');
+  
   const currentPhase = prediction?.current_phase || 'onbekend';
   const workout = currentSeason !== 'onbekend' ? getWorkoutForSeason(currentSeason) : null;
   const foodTip = seasonFoodTips[currentSeason] || seasonFoodTips.onbekend;

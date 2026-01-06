@@ -43,6 +43,24 @@ const seasonBadgeColors: Record<Season, string> = {
   onbekend: 'bg-muted text-muted-foreground',
 };
 
+// Season block background colors for Nu/Daarna pills
+const seasonBlockColors: Record<Season, string> = {
+  winter: 'bg-blue-100/60 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800',
+  lente: 'bg-green-100/60 dark:bg-green-950/40 border border-green-200 dark:border-green-800',
+  zomer: 'bg-amber-100/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800',
+  herfst: 'bg-orange-100/60 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800',
+  onbekend: 'bg-muted/30',
+};
+
+// Season text colors for labels
+const seasonTextColors: Record<Season, string> = {
+  winter: 'text-blue-700 dark:text-blue-300',
+  lente: 'text-green-700 dark:text-green-300',
+  zomer: 'text-amber-700 dark:text-amber-300',
+  herfst: 'text-orange-700 dark:text-orange-300',
+  onbekend: 'text-muted-foreground',
+};
+
 // Risk level indicator colors
 const riskColors: Record<RiskLevel, string> = {
   laag: 'bg-green-500',
@@ -553,9 +571,9 @@ export function LookAheadWidget() {
         
         {/* Season Pills */}
         <div className="p-4 grid grid-cols-2 gap-3">
-          <div className="p-3 rounded-xl bg-muted/30">
+          <div className={`p-3 rounded-xl ${seasonBlockColors[currentSeason]}`}>
             <p className="text-xs text-muted-foreground mb-1">Nu</p>
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${seasonTextColors[currentSeason]}`}>
               {seasonIcons[currentSeason]}
               <span className="font-semibold">{seasonLabels[currentSeason]}</span>
             </div>
@@ -564,9 +582,9 @@ export function LookAheadWidget() {
             </p>
           </div>
           
-          <div className="p-3 rounded-xl bg-muted/30">
+          <div className={`p-3 rounded-xl ${seasonBlockColors[nextSeason]}`}>
             <p className="text-xs text-muted-foreground mb-1">Daarna</p>
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${seasonTextColors[nextSeason]}`}>
               {seasonIcons[nextSeason]}
               <span className="font-semibold">{seasonLabels[nextSeason]}</span>
             </div>
