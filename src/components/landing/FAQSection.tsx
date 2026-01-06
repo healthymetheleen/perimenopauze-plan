@@ -17,7 +17,7 @@ const faqs = [
   },
   {
     question: "Voor wie is deze app bedoeld?",
-    answer: "Deze app is speciaal ontwikkeld voor vrouwen die in de perimenopauze of overgang zitten, of vermoeden dat ze deze fase ingaan. Ook vrouwen die hun cyclus willen volgen en meer inzicht willen in de relatie tussen hun hormonen, voeding en welzijn kunnen baat hebben bij de app.",
+    answer: "Deze app is speciaal ontwikkeld voor vrouwen in de perimenopauze - de overgangsperiode die meestal begint tussen je 40e en 50e. Ook vrouwen die vermoeden dat ze deze fase ingaan, of die hun cyclus willen volgen en meer inzicht willen in de relatie tussen hun hormonen, voeding en welzijn kunnen baat hebben bij de app.",
   },
   {
     question: "Hoe werkt de AI-analyse?",
