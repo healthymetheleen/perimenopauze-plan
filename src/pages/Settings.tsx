@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ const digestTimes = [
 ];
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { user, signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
@@ -74,8 +76,8 @@ export default function SettingsPage() {
     // Need consent if providing height/weight
     if ((heightCm || weightKg) && !acceptedBodyData) {
       toast({
-        title: 'Toestemming vereist',
-        description: 'Geef toestemming voor het gebruik van lengte/gewicht.',
+        title: t('settings.consent_required'),
+        description: t('settings.consent_required_desc'),
         variant: 'destructive',
       });
       return;
@@ -88,10 +90,10 @@ export default function SettingsPage() {
         weight_kg: weightKg ? parseFloat(weightKg) : null,
         accepted_body_data: acceptedBodyData,
       });
-      toast({ title: 'Profiel opgeslagen' });
+      toast({ title: t('settings.profile_saved') });
     } catch {
       toast({
-        title: 'Kon profiel niet opslaan',
+        title: t('settings.could_not_save_profile'),
         variant: 'destructive',
       });
     }
@@ -108,11 +110,11 @@ export default function SettingsPage() {
         accepted_ai_processing: enabled,
       });
       toast({
-        title: enabled ? 'AI-analyse ingeschakeld' : 'AI-analyse uitgeschakeld',
+        title: enabled ? t('settings.ai_enabled') : t('settings.ai_disabled'),
       });
     } catch {
       toast({
-        title: 'Kon AI-instelling niet opslaan',
+        title: t('settings.could_not_save_ai'),
         variant: 'destructive',
       });
     }
@@ -125,11 +127,11 @@ export default function SettingsPage() {
         photo_analysis_consent_at: enabled ? new Date().toISOString() : null,
       });
       toast({
-        title: enabled ? 'Foto-analyse ingeschakeld' : 'Foto-analyse uitgeschakeld',
+        title: enabled ? t('settings.photo_enabled') : t('settings.photo_disabled'),
       });
     } catch {
       toast({
-        title: 'Kon foto-instelling niet opslaan',
+        title: t('settings.could_not_save_photo'),
         variant: 'destructive',
       });
     }
@@ -139,17 +141,15 @@ export default function SettingsPage() {
     <AppLayout>
       <div className="space-y-6 max-w-2xl">
         <div>
-          <h1 className="text-2xl font-semibold text-gradient">Instellingen</h1>
-          <p className="text-muted-foreground">Beheer je voorkeuren en privacy</p>
+          <h1 className="text-2xl font-semibold text-gradient">{t('settings.title')}</h1>
+          <p className="text-muted-foreground">{t('settings.subtitle')}</p>
         </div>
 
         {/* Transparency Info */}
         <Alert className="glass border-primary/20">
           <Info className="h-4 w-4 text-primary" />
           <AlertDescription className="text-sm">
-            <strong>Zo gebruiken we je gegevens:</strong> Deze app ondersteunt je met inzicht in 
-            leefstijl en cyclus. We gebruiken je gegevens alleen om patronen zichtbaar te maken. 
-            AI wordt ingezet als hulpmiddel en ontvangt geen herleidbare persoonsgegevens.
+            {t('settings.transparency_info')}
           </AlertDescription>
         </Alert>
 
@@ -198,14 +198,14 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Account & Abonnement
+              {t('settings.account_subscription')}
             </CardTitle>
-            <CardDescription>Beheer je account en premium toegang</CardDescription>
+            <CardDescription>{t('settings.account_subscription_desc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>E-mailadres</Label>
+                <Label>{t('settings.email')}</Label>
                 <p className="text-sm text-muted-foreground">{user?.email}</p>
               </div>
             </div>
@@ -216,20 +216,23 @@ export default function SettingsPage() {
               <div className="space-y-0.5 flex-1">
                 <Label className="flex items-center gap-2">
                   {isPremium && <Crown className="h-4 w-4 text-primary" />}
-                  Huidig abonnement
+                  {t('settings.current_subscription')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
                   {isPremium 
-                    ? 'Premium - volledige toegang' 
+                    ? t('settings.premium_access')
                     : entitlements?.trial_days_remaining && entitlements.trial_days_remaining > 0
-                      ? `Gratis trial - nog ${entitlements.trial_days_remaining} ${entitlements.trial_days_remaining === 1 ? 'dag' : 'dagen'}`
-                      : 'Gratis - beperkte functies'}
+                      ? t('settings.trial_remaining', { 
+                          days: entitlements.trial_days_remaining, 
+                          dayWord: entitlements.trial_days_remaining === 1 ? t('settings.day') : t('settings.days') 
+                        })
+                      : t('settings.free_limited')}
                 </p>
               </div>
               <Button variant="outline" asChild className="glass">
                 <Link to="/subscription">
                   <CreditCard className="h-4 w-4 mr-2" />
-                  {isPremium ? 'Beheren' : 'Upgraden'}
+                  {isPremium ? t('common.manage') : t('common.upgrade')}
                 </Link>
               </Button>
             </div>
@@ -238,13 +241,13 @@ export default function SettingsPage() {
             
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Accountbeheer</Label>
-                <p className="text-sm text-muted-foreground">Data downloaden of account verwijderen</p>
+                <Label>{t('settings.account_management')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.account_management_desc')}</p>
               </div>
               <Button variant="outline" asChild className="glass">
                 <Link to="/account">
                   <Shield className="h-4 w-4 mr-2" />
-                  Beheren
+                  {t('common.manage')}
                 </Link>
               </Button>
             </div>
@@ -253,7 +256,7 @@ export default function SettingsPage() {
             
             <Button variant="outline" onClick={handleSignOut} className="w-full">
               <LogOut className="h-4 w-4 mr-2" />
-              Uitloggen
+              {t('common.logout')}
             </Button>
           </CardContent>
         </Card>
@@ -263,19 +266,19 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Persoonlijk profiel
+              {t('settings.personal_profile')}
             </CardTitle>
-            <CardDescription>Voor gepersonaliseerde voedings- en eiwitadviezen</CardDescription>
+            <CardDescription>{t('settings.personal_profile_desc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Leeftijdscategorie</Label>
-                <p className="text-sm text-muted-foreground">Voor leeftijd-specifieke adviezen</p>
+                <Label>{t('settings.age_category')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.age_specific_advice')}</p>
               </div>
               <Select value={ageCategory} onValueChange={(v) => setAgeCategory(v as AgeCategory)}>
                 <SelectTrigger className="w-32">
-                  <SelectValue placeholder="Kies..." />
+                  <SelectValue placeholder={t('settings.choose')} />
                 </SelectTrigger>
                 <SelectContent>
                   {AGE_CATEGORY_OPTIONS.map((opt) => (
@@ -293,7 +296,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="height" className="flex items-center gap-2">
                   <Ruler className="h-4 w-4 text-muted-foreground" />
-                  Lengte (cm)
+                  {t('settings.height')}
                 </Label>
                 <Input
                   id="height"
@@ -308,7 +311,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label htmlFor="weight" className="flex items-center gap-2">
                   <Scale className="h-4 w-4 text-muted-foreground" />
-                  Gewicht (kg)
+                  {t('settings.weight')}
                 </Label>
                 <Input
                   id="weight"
@@ -335,8 +338,7 @@ export default function SettingsPage() {
                       onCheckedChange={(c) => setAcceptedBodyData(!!c)}
                     />
                     <Label htmlFor="body-data-consent-settings" className="text-sm cursor-pointer leading-relaxed">
-                      Ik geef toestemming om mijn lengte en gewicht te gebruiken voor 
-                      persoonlijke calorie- en eiwit-aanbevelingen.
+                      {t('settings.body_data_consent')}
                     </Label>
                   </div>
                 </AlertDescription>
@@ -348,7 +350,7 @@ export default function SettingsPage() {
               disabled={updateProfile.isPending}
               className="w-full"
             >
-              Profiel opslaan
+              {t('settings.save_profile')}
             </Button>
           </CardContent>
         </Card>
@@ -356,9 +358,9 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Clock className="h-5 w-5 text-primary" />
-              Voorkeuren
+              {t('settings.preferences')}
             </CardTitle>
-            <CardDescription>Pas je dagelijkse overzicht en tijdzone aan</CardDescription>
+            <CardDescription>{t('settings.preferences_desc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Language */}
@@ -366,9 +368,9 @@ export default function SettingsPage() {
               <div className="space-y-0.5">
                 <Label className="flex items-center gap-2">
                   <Languages className="h-4 w-4" />
-                  Taal / Language
+                  {t('settings.language')}
                 </Label>
-                <p className="text-sm text-muted-foreground">Kies je voorkeurstaal</p>
+                <p className="text-sm text-muted-foreground">{t('settings.language_desc')}</p>
               </div>
               <LanguageSwitcher />
             </div>
@@ -377,8 +379,8 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Tijdzone</Label>
-                <p className="text-sm text-muted-foreground">Voor correcte tijden in je dagboek</p>
+                <Label>{t('settings.timezone')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.timezone_desc')}</p>
               </div>
               <Select value={timezone} onValueChange={setTimezone}>
                 <SelectTrigger className="w-48">
@@ -399,8 +401,8 @@ export default function SettingsPage() {
 
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
-                <Label>Dagelijks overzicht</Label>
-                <p className="text-sm text-muted-foreground">Ontvang een herinnering om te registreren</p>
+                <Label>{t('settings.daily_overview')}</Label>
+                <p className="text-sm text-muted-foreground">{t('settings.daily_overview_desc')}</p>
               </div>
               <Select value={digestTime} onValueChange={setDigestTime}>
                 <SelectTrigger className="w-32">
@@ -423,9 +425,9 @@ export default function SettingsPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              AI-ondersteuning
+              {t('settings.ai_support')}
             </CardTitle>
-            <CardDescription>Beheer hoe AI je helpt met inzichten</CardDescription>
+            <CardDescription>{t('settings.ai_support_desc')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Photo analysis consent */}
@@ -433,10 +435,10 @@ export default function SettingsPage() {
               <div className="space-y-0.5">
                 <Label htmlFor="photo-analysis" className="flex items-center gap-2">
                   <Camera className="h-4 w-4" />
-                  Foto-analyse voor macro's
+                  {t('settings.photo_analysis')}
                 </Label>
                 <p className="text-sm text-muted-foreground">
-                  Foto's van maaltijden worden naar AI gestuurd voor automatische analyse
+                  {t('settings.photo_analysis_desc')}
                 </p>
               </div>
               <Switch
