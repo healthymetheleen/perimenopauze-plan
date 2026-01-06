@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { PremiumGrantsCard } from '@/components/admin/PremiumGrantsCard';
 
 export default function AdminDashboard() {
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin();
@@ -251,6 +252,9 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Premium Grants */}
+            <PremiumGrantsCard />
 
             {/* Page Views */}
             {stats.page_views && stats.page_views.length > 0 && (

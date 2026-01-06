@@ -12,6 +12,7 @@ export interface Entitlements {
   status: string;
   trial_days_remaining: number;
   is_trial_expired: boolean;
+  has_premium_grant: boolean;
 }
 
 const TRIAL_DAYS = 7;
@@ -25,6 +26,7 @@ const defaultEntitlements: Entitlements = {
   status: 'active',
   trial_days_remaining: TRIAL_DAYS,
   is_trial_expired: false,
+  has_premium_grant: false,
 };
 
 export function useEntitlements() {
@@ -35,8 +37,20 @@ export function useEntitlements() {
     queryFn: async (): Promise<Entitlements> => {
       if (!user) return defaultEntitlements;
       
-      const { data: sub } = await supabase.from('subscriptions').select('plan, status, created_at, trial_ends_at').eq('owner_id', user.id).maybeSingle();
-      const { data: ent } = await supabase.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle();
+      // Fetch subscription, entitlements, and premium grant in parallel
+      const [subResult, entResult, grantResult] = await Promise.all([
+        supabase.from('subscriptions').select('plan, status, created_at, trial_ends_at').eq('owner_id', user.id).maybeSingle(),
+        supabase.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle(),
+        supabase.from('premium_grants').select('id, is_active, expires_at').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
+      ]);
+      
+      const sub = subResult.data;
+      const ent = entResult.data;
+      const grant = grantResult.data;
+      
+      // Check if user has active premium grant (not expired)
+      const hasPremiumGrant = grant && grant.is_active && 
+        (!grant.expires_at || new Date(grant.expires_at) > new Date());
       
       // Calculate trial status - prefer trial_ends_at from subscription if available
       let trialDaysRemaining = 0;
@@ -59,18 +73,19 @@ export function useEntitlements() {
       const hasPremium = sub?.plan === 'premium' || sub?.plan === 'premium_monthly';
       const isActive = sub?.status === 'active';
       
-      // Users get full access during trial OR with premium subscription
-      const hasFullAccess = (trialDaysRemaining > 0) || (hasPremium && isActive);
+      // Users get full access during trial OR with premium subscription OR with premium grant
+      const hasFullAccess = (trialDaysRemaining > 0) || (hasPremium && isActive) || hasPremiumGrant;
       
       return {
         can_use_digest: true,
         can_use_trends: hasFullAccess || ent?.can_use_trends || false,
         can_use_patterns: hasFullAccess || ent?.can_use_patterns || false,
         max_days_history: hasFullAccess ? 365 : 7,
-        plan: hasPremium ? 'premium' : 'free',
+        plan: (hasPremium || hasPremiumGrant) ? 'premium' : 'free',
         status: sub?.status ?? 'active',
-        trial_days_remaining: hasPremium && isActive ? trialDaysRemaining : trialDaysRemaining,
-        is_trial_expired: !hasPremium && isTrialExpired,
+        trial_days_remaining: (hasPremium && isActive) || hasPremiumGrant ? 0 : trialDaysRemaining,
+        is_trial_expired: !hasPremium && !hasPremiumGrant && isTrialExpired,
+        has_premium_grant: !!hasPremiumGrant,
       };
     },
     enabled: !!user,
