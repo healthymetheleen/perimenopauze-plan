@@ -1,3 +1,4 @@
+import { lazy, Suspense } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,37 +10,36 @@ import { useProfile } from "@/hooks/useProfile";
 import { LoadingPage } from "@/components/ui/loading-state";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 
-// Pages
-import LoginPage from "./pages/Login";
-import ConsentPage from "./pages/Consent";
-import ProfileOnboardingPage from "./pages/ProfileOnboarding";
-import PricingPage from "./pages/Pricing";
-import DashboardPage from "./pages/Dashboard";
-import DiaryPage from "./pages/Diary";
-import TrendsPage from "./pages/Trends";
-
-import AccountPage from "./pages/Account";
-import SettingsPage from "./pages/Settings";
-import CyclePage from "./pages/Cycle";
-import CycleOnboardingPage from "./pages/CycleOnboarding";
-import RecipesPage from "./pages/Recipes";
-import RecipeDetailPage from "./pages/RecipeDetail";
-import RecipeAdminPage from "./pages/RecipeAdmin";
-import SleepPage from "./pages/Sleep";
-import MovementPage from "./pages/Movement";
-import MeditationPage from "./pages/Meditation";
-import CommunityPage from "./pages/Community";
-import CommunityPostPage from "./pages/CommunityPost";
-import ContentAdminPage from "./pages/ContentAdmin";
-import InstallPage from "./pages/Install";
-import PrivacyPolicy from "./pages/PrivacyPolicy";
-import Terms from "./pages/Terms";
-import IntendedUse from "./pages/IntendedUse";
-import MonthlyAnalysisPage from "./pages/MonthlyAnalysis";
-import SubscriptionPage from "./pages/Subscription";
-import NutritionAdminPage from "./pages/NutritionAdmin";
-import AdminDashboardPage from "./pages/AdminDashboard";
-import NotFound from "./pages/NotFound";
+// Lazy loaded pages for code splitting
+const LoginPage = lazy(() => import("./pages/Login"));
+const ConsentPage = lazy(() => import("./pages/Consent"));
+const ProfileOnboardingPage = lazy(() => import("./pages/ProfileOnboarding"));
+const PricingPage = lazy(() => import("./pages/Pricing"));
+const DashboardPage = lazy(() => import("./pages/Dashboard"));
+const DiaryPage = lazy(() => import("./pages/Diary"));
+const TrendsPage = lazy(() => import("./pages/Trends"));
+const AccountPage = lazy(() => import("./pages/Account"));
+const SettingsPage = lazy(() => import("./pages/Settings"));
+const CyclePage = lazy(() => import("./pages/Cycle"));
+const CycleOnboardingPage = lazy(() => import("./pages/CycleOnboarding"));
+const RecipesPage = lazy(() => import("./pages/Recipes"));
+const RecipeDetailPage = lazy(() => import("./pages/RecipeDetail"));
+const RecipeAdminPage = lazy(() => import("./pages/RecipeAdmin"));
+const SleepPage = lazy(() => import("./pages/Sleep"));
+const MovementPage = lazy(() => import("./pages/Movement"));
+const MeditationPage = lazy(() => import("./pages/Meditation"));
+const CommunityPage = lazy(() => import("./pages/Community"));
+const CommunityPostPage = lazy(() => import("./pages/CommunityPost"));
+const ContentAdminPage = lazy(() => import("./pages/ContentAdmin"));
+const InstallPage = lazy(() => import("./pages/Install"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const Terms = lazy(() => import("./pages/Terms"));
+const IntendedUse = lazy(() => import("./pages/IntendedUse"));
+const MonthlyAnalysisPage = lazy(() => import("./pages/MonthlyAnalysis"));
+const SubscriptionPage = lazy(() => import("./pages/Subscription"));
+const NutritionAdminPage = lazy(() => import("./pages/NutritionAdmin"));
+const AdminDashboardPage = lazy(() => import("./pages/AdminDashboard"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
 
@@ -130,6 +130,7 @@ function ProfileOnboardingRoute({ children }: { children: React.ReactNode }) {
 
 function AppRoutes() {
   return (
+    <Suspense fallback={<LoadingPage />}>
     <Routes>
       {/* Public routes */}
       <Route path="/" element={<Navigate to="/login" replace />} />
@@ -272,6 +273,7 @@ function AppRoutes() {
       {/* Catch all */}
       <Route path="*" element={<NotFound />} />
     </Routes>
+    </Suspense>
   );
 }
 
