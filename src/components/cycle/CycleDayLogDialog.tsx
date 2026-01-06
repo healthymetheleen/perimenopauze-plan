@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { useState, useEffect, useMemo } from 'react';
+import { format, parseISO, startOfDay, isAfter } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
@@ -53,6 +53,13 @@ export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symp
   const logSymptoms = useLogCycleSymptoms();
   const startCycle = useStartCycle();
   const deleteBleeding = useDeleteBleeding();
+
+  // Check if date is in the future (only today or past allowed)
+  const isFutureDate = useMemo(() => {
+    const today = startOfDay(new Date());
+    const selectedDate = startOfDay(parseISO(date));
+    return isAfter(selectedDate, today);
+  }, [date]);
 
   // State
   const [tab, setTab] = useState<'bleeding' | 'symptoms'>(defaultTab);
@@ -183,6 +190,27 @@ export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symp
   };
 
   const isPending = logBleeding.isPending || logSymptoms.isPending || deleteBleeding.isPending;
+
+  // If future date, show message and close
+  if (isFutureDate) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {format(new Date(date), "EEEE d MMMM", { locale: nl })}
+            </DialogTitle>
+            <DialogDescription className="pt-4">
+              Je kunt alleen gegevens invullen voor vandaag of eerdere dagen, niet voor toekomstige dagen.
+            </DialogDescription>
+          </DialogHeader>
+          <Button onClick={() => onOpenChange(false)} className="w-full">
+            Sluiten
+          </Button>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
