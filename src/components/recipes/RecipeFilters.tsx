@@ -28,12 +28,12 @@ interface RecipeFiltersProps {
   onClear: () => void;
 }
 
-// Group diet tags into categories
-const allergyAndLifeTagValues = [
+// All persisted tags (allergies, diet preferences, life stage)
+const persistedTagValues = [
   'glutenvrij', 'zuivelvrij', 'lactosevrij', 'eivrij', 'notenvrij', 'sojavrij',
+  'vegetarisch', 'veganistisch', 'pescotarisch', 'keto', 'low-carb',
   'zwangerschapsveilig', 'kinderwensvriendelijk'
 ];
-const dietPreferenceTags = ['vegetarisch', 'veganistisch', 'pescotarisch', 'keto', 'low-carb'];
 const healthTags = ['eiwitrijk', 'vezelrijk', 'anti-inflammatoir', 'bloedsuikerstabiel', 'ijzerrijk', 'foliumzuurrijk'];
 
 export function RecipeFilters({
@@ -198,7 +198,7 @@ export function RecipeFilters({
             Deze voorkeuren worden onthouden en automatisch toegepast
           </p>
           <div className="flex flex-wrap gap-2">
-            {allergyAndLifeTagValues.map((tag) => {
+            {persistedTagValues.map((tag) => {
               const tagInfo = dietTags.find(t => t.value === tag);
               if (!tagInfo) return null;
               const isSelected = savedAllergyTags.includes(tag);
@@ -211,41 +211,6 @@ export function RecipeFilters({
                     isSelected && "bg-amber-600 hover:bg-amber-700"
                   )}
                   onClick={() => toggleAllergyTag(tag)}
-                >
-                  {tagInfo.label}
-                </Badge>
-              );
-            })}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Diet preferences section */}
-      <Collapsible open={openSections.includes('diet')} onOpenChange={() => toggleSection('diet')}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between h-10 px-3">
-            <span className="flex items-center gap-2">
-              🥗 Voedingsvoorkeur
-              {selectedDietTags.filter(t => dietPreferenceTags.includes(t)).length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {selectedDietTags.filter(t => dietPreferenceTags.includes(t)).length}
-                </Badge>
-              )}
-            </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", openSections.includes('diet') && "rotate-180")} />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2 pb-3 px-3">
-          <div className="flex flex-wrap gap-2">
-            {dietPreferenceTags.map((tag) => {
-              const tagInfo = dietTags.find(t => t.value === tag);
-              if (!tagInfo) return null;
-              return (
-                <Badge
-                  key={tag}
-                  variant={selectedDietTags.includes(tag) ? 'default' : 'outline'}
-                  className="cursor-pointer"
-                  onClick={() => toggleDietTag(tag)}
                 >
                   {tagInfo.label}
                 </Badge>
