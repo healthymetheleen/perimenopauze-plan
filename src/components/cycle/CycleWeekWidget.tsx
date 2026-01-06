@@ -127,30 +127,38 @@ export function CycleWeekWidget() {
             <ArrowRight className="h-4 w-4 text-muted-foreground" />
           </div>
 
-          {/* Quick chips with consistent styling */}
-          <div className="flex flex-wrap gap-1.5 text-xs">
+          {/* Legend chips - styled like calendar page */}
+          <div className="flex flex-wrap gap-2 text-xs">
             {prediction?.next_period_start_min && (
-              <Badge variant="outline" className="font-normal gap-1.5 pl-1.5">
-                <span className="h-2.5 w-2.5 rounded-full bg-destructive" />
+              <Badge 
+                variant="outline" 
+                className="font-normal pl-5 relative bg-background/80"
+              >
+                <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive" />
                 {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
               </Badge>
             )}
             {preferences?.show_fertile_days && prediction?.fertile_window_start && (
-              <Badge variant="outline" className="font-normal gap-1.5 pl-1.5">
-                <span className="h-2.5 w-2.5 rounded-full ring-2 ring-green-500 bg-transparent" />
+              <Badge 
+                variant="outline" 
+                className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80"
+              >
                 Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
               </Badge>
             )}
             {preferences?.show_fertile_days && ovulationDateStr && (
-              <Badge variant="outline" className="font-normal gap-1">
-                <span className="text-amber-500 text-xs font-bold">★</span>
+              <Badge 
+                variant="outline" 
+                className="font-normal pr-5 relative bg-background/80"
+              >
                 {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
+                <span className="absolute -top-0.5 -right-0.5 cycle-ovulation-star text-[10px] font-bold">★</span>
               </Badge>
             )}
           </div>
 
           {/* 7-day strip (season background + event markers) */}
-          <div className="grid grid-cols-7 gap-1.5">
+          <div className="grid grid-cols-7 gap-2">
             {calendarDays.map((d) => (
               <div
                 key={d.dateStr}
