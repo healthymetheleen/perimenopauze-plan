@@ -69,16 +69,19 @@ export const HeroSection = () => {
               {/* Glow effect behind phone */}
               <div className="absolute inset-0 bg-gradient-to-br from-primary/30 to-secondary/30 blur-3xl scale-90" />
               
-              <img
-                src="/app-mockup.png"
-                alt="Perimenopauze Plan app interface met cyclus dag indicator, symptomen dagboek, slaap tracking en voeding module voor vrouwen in de overgang"
-                width={380}
-                height={507}
-                loading="eager"
-                fetchPriority="high"
-                decoding="async"
-                className="relative w-full max-w-sm mx-auto drop-shadow-2xl rounded-3xl"
-              />
+              <picture>
+                <source srcSet="/app-mockup.webp" type="image/webp" />
+                <img
+                  src="/app-mockup.png"
+                  alt="Perimenopauze Plan app interface met cyclus dag indicator, symptomen dagboek, slaap tracking en voeding module voor vrouwen in de overgang"
+                  width={380}
+                  height={507}
+                  loading="eager"
+                  fetchPriority="high"
+                  decoding="async"
+                  className="relative w-full max-w-sm mx-auto drop-shadow-2xl rounded-3xl"
+                />
+              </picture>
             </div>
           </motion.div>
         </div>
