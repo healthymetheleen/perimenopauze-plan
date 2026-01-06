@@ -5,61 +5,27 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
-const faqs = [
-  {
-    question: "Wat is de perimenopauze?",
-    answer: "De perimenopauze is de overgangsperiode naar de menopauze, die meestal begint tussen je 40e en 50e levensjaar. Tijdens deze fase fluctueren je hormonen, wat kan leiden tot symptomen zoals onregelmatige menstruatie, opvliegers, slaapproblemen en stemmingswisselingen. Deze periode kan 4 tot 10 jaar duren.",
-  },
-  {
-    question: "Wat is cycle syncing?",
-    answer: "Cycle syncing betekent dat je je voeding, beweging en activiteiten afstemt op je cyclusfase. Elke fase (menstruatie, folliculaire fase, ovulatie en luteale fase) heeft andere hormonale kenmerken. Door hiermee rekening te houden kun je beter presteren, minder last hebben van symptomen en je energieniveau optimaliseren. Onze app geeft je dagelijks advies gebaseerd op jouw cyclusfase.",
-  },
-  {
-    question: "Hoe kan ik mijn menstruatie berekenen?",
-    answer: "Met Perimenopauze Plan kun je eenvoudig je menstruatie berekenen online. Log je cyclusgegevens en de app voorspelt automatisch je volgende menstruatie. Onze slimme calculator houdt rekening met onregelmatige cycli die typisch zijn tijdens de perimenopauze, zodat je toch een betrouwbare voorspelling krijgt.",
-  },
-  {
-    question: "Voor wie is deze app bedoeld?",
-    answer: "Deze app is speciaal ontwikkeld voor vrouwen in de perimenopauze - de overgangsperiode die meestal begint tussen je 40e en 50e. Ook vrouwen die vermoeden dat ze deze fase ingaan, of die hun cyclus willen volgen en meer inzicht willen in de relatie tussen hun hormonen, voeding en welzijn kunnen baat hebben bij de app.",
-  },
-  {
-    question: "Hoe werkt de AI-analyse?",
-    answer: "Onze AI analyseert je ingevoerde gegevens - maaltijden, slaap, symptomen en cyclusdata - om patronen te ontdekken. Je ontvangt gepersonaliseerde inzichten over hoe je voeding en leefstijl je symptomen beïnvloeden. De AI geeft suggesties die zijn afgestemd op jouw specifieke situatie en cyclusfase.",
-  },
-  {
-    question: "Is mijn data veilig?",
-    answer: "Absoluut. We nemen privacy zeer serieus. Alle data wordt versleuteld opgeslagen en verwerkt volgens de GDPR-richtlijnen. Je gezondheidsgegevens worden nooit gedeeld met derden of gebruikt voor advertenties. Je hebt altijd volledige controle over je eigen data en kunt deze op elk moment verwijderen.",
-  },
-  {
-    question: "Wat kost de app?",
-    answer: "Je kunt de app 7 dagen gratis proberen zonder creditcard. Daarna kost het Basis abonnement €7,50 per maand, waarmee je toegang hebt tot alle tracking functies. Het Premium abonnement voor €14 per maand bevat extra AI-analyses en gepersonaliseerde coaching.",
-  },
-  {
-    question: "Kan ik de app gratis proberen?",
-    answer: "Ja! Je krijgt 7 dagen gratis toegang tot alle Premium functies. Zo kun je uitgebreid testen of de app bij je past. Na de proefperiode kies je zelf of je doorgaat met een betaald abonnement.",
-  },
-  {
-    question: "Geeft de app medisch advies?",
-    answer: "Nee, Perimenopauze Plan is een wellness-app en geeft geen medisch advies. De app helpt je patronen te ontdekken en biedt algemene informatie, maar vervangt geen arts of specialist. Bij medische klachten raden we altijd aan om contact op te nemen met een zorgverlener.",
-  },
-];
-
-// Generate FAQ Schema for SEO
-export const generateFAQSchema = () => ({
+// Generate FAQ Schema for SEO - this uses English as default for schema
+export const generateFAQSchema = (t: (key: string) => string) => ({
   "@context": "https://schema.org",
   "@type": "FAQPage",
-  mainEntity: faqs.map((faq) => ({
+  mainEntity: Array.from({ length: 9 }, (_, i) => ({
     "@type": "Question",
-    name: faq.question,
+    name: t(`faq.q${i + 1}.question`),
     acceptedAnswer: {
       "@type": "Answer",
-      text: faq.answer,
+      text: t(`faq.q${i + 1}.answer`),
     },
   })),
 });
 
 export const FAQSection = () => {
+  const { t } = useTranslation();
+
+  const faqKeys = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9'] as const;
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
@@ -71,10 +37,10 @@ export const FAQSection = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Veelgestelde vragen
+            {t('faq.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Alles wat je wilt weten over de perimenopauze en onze app
+            {t('faq.description')}
           </p>
         </motion.div>
 
@@ -86,17 +52,17 @@ export const FAQSection = () => {
           className="max-w-3xl mx-auto"
         >
           <Accordion type="single" collapsible className="space-y-4">
-            {faqs.map((faq, index) => (
+            {faqKeys.map((key, index) => (
               <AccordionItem
-                key={index}
+                key={key}
                 value={`item-${index}`}
                 className="bg-card border border-border rounded-xl px-6 data-[state=open]:border-primary/50"
               >
                 <AccordionTrigger className="text-left font-semibold hover:text-primary">
-                  {faq.question}
+                  {t(`faq.${key}.question`)}
                 </AccordionTrigger>
                 <AccordionContent className="text-muted-foreground">
-                  {faq.answer}
+                  {t(`faq.${key}.answer`)}
                 </AccordionContent>
               </AccordionItem>
             ))}

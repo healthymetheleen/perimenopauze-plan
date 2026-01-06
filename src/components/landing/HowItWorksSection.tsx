@@ -1,37 +1,40 @@
 import { UserPlus, PenLine, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
-
-const steps = [
-  {
-    number: 1,
-    icon: UserPlus,
-    title: "Maak een account",
-    description: "Start je gratis proefperiode van 7 dagen. Vul je profiel in met je cyclusgegevens en gezondheidsvoorkeuren.",
-  },
-  {
-    number: 2,
-    icon: PenLine,
-    title: "Log dagelijks",
-    description: "Voeg eenvoudig je maaltijden toe met foto's, log je slaap, symptomen en beweging. Het kost maar een paar minuten per dag.",
-  },
-  {
-    number: 3,
-    icon: Sparkles,
-    title: "Ontvang AI-inzichten",
-    description: "Krijg gepersonaliseerde analyses en ontdek patronen. Zie hoe je voeding en leefstijl je symptomen beïnvloeden.",
-  },
-];
+import { useTranslation } from "react-i18next";
 
 export const HowItWorksSection = () => {
+  const { t } = useTranslation();
+
+  const steps = [
+    {
+      number: 1,
+      icon: UserPlus,
+      titleKey: "how_it_works.step_1.title",
+      descriptionKey: "how_it_works.step_1.description",
+    },
+    {
+      number: 2,
+      icon: PenLine,
+      titleKey: "how_it_works.step_2.title",
+      descriptionKey: "how_it_works.step_2.description",
+    },
+    {
+      number: 3,
+      icon: Sparkles,
+      titleKey: "how_it_works.step_3.title",
+      descriptionKey: "how_it_works.step_3.description",
+    },
+  ];
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Zo werkt het
+            {t('how_it_works.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            In drie eenvoudige stappen krijg je grip op je perimenopauze
+            {t('how_it_works.description')}
           </p>
         </div>
 
@@ -60,10 +63,10 @@ export const HowItWorksSection = () => {
                 </div>
 
                 <h3 className="text-xl font-semibold text-foreground mb-3">
-                  {step.title}
+                  {t(step.titleKey)}
                 </h3>
                 <p className="text-muted-foreground">
-                  {step.description}
+                  {t(step.descriptionKey)}
                 </p>
               </motion.div>
             ))}
