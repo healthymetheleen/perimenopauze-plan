@@ -325,11 +325,11 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         <div className="relative">
           {/* Season backgrounds (panels) behind a fixed grid */}
           {showSeasons && (
-            <div className="absolute inset-0 grid grid-cols-7 gap-1 pointer-events-none" style={{ marginTop: '28px' }}>
+            <div className="absolute inset-0 grid grid-cols-7 gap-1.5 pointer-events-none" style={{ marginTop: '28px' }}>
               {backgroundPieces.map((p, idx) => (
                 <div
                   key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
-                  className={`rounded-xl ${seasonSurfaceClass[p.season]} opacity-90`}
+                  className={`rounded-lg ${seasonSurfaceClass[p.season]} opacity-90`}
                   style={{
                     gridRow: `${p.row} / ${p.row + 1}`,
                     gridColumn: `${p.colStart} / ${p.colEnd + 1}`,
@@ -352,7 +352,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           </div>
 
           {/* Days */}
-          <div className="relative z-10 grid grid-cols-7 gap-1">
+          <div className="relative z-10 grid grid-cols-7 gap-1.5">
             {calendarDays.map((day, idx) => {
               const hasBleeding = !!day.bleeding && showMenstruation;
               const showPredicted = !!day.isPredictedPeriod && showMenstruation;
@@ -367,10 +367,10 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                   key={day.dateStr}
                   onClick={() => onDayClick(day.dateStr)}
                   className={`
-                    relative min-h-[44px] rounded-lg
+                    relative min-h-[48px] rounded
                     bg-background/70 dark:bg-background/25
                     border border-border/40
-                    flex flex-col items-center justify-center text-center px-0.5 py-1
+                    flex flex-col items-center justify-end text-center px-0.5 py-1.5
                     transition-all hover:bg-background/85 dark:hover:bg-background/40
                     ${day.isToday ? 'ring-2 ring-primary ring-offset-1 ring-offset-background' : ''}
                     ${!day.isCurrentMonth ? 'opacity-30' : ''}
@@ -378,7 +378,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                 >
                   {/* Season label (first day in a season segment) */}
                   {showSeasonLabel && (
-                    <span className={`absolute top-1 left-1 text-[10px] font-medium leading-none ${seasonTextClass[season as SeasonKey]} opacity-90`}>
+                    <span className={`absolute top-0.5 left-0.5 text-[9px] font-medium leading-none ${seasonTextClass[season as SeasonKey]} opacity-80`}>
                       {seasonLabels[season as SeasonKey]}
                     </span>
                   )}
@@ -394,7 +394,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
                   {/* Fertile ring */}
                   {showFertileDay && (
-                    <span className="absolute inset-0.5 rounded-lg cycle-ring-fertile" />
+                    <span className="absolute inset-1 rounded cycle-ring-fertile" />
                   )}
                   {/* Ovulation star */}
                   {showOvulation && (
