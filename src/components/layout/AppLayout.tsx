@@ -15,6 +15,7 @@ import {
   Dumbbell,
   Heart,
   Users,
+  BarChart3,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { useLatestPrediction, useCyclePreferences } from '@/hooks/useCycle';
+import { usePageAnalytics } from '@/hooks/usePageAnalytics';
 import { Footer } from './Footer';
 import { AnimatedSeasonBackground } from './AnimatedSeasonBackground';
 import { TrialLockout, TrialBanner } from '@/components/subscription/TrialLockout';
@@ -49,6 +51,7 @@ const baseNavItems: NavItem[] = [
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" />, adminOnly: true },
+  { href: '/admin', label: 'Admin', icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
   { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
 ];
@@ -65,6 +68,9 @@ export function AppLayout({ children }: AppLayoutProps) {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  
+  // Track page views (GDPR-friendly: no user IDs stored)
+  usePageAnalytics();
 
   const isPremium = entitlements?.plan === 'premium' || entitlements?.plan === 'starter';
   const isTrialExpired = entitlements?.is_trial_expired ?? false;
