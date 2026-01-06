@@ -189,7 +189,7 @@ export default function DiaryPage() {
                         return (
                           <div key={i} className="p-3 rounded-lg bg-muted/50">
                             <p className="font-medium text-sm flex items-center gap-2">
-                              <span className={reason.startsWith('good') || reason === 'balanced_meals' ? 'text-primary' : 'text-muted-foreground'}>•</span>
+                              <span className={reason.startsWith('good') || reason === 'balanced_meals' ? 'text-green-500' : 'text-amber-500'}>•</span>
                               {translated.text}
                             </p>
                             {translated.advice && (

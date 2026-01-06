@@ -302,14 +302,14 @@ export default function CyclePage() {
       <div className="space-y-6 overflow-x-hidden">
         {/* Fertile window notification */}
         {isTodayFertile && (
-          <div className="p-4 rounded-2xl bg-primary/10 border border-primary/20">
+          <div className="p-4 rounded-2xl bg-green-50 border border-green-200">
             <div className="flex items-start gap-3">
-              <div className="p-2 rounded-full bg-primary/20">
-                <Sparkles className="h-5 w-5 text-primary" />
+              <div className="p-2 rounded-full bg-green-100">
+                <Sparkles className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <p className="font-medium text-foreground">Je bent in je vruchtbare periode</p>
-                <p className="text-sm text-muted-foreground mt-1">
+                <p className="font-medium text-green-800">Je bent in je vruchtbare periode</p>
+                <p className="text-sm text-green-700 mt-1">
                   Je vruchtbare venster loopt van {format(parseISO(prediction.fertile_window_start!), 'd MMM', { locale: nl })} 
                   {' t/m '} 
                   {format(parseISO(prediction.fertile_window_end!), 'd MMM', { locale: nl })}.

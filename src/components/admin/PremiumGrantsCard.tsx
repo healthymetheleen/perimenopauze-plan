@@ -59,7 +59,7 @@ export function PremiumGrantsCard() {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Crown className="h-5 w-5 text-primary" />
+              <Crown className="h-5 w-5 text-amber-500" />
               Premium Uitnodigingen
             </CardTitle>
             <CardDescription>
@@ -147,9 +147,9 @@ export function PremiumGrantsCard() {
                   className="flex items-center justify-between p-3 rounded-lg bg-muted/50"
                 >
                   <div className="flex items-center gap-3 min-w-0 flex-1">
-                    <div className={`p-1.5 rounded-full ${grant.user_id ? 'bg-primary/10' : 'bg-muted'}`}>
+                    <div className={`p-1.5 rounded-full ${grant.user_id ? 'bg-green-100 dark:bg-green-900/30' : 'bg-muted'}`}>
                       {grant.user_id ? (
-                        <UserCheck className="h-4 w-4 text-primary" />
+                        <UserCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
                       ) : (
                         <UserX className="h-4 w-4 text-muted-foreground" />
                       )}

@@ -23,13 +23,13 @@ import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 
 const categoryColors: Record<string, string> = {
-  algemeen: 'bg-muted text-muted-foreground',
-  voeding: 'bg-primary/10 text-primary',
-  slaap: 'bg-primary/15 text-primary',
-  beweging: 'bg-primary/10 text-primary',
-  cyclus: 'bg-primary/20 text-primary',
-  stress: 'bg-muted text-muted-foreground',
-  tips: 'bg-primary/5 text-primary',
+  algemeen: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200',
+  voeding: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
+  slaap: 'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
+  beweging: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
+  cyclus: 'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
+  stress: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
+  tips: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200',
 };
 
 export default function CommunityPage() {
