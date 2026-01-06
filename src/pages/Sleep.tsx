@@ -1,10 +1,9 @@
 import { useState } from 'react';
-import { format, differenceInMinutes, differenceInHours } from 'date-fns';
+import { format, differenceInMinutes } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useToast } from '@/hooks/use-toast';
@@ -21,7 +20,8 @@ import {
 } from '@/hooks/useSleep';
 import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
-import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus, Trash2, ChevronDown, ChevronRight } from 'lucide-react';
+import { SleepTimeline } from '@/components/sleep/SleepTimeline';
+import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
   AlertDialog,
@@ -43,7 +43,7 @@ import { Slider } from '@/components/ui/slider';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+
 export default function SleepPage() {
   const { toast } = useToast();
   const [showQualityDialog, setShowQualityDialog] = useState(false);
@@ -67,7 +67,6 @@ export default function SleepPage() {
   const deleteSleep = useDeleteSleep();
   
   const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
-  const [sessionsExpanded, setSessionsExpanded] = useState(false);
 
   const stats = sessions ? calculateSleepStats(sessions) : null;
   const sleepScore = sessions ? calculateSleepScore(sessions) : 0;
@@ -318,111 +317,20 @@ export default function SleepPage() {
           </div>
         )}
 
-        {/* Sleep History Chart */}
+        {/* Sleep Timeline */}
         {sessions && sessions.length > 0 && (
           <Card className="rounded-2xl">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Afgelopen 7 dagen</CardTitle>
+              <CardTitle className="text-lg">Slaapsessies</CardTitle>
+              <CardDescription>
+                Visueel overzicht van je slaaptijden
+              </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-end justify-between gap-2 h-40">
-                {Array.from({ length: 7 }, (_, i) => {
-                  const date = new Date();
-                  date.setDate(date.getDate() - (6 - i));
-                  const dateStr = format(date, 'yyyy-MM-dd');
-                  
-                  const session = sessions.find(s => 
-                    format(new Date(s.sleep_start), 'yyyy-MM-dd') === dateStr ||
-                    (s.sleep_end && format(new Date(s.sleep_end), 'yyyy-MM-dd') === dateStr)
-                  );
-                  
-                  const hours = session?.duration_minutes ? session.duration_minutes / 60 : 0;
-                  const quality = session?.quality_score || 0;
-                  const heightPercent = Math.min(100, (hours / 10) * 100);
-                  const isToday = i === 6;
-                  
-                  return (
-                    <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                      <div className="w-full bg-muted rounded-t-lg relative" style={{ height: '100px' }}>
-                        <div
-                          className={`absolute bottom-0 w-full rounded-t-lg transition-all flex items-center justify-center ${
-                            isToday ? 'bg-indigo-500' : 'bg-indigo-300'
-                          }`}
-                          style={{ height: `${heightPercent}%`, minHeight: hours > 0 ? '24px' : '0' }}
-                        >
-                          {quality > 0 && heightPercent > 20 && (
-                            <span className={`text-xs font-bold ${isToday ? 'text-white' : 'text-indigo-900'}`}>
-                              {quality}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      <span className="text-xs text-muted-foreground">
-                        {format(date, 'EEE', { locale: nl })}
-                      </span>
-                      {hours > 0 && (
-                        <span className="text-xs font-medium">
-                          {hours.toFixed(1)}u
-                        </span>
-                      )}
-                      {quality > 0 && heightPercent <= 20 && (
-                        <span className="text-[10px] text-muted-foreground">
-                          ({quality})
-                        </span>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Session list with delete option - collapsible */}
-              <Collapsible open={sessionsExpanded} onOpenChange={setSessionsExpanded}>
-                <div className="border-t pt-3">
-                  <CollapsibleTrigger className="w-full flex items-center justify-between">
-                    <p className="text-xs font-medium text-muted-foreground">Sessies beheren</p>
-                    {sessionsExpanded ? (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </CollapsibleTrigger>
-                  <CollapsibleContent>
-                    <div className="space-y-2 mt-2">
-                      {sessions.slice(0, 5).map((session) => {
-                        const sessionDate = new Date(session.sleep_start);
-                        return (
-                          <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
-                            <div className="text-sm">
-                              <span className="font-medium">
-                                {format(sessionDate, 'EEEE', { locale: nl })}
-                              </span>
-                              <span className="text-muted-foreground ml-1">
-                                {format(sessionDate, 'd MMM', { locale: nl })}
-                              </span>
-                              <span className="text-muted-foreground ml-2">
-                                {session.duration_minutes ? `${(session.duration_minutes / 60).toFixed(1)}u` : 'Bezig...'}
-                              </span>
-                              {session.quality_score && (
-                                <span className="text-muted-foreground ml-2">
-                                  · Score {session.quality_score}
-                                </span>
-                              )}
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                              onClick={() => setDeleteSessionId(session.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </CollapsibleContent>
-                </div>
-              </Collapsible>
+            <CardContent>
+              <SleepTimeline 
+                sessions={sessions} 
+                onDeleteSession={(id) => setDeleteSessionId(id)}
+              />
             </CardContent>
           </Card>
         )}
