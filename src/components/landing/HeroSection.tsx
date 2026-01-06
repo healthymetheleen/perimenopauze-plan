@@ -29,14 +29,14 @@ export const HeroSection = () => {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Neem de regie over je{" "}
-              <span className="text-primary">perimenopauze</span>
+              Neem de regie over{" "}
+              <span className="text-primary">de perimenopauze</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Track je cyclus, <strong>bereken je menstruatie online</strong>, en ontvang 
-              AI-gestuurde inzichten afgestemd op jouw hormonale fase. Ontdek patronen 
-              tussen je slaap, voeding en symptomen.
+              Track je cyclus, <strong>bereken je menstruatie online</strong>, en ontvang{" "}
+              <strong className="text-foreground">AI-gestuurde inzichten</strong> afgestemd op jouw hormonale fase. 
+              Ontdek patronen tussen je slaap, voeding en symptomen.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">

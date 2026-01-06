@@ -33,11 +33,12 @@ export const SymptomsInfographicSection = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Perimenopauze klachten in cijfers
+            Klachten tijdens de perimenopauze in cijfers
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             <strong className="text-foreground">80-90% van de vrouwen</strong> ervaart klachten 
-            tijdens de perimenopauze. Dit zijn de meest voorkomende symptomen:
+            tijdens de perimenopauze. Bij sommige vrouwen beginnen de eerste symptomen al{" "}
+            <strong className="text-foreground">rond hun 30e</strong>. Dit zijn de meest voorkomende klachten:
           </p>
         </motion.div>
 
