@@ -18,8 +18,16 @@ export const LandingFooter = () => {
               Track je cyclus, bereken je menstruatie online, en ontvang 
               AI-gestuurde inzichten voor een betere gezondheid.
             </p>
-            <p className="text-sm text-muted-foreground flex items-center gap-1">
-              Gemaakt met <Heart className="w-4 h-4 text-primary fill-primary" /> door Healthy Me Theleen
+            <p className="text-sm text-muted-foreground flex items-center gap-1 flex-wrap">
+              Gemaakt met <Heart className="w-4 h-4 text-primary fill-primary" /> door{" "}
+              <a 
+                href="https://www.healthymetheleen.nl" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
+                Healthy met Heleen
+              </a>
             </p>
           </div>
 

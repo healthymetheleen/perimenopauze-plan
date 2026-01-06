@@ -32,7 +32,14 @@ export const SocialProofSection = () => {
         >
           <p className="text-lg text-muted-foreground">
             Ontwikkeld door{" "}
-            <span className="font-semibold text-foreground">Healthy Me Theleen</span>
+            <a 
+              href="https://www.healthymetheleen.nl" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="font-semibold text-foreground hover:text-primary transition-colors"
+            >
+              Healthy met Heleen
+            </a>
           </p>
         </motion.div>
 

@@ -1,6 +1,8 @@
 import { Helmet } from "react-helmet";
 import { LandingHeader } from "@/components/landing/LandingHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
+import { WhatIsPerimenopauseSection } from "@/components/landing/WhatIsPerimenopauseSection";
+import { SymptomsInfographicSection } from "@/components/landing/SymptomsInfographicSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
@@ -26,7 +28,8 @@ const softwareApplicationSchema = {
     "AI-gestuurde app voor vrouwen in de perimenopauze. Track je cyclus, bereken je menstruatie online, log symptomen en ontvang gepersonaliseerde inzichten.",
   author: {
     "@type": "Organization",
-    name: "Healthy Me Theleen",
+    name: "Healthy met Heleen",
+    url: "https://www.healthymetheleen.nl",
   },
   aggregateRating: {
     "@type": "AggregateRating",
@@ -38,11 +41,11 @@ const softwareApplicationSchema = {
 const organizationSchema = {
   "@context": "https://schema.org",
   "@type": "Organization",
-  name: "Healthy Me Theleen",
-  url: "https://www.perimenopauzeplan.nl",
+  name: "Healthy met Heleen",
+  url: "https://www.healthymetheleen.nl",
   logo: "https://www.perimenopauzeplan.nl/favicon.svg",
   description:
-    "Healthy Me Theleen ontwikkelt digitale oplossingen voor vrouwengezondheid, met focus op de perimenopauze en overgang.",
+    "Healthy met Heleen ontwikkelt digitale oplossingen voor vrouwengezondheid, met focus op de perimenopauze.",
 };
 
 const Landing = () => {
@@ -98,6 +101,12 @@ const Landing = () => {
         <LandingHeader />
         <main className="pt-16">
           <HeroSection />
+          <section id="what-is-perimenopause">
+            <WhatIsPerimenopauseSection />
+          </section>
+          <section id="symptoms">
+            <SymptomsInfographicSection />
+          </section>
           <section id="features">
             <FeaturesSection />
           </section>
