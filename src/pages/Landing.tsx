@@ -1,4 +1,5 @@
 import { Helmet } from "react-helmet";
+import { LandingHeader } from "@/components/landing/LandingHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
@@ -94,12 +95,21 @@ const Landing = () => {
       </Helmet>
 
       <div className="min-h-screen bg-background">
-        <HeroSection />
-        <FeaturesSection />
-        <HowItWorksSection />
-        <SocialProofSection />
-        <FAQSection />
-        <CTASection />
+        <LandingHeader />
+        <main className="pt-16">
+          <HeroSection />
+          <section id="features">
+            <FeaturesSection />
+          </section>
+          <section id="how-it-works">
+            <HowItWorksSection />
+          </section>
+          <SocialProofSection />
+          <section id="faq">
+            <FAQSection />
+          </section>
+          <CTASection />
+        </main>
         <LandingFooter />
       </div>
     </>
