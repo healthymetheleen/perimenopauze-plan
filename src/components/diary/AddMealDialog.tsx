@@ -92,6 +92,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const [rawImage, setRawImage] = useState<string | null>(null); // Original image before crop
   const [showCropper, setShowCropper] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [transcription, setTranscription] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [mealDate, setMealDate] = useState(selectedDate);
   const [currentDayId, setCurrentDayId] = useState(initialDayId);
@@ -124,6 +126,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     setImagePreview(null);
     setRawImage(null);
     setShowCropper(false);
+    setTranscription(null);
+    setIsTranscribing(false);
     setAnalysis(null);
     setEditableAnalysis(null);
     setShowConfirmation(false);
@@ -349,7 +353,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
         reader.onloadend = async () => {
           const base64Audio = (reader.result as string).split(',')[1];
           
-          setIsAnalyzing(true);
+          setIsTranscribing(true);
           try {
             // Use supabase.functions.invoke which automatically includes auth header
             const { data: result, error } = await supabase.functions.invoke('voice-to-text', {
@@ -368,9 +372,10 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
             }
             
             if (result.text) {
-              setDescription(result.text);
-              // Auto-analyze the transcribed text
-              analyzeMeal(result.text);
+              // Show transcription preview instead of auto-analyzing
+              setTranscription(result.text);
+            } else {
+              throw new Error('Geen tekst herkend');
             }
           } catch (error) {
             toast({
@@ -378,7 +383,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               description: error instanceof Error ? error.message : 'Probeer het opnieuw',
               variant: 'destructive',
             });
-            setIsAnalyzing(false);
+          } finally {
+            setIsTranscribing(false);
           }
         };
         reader.readAsDataURL(audioBlob);
@@ -678,8 +684,18 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               </TabsContent>
 
               <TabsContent value="voice" className="space-y-4 mt-4">
-                <div className="flex flex-col items-center gap-4 py-8">
-                  {isAnalyzing ? (
+                <div className="flex flex-col items-center gap-4 py-4">
+                  {isTranscribing ? (
+                    <>
+                      <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-sm font-medium">Spraak wordt herkend...</p>
+                        <p className="text-xs text-muted-foreground">Even geduld</p>
+                      </div>
+                    </>
+                  ) : isAnalyzing ? (
                     <>
                       <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -689,6 +705,46 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         <p className="text-xs text-muted-foreground">Dit kan enkele seconden duren</p>
                       </div>
                     </>
+                  ) : transcription ? (
+                    <div className="w-full space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="transcription">Herkende tekst</Label>
+                        <div className="p-3 rounded-lg bg-muted/50 border">
+                          <p className="text-sm italic text-muted-foreground mb-2">"{transcription}"</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground">
+                          Je kunt de tekst hieronder aanpassen voordat je analyseert
+                        </p>
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="voice-description">Maaltijdbeschrijving</Label>
+                        <Input
+                          id="voice-description"
+                          placeholder="Pas aan of voeg details toe..."
+                          value={description || transcription}
+                          onChange={(e) => setDescription(e.target.value)}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          className="flex-1"
+                          onClick={() => {
+                            setTranscription(null);
+                            setDescription('');
+                          }}
+                        >
+                          Opnieuw opnemen
+                        </Button>
+                        <Button
+                          className="flex-1"
+                          onClick={() => analyzeMeal(description || transcription)}
+                          disabled={isAnalyzing}
+                        >
+                          Analyseer
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
                     <>
                       <Button
