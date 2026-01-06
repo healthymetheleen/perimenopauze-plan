@@ -28,10 +28,10 @@ export function WeeklyInsightCard() {
 
   if (isLoading) {
     return (
-      <Card className="rounded-2xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border-emerald-500/20">
+      <Card className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <Sparkles className="h-5 w-5 text-primary" />
             Weekanalyse
             <Badge variant="secondary" className="text-xs">AI</Badge>
           </CardTitle>
@@ -63,11 +63,11 @@ export function WeeklyInsightCard() {
   const weekStartDate = insight.week_start ? new Date(insight.week_start) : new Date();
 
   return (
-    <Card className="rounded-2xl bg-gradient-to-br from-emerald-500/5 to-teal-500/5 border-emerald-500/20">
+    <Card className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-emerald-600" />
+            <Sparkles className="h-5 w-5 text-primary" />
             Weekanalyse
             <Badge variant="secondary" className="text-xs">Ortho</Badge>
           </CardTitle>
@@ -99,14 +99,14 @@ export function WeeklyInsightCard() {
         {/* Strong points */}
         {insight.sterke_punten && insight.sterke_punten.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-emerald-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-primary">
               <TrendingUp className="h-4 w-4" />
               Goed gedaan
             </div>
             <ul className="space-y-1">
               {insight.sterke_punten.map((punt, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="text-emerald-500 mt-1">✓</span>
+                  <span className="text-primary mt-1">✓</span>
                   {punt}
                 </li>
               ))}
@@ -117,14 +117,14 @@ export function WeeklyInsightCard() {
         {/* Attention points */}
         {insight.aandachtspunten && insight.aandachtspunten.length > 0 && (
           <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm font-medium text-amber-700">
+            <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Target className="h-4 w-4" />
               Aandachtspunten
             </div>
             <ul className="space-y-1">
               {insight.aandachtspunten.map((punt, i) => (
                 <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
-                  <span className="text-amber-500 mt-1">•</span>
+                  <span className="text-muted-foreground mt-1">•</span>
                   {punt}
                 </li>
               ))}
@@ -134,10 +134,10 @@ export function WeeklyInsightCard() {
 
         {/* Orthomolecular tip */}
         {insight.ortho_tip && (
-          <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 space-y-2">
+          <div className="p-3 rounded-xl bg-primary/10 border border-primary/20 space-y-2">
             <div className="flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-emerald-600" />
-              <span className="font-medium text-sm text-emerald-700">{insight.ortho_tip.titel}</span>
+              <Leaf className="h-4 w-4 text-primary" />
+              <span className="font-medium text-sm text-primary">{insight.ortho_tip.titel}</span>
             </div>
             <p className="text-sm text-muted-foreground">{insight.ortho_tip.uitleg}</p>
             {insight.ortho_tip.voedingsmiddelen && insight.ortho_tip.voedingsmiddelen.length > 0 && (

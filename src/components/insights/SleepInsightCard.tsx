@@ -39,10 +39,10 @@ export function SleepInsightCard({
   }
 
   return (
-    <Card className="rounded-2xl bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-indigo-950/20 dark:to-purple-950/20">
+    <Card className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 dark:from-primary/10 dark:to-primary/20">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Moon className="h-5 w-5 text-indigo-600" />
+          <Moon className="h-5 w-5 text-primary" />
           Slaap-inzicht
           <Badge variant="secondary" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1" />
@@ -74,7 +74,7 @@ export function SleepInsightCard({
               {insight.normalization}
             </p>
             {insight.cycleContext && (
-              <p className="text-sm text-indigo-600 dark:text-indigo-400">
+              <p className="text-sm text-primary">
                 {insight.cycleContext}
               </p>
             )}

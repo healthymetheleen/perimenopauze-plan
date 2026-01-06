@@ -9,9 +9,9 @@ interface TrendsCorrelationsProps {
 }
 
 const strengthColors: Record<string, string> = {
-  laag: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-  matig: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  hoog: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300',
+  laag: 'bg-muted text-muted-foreground',
+  matig: 'bg-primary/10 text-primary',
+  hoog: 'bg-primary/20 text-primary',
 };
 
 export function TrendsCorrelations({ correlations, period }: TrendsCorrelationsProps) {
@@ -20,7 +20,7 @@ export function TrendsCorrelations({ correlations, period }: TrendsCorrelationsP
       <Card className="rounded-2xl">
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-amber-500" />
+            <Lightbulb className="h-5 w-5 text-primary" />
             Dit viel op
           </CardTitle>
         </CardHeader>
@@ -36,7 +36,7 @@ export function TrendsCorrelations({ correlations, period }: TrendsCorrelationsP
     <Card className="rounded-2xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-amber-500" />
+          <Lightbulb className="h-5 w-5 text-primary" />
           Dit viel op
         </CardTitle>
         <CardDescription>

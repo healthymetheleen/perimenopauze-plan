@@ -73,8 +73,8 @@ export default function AdminDashboard() {
               <Card className="glass rounded-2xl">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-blue-100 dark:bg-blue-900/30">
-                      <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <Users className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Totaal leden</p>
@@ -87,8 +87,8 @@ export default function AdminDashboard() {
               <Card className="glass rounded-2xl">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-green-100 dark:bg-green-900/30">
-                      <CreditCard className="h-4 w-4 text-green-600 dark:text-green-400" />
+                    <div className="p-2 rounded-full bg-primary/10">
+                      <CreditCard className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Betaald</p>
@@ -101,8 +101,8 @@ export default function AdminDashboard() {
               <Card className="glass rounded-2xl">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-amber-100 dark:bg-amber-900/30">
-                      <TrendingUp className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    <div className="p-2 rounded-full bg-muted">
+                      <TrendingUp className="h-4 w-4 text-foreground" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Trial</p>
@@ -115,8 +115,8 @@ export default function AdminDashboard() {
               <Card className="glass rounded-2xl">
                 <CardContent className="pt-4 pb-4">
                   <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-full bg-purple-100 dark:bg-purple-900/30">
-                      <Activity className="h-4 w-4 text-purple-600 dark:text-purple-400" />
+                    <div className="p-2 rounded-full bg-muted">
+                      <Activity className="h-4 w-4 text-foreground" />
                     </div>
                     <div>
                       <p className="text-xs text-muted-foreground">Conversie</p>
@@ -216,35 +216,35 @@ export default function AdminDashboard() {
               <CardContent>
                 <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Utensils className="h-4 w-4 text-emerald-500" />
+                    <Utensils className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">{stats.meals_logged_month}</p>
                       <p className="text-xs text-muted-foreground">Maaltijden</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Moon className="h-4 w-4 text-indigo-500" />
+                    <Moon className="h-4 w-4 text-primary" />
                     <div>
                       <p className="text-sm font-medium">{stats.sleep_sessions_month}</p>
                       <p className="text-xs text-muted-foreground">Slaapsessies</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <Activity className="h-4 w-4 text-rose-500" />
+                    <Activity className="h-4 w-4 text-foreground" />
                     <div>
                       <p className="text-sm font-medium">{stats.cycle_logs_month}</p>
                       <p className="text-xs text-muted-foreground">Cyclus logs</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <FileText className="h-4 w-4 text-amber-500" />
+                    <FileText className="h-4 w-4 text-foreground" />
                     <div>
                       <p className="text-sm font-medium">{stats.symptoms_logged_month}</p>
                       <p className="text-xs text-muted-foreground">Symptomen</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-muted/50">
-                    <MessageSquare className="h-4 w-4 text-blue-500" />
+                    <MessageSquare className="h-4 w-4 text-foreground" />
                     <div>
                       <p className="text-sm font-medium">{stats.community_posts_month}</p>
                       <p className="text-xs text-muted-foreground">Community</p>

@@ -36,36 +36,36 @@ const seasonIcons: Record<Season, React.ReactNode> = {
 
 // Season badge colors using semantic tokens
 const seasonBadgeColors: Record<Season, string> = {
-  winter: 'bg-blue-500/10 text-blue-700 dark:text-blue-300',
-  lente: 'bg-green-500/10 text-green-700 dark:text-green-300',
-  zomer: 'bg-amber-500/10 text-amber-700 dark:text-amber-300',
-  herfst: 'bg-orange-500/10 text-orange-700 dark:text-orange-300',
+  winter: 'bg-muted text-foreground',
+  lente: 'bg-primary/10 text-primary',
+  zomer: 'bg-primary/20 text-primary',
+  herfst: 'bg-muted text-muted-foreground',
   onbekend: 'bg-muted text-muted-foreground',
 };
 
 // Season block background colors for Nu/Daarna pills
 const seasonBlockColors: Record<Season, string> = {
-  winter: 'bg-blue-100/60 dark:bg-blue-950/40 border border-blue-200 dark:border-blue-800',
-  lente: 'bg-green-100/60 dark:bg-green-950/40 border border-green-200 dark:border-green-800',
-  zomer: 'bg-amber-100/60 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800',
-  herfst: 'bg-orange-100/60 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-800',
+  winter: 'bg-muted/50 border border-border',
+  lente: 'bg-primary/5 border border-primary/20',
+  zomer: 'bg-primary/10 border border-primary/30',
+  herfst: 'bg-muted/30 border border-border',
   onbekend: 'bg-muted/30',
 };
 
 // Season text colors for labels
 const seasonTextColors: Record<Season, string> = {
-  winter: 'text-blue-700 dark:text-blue-300',
-  lente: 'text-green-700 dark:text-green-300',
-  zomer: 'text-amber-700 dark:text-amber-300',
-  herfst: 'text-orange-700 dark:text-orange-300',
+  winter: 'text-foreground',
+  lente: 'text-primary',
+  zomer: 'text-primary',
+  herfst: 'text-muted-foreground',
   onbekend: 'text-muted-foreground',
 };
 
 // Risk level indicator colors
 const riskColors: Record<RiskLevel, string> = {
-  laag: 'bg-green-500',
-  middel: 'bg-amber-500',
-  hoog: 'bg-red-500',
+  laag: 'bg-primary/40',
+  middel: 'bg-muted-foreground',
+  hoog: 'bg-foreground',
 };
 
 // Fallback template for same-season or unknown transitions

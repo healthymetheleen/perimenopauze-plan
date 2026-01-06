@@ -157,8 +157,8 @@ export default function RecipeDetailPage() {
                 <Heart 
                   className={`h-6 w-6 transition-colors ${
                     isFavorite 
-                      ? 'fill-red-500 text-red-500' 
-                      : 'text-muted-foreground hover:text-red-400'
+                      ? 'fill-primary text-primary' 
+                      : 'text-muted-foreground hover:text-primary/70'
                   }`} 
                 />
               </button>
@@ -204,12 +204,12 @@ export default function RecipeDetailPage() {
           return (
             <div className="flex flex-wrap gap-2">
               {showSeasons && recipe.seasons.map((s) => (
-                <Badge key={s} variant="secondary" className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                <Badge key={s} variant="secondary" className="bg-muted text-foreground">
                   🌿 {seasons.find(season => season.value === s)?.label || s}
                 </Badge>
               ))}
               {showCyclePhases && recipe.cycle_phases?.map((p) => (
-                <Badge key={p} variant="secondary" className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                <Badge key={p} variant="secondary" className="bg-primary/10 text-primary">
                   🌙 {cyclePhases.find(phase => phase.value === p)?.label || p}
                 </Badge>
               ))}
@@ -296,7 +296,7 @@ export default function RecipeDetailPage() {
                 {scaledNutrition.kcal && (
                   <div>
                     <div className="flex items-center justify-center mb-1">
-                      <Flame className="h-4 w-4 text-orange-500" />
+                      <Flame className="h-4 w-4 text-primary" />
                     </div>
                     <p className="text-lg font-semibold">{scaledNutrition.kcal}</p>
                     <p className="text-xs text-muted-foreground">kcal</p>
@@ -305,7 +305,7 @@ export default function RecipeDetailPage() {
                 {scaledNutrition.protein_g && (
                   <div>
                     <div className="flex items-center justify-center mb-1">
-                      <Beef className="h-4 w-4 text-red-500" />
+                      <Beef className="h-4 w-4 text-primary" />
                     </div>
                     <p className="text-lg font-semibold">{scaledNutrition.protein_g}g</p>
                     <p className="text-xs text-muted-foreground">eiwit</p>
@@ -314,7 +314,7 @@ export default function RecipeDetailPage() {
                 {scaledNutrition.carbs_g && (
                   <div>
                     <div className="flex items-center justify-center mb-1">
-                      <Wheat className="h-4 w-4 text-amber-500" />
+                      <Wheat className="h-4 w-4 text-foreground" />
                     </div>
                     <p className="text-lg font-semibold">{scaledNutrition.carbs_g}g</p>
                     <p className="text-xs text-muted-foreground">koolh.</p>
@@ -323,7 +323,7 @@ export default function RecipeDetailPage() {
                 {scaledNutrition.fat_g && (
                   <div>
                     <div className="flex items-center justify-center mb-1">
-                      <Droplet className="h-4 w-4 text-yellow-500" />
+                      <Droplet className="h-4 w-4 text-foreground" />
                     </div>
                     <p className="text-lg font-semibold">{scaledNutrition.fat_g}g</p>
                     <p className="text-xs text-muted-foreground">vet</p>
