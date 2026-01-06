@@ -89,7 +89,7 @@ export default function AccountPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+      <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold text-gradient">Account</h1>
           <p className="text-muted-foreground">Beheer je account en gegevens</p>

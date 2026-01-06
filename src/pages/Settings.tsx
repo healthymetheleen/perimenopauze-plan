@@ -134,7 +134,7 @@ export default function SettingsPage() {
 
   return (
     <AppLayout>
-      <div className="space-y-6 max-w-2xl bg-gradient-subtle min-h-screen -m-4 p-4 sm:-m-6 sm:p-6">
+      <div className="space-y-6 max-w-2xl">
         <div>
           <h1 className="text-2xl font-semibold text-gradient">Instellingen</h1>
           <p className="text-muted-foreground">Beheer je voorkeuren en privacy</p>
