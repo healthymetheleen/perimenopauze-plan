@@ -13,12 +13,12 @@ serve(async (req) => {
 
   try {
     const { recipeTitle, recipeDescription, mealType } = await req.json();
-    const OPENAI_API_KEY = Deno.env.get("ChatGPT");
+    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL");
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
     
-    if (!OPENAI_API_KEY) {
-      throw new Error("ChatGPT API key is not configured");
+    if (!LOVABLE_API_KEY) {
+      throw new Error("LOVABLE_API_KEY is not configured");
     }
 
     if (!recipeTitle) {
@@ -46,28 +46,30 @@ CRITICAL STYLE REQUIREMENTS:
 - Soft muted pastel colors - not oversaturated, not dark
 - Ultra clean and polished look
 - No text, no watermarks, no logos
-- Square format 1:1 aspect ratio`;
+- Square format 1:1 aspect ratio
+- Ultra high resolution`;
 
-    const response = await fetch("https://api.openai.com/v1/images/generations", {
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${OPENAI_API_KEY}`,
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-image-1",
-        prompt: imagePrompt,
-        n: 1,
-        size: "1024x1024",
-        quality: "medium",
-        output_format: "webp",
-        output_compression: 80,
+        model: "google/gemini-2.5-flash-image-preview",
+        messages: [
+          {
+            role: "user",
+            content: imagePrompt
+          }
+        ],
+        modalities: ["image", "text"]
       }),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error("OpenAI API error:", response.status, errorText);
+      console.error("AI gateway error:", response.status, errorText);
       
       if (response.status === 429) {
         return new Response(
@@ -77,17 +79,17 @@ CRITICAL STYLE REQUIREMENTS:
       }
       if (response.status === 402) {
         return new Response(
-          JSON.stringify({ error: "Krediet op, voeg tegoed toe." }),
+          JSON.stringify({ error: "Krediet op, voeg tegoed toe aan je workspace." }),
           { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
-      throw new Error("OpenAI image service niet beschikbaar");
+      throw new Error("AI image service niet beschikbaar");
     }
 
     const data = await response.json();
-    const base64Image = data.data?.[0]?.b64_json;
+    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
     
-    if (!base64Image) {
+    if (!imageData) {
       console.error("No image in response:", JSON.stringify(data));
       throw new Error("Geen afbeelding gegenereerd");
     }
@@ -97,8 +99,9 @@ CRITICAL STYLE REQUIREMENTS:
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Convert base64 to buffer
-        const imageBuffer = Uint8Array.from(atob(base64Image), c => c.charCodeAt(0));
+        // Convert base64 to buffer - handle data URL format
+        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
+        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
         
         // Generate unique filename
         const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
@@ -116,7 +119,7 @@ CRITICAL STYLE REQUIREMENTS:
           console.error("Storage upload error:", uploadError);
           // Fall back to returning base64
           return new Response(
-            JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
+            JSON.stringify({ imageUrl: imageData }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -136,7 +139,7 @@ CRITICAL STYLE REQUIREMENTS:
         console.error("Storage error:", storageError);
         // Fall back to returning base64
         return new Response(
-          JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
+          JSON.stringify({ imageUrl: imageData }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
@@ -144,7 +147,7 @@ CRITICAL STYLE REQUIREMENTS:
 
     // Return base64 if no storage configured
     return new Response(
-      JSON.stringify({ imageUrl: `data:image/webp;base64,${base64Image}` }),
+      JSON.stringify({ imageUrl: imageData }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {
