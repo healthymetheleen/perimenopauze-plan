@@ -32,6 +32,7 @@ serve(async (req) => {
 BELANGRIJKE CONTEXT:
 1. Cyclusfasen ("seasons" veld): winter = menstruatie, lente = follikel, zomer = ovulatie, herfst = luteaal
 2. Kalenderseizoenen ("calendar_seasons" veld): gebruik producten die in Nederland in dat seizoen vers verkrijgbaar zijn
+3. DETECTEER AUTOMATISCH: moeilijkheidsgraad en bereidingstijd op basis van recept
 
 SEIZOENSPRODUCTEN NEDERLAND:
 - Lente (maart-mei): asperges, rabarber, spinazie, prei, radijs, nieuwe aardappelen
@@ -39,8 +40,13 @@ SEIZOENSPRODUCTEN NEDERLAND:
 - Herfst (sep-nov): pompoen, kool, pastinaak, peren, appels, pruimen, paddenstoelen
 - Winter (dec-feb): boerenkool, spruitjes, witlof, knolselderij, rode kool, wortel, citrusvruchten
 
+DIEET EN ALLERGIEËN:
+- Voeg automatisch relevante diet_tags toe op basis van ingrediënten
+- Let op veelvoorkomende allergenen: pinda, noten, ei, melk, gluten, soja, schaaldieren, vis, sesamzaad
+- Markeer recepten als zwangerschaps-veilig of kinderwens-vriendelijk waar van toepassing
+
 Genereer recepten die:
-- Eiwitrijk zijn (minimaal 20g eiwit per portie waar mogelijk)
+- Eiwitrijk zijn (minimaal 20g eiwit per portie waar mogelijk, behalve bij drankjes/tussendoortjes)
 - Anti-inflammatoir en bloedsuikerstabiel zijn
 - Rijk aan vezels, omega-3, en micronutriënten
 - Gebruik maken van verse Nederlandse seizoensproducten
@@ -53,10 +59,23 @@ Genereer ${count} recepten in JSON format. Elk recept moet deze exacte structuur
   "prep_time_minutes": number,
   "cook_time_minutes": number,
   "servings": number,
-  "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje",
+  "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje" | "drankje",
   "seasons": ["winter" | "lente" | "zomer" | "herfst"] (cyclusfasen waarvoor geschikt, meerdere mogelijk),
   "calendar_seasons": ["lente" | "zomer" | "herfst" | "winter"] (kalenderseizoenen voor NL producten),
-  "diet_tags": ["vegetarisch" | "veganistisch" | "glutenvrij" | "zuivelvrij" | "lactosevrij" | "keto" | "low-carb" | "eiwitrijk" | "vezelrijk" | "anti-inflammatoir" | "bloedsuikerstabiel"],
+  "diet_tags": [
+    // Basisdiëten
+    "vegetarisch" | "veganistisch" | "pescotarisch" |
+    // Intoleranties & allergieën
+    "glutenvrij" | "zuivelvrij" | "lactosevrij" | "eivrij" | "notenvri" | "pindavrij" | "sojavrij" |
+    // Gezondheid
+    "keto" | "low-carb" | "eiwitrijk" | "vezelrijk" | "anti-inflammatoir" | "bloedsuikerstabiel" |
+    // Zwangerschap
+    "zwangerschapsveilig" | "kinderwensvriendelijk" | "foliumzuurrijk" | "ijzerrijk" |
+    // Bereidingsgemak (automatisch toevoegen)
+    "simpel" | "snel" | "meal-prep" | "one-pot"
+  ],
+  "difficulty": "makkelijk" | "gemiddeld" | "gevorderd",
+  "allergens": ["gluten" | "melk" | "ei" | "noten" | "pinda" | "soja" | "vis" | "schaaldieren" | "sesamzaad" | "selderij" | "mosterd" | "lupine"] (lijst van aanwezige allergenen),
   "ingredients": [
     { "name": "string", "amount": "string (bijv. '200')", "unit": "string (bijv. 'gram')", "is_seasonal": boolean }
   ],
