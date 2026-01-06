@@ -12,8 +12,9 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale, Settings2, BarChart3, Mail, Lightbulb
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale, Settings2, BarChart3, Mail, Lightbulb, Languages
 } from 'lucide-react';
+import { LanguageSwitcher } from '@/components/i18n/LanguageSwitcher';
 import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
 import { FeedbackFormDialog } from '@/components/contact/FeedbackFormDialog';
 import { useToast } from '@/hooks/use-toast';
@@ -360,6 +361,20 @@ export default function SettingsPage() {
             <CardDescription>Pas je dagelijkse overzicht en tijdzone aan</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
+            {/* Language */}
+            <div className="flex items-center justify-between">
+              <div className="space-y-0.5">
+                <Label className="flex items-center gap-2">
+                  <Languages className="h-4 w-4" />
+                  Taal / Language
+                </Label>
+                <p className="text-sm text-muted-foreground">Kies je voorkeurstaal</p>
+              </div>
+              <LanguageSwitcher />
+            </div>
+
+            <Separator />
+
             <div className="flex items-center justify-between">
               <div className="space-y-0.5">
                 <Label>Tijdzone</Label>
