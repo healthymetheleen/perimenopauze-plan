@@ -299,7 +299,7 @@ export default function SleepPage() {
               <CardTitle className="text-lg">Afgelopen 7 dagen</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="flex items-end justify-between gap-2 h-32">
+              <div className="flex items-end justify-between gap-2 h-40">
                 {Array.from({ length: 7 }, (_, i) => {
                   const date = new Date();
                   date.setDate(date.getDate() - (6 - i));
@@ -311,6 +311,7 @@ export default function SleepPage() {
                   );
                   
                   const hours = session?.duration_minutes ? session.duration_minutes / 60 : 0;
+                  const quality = session?.quality_score || 0;
                   const heightPercent = Math.min(100, (hours / 10) * 100);
                   const isToday = i === 6;
                   
@@ -318,11 +319,17 @@ export default function SleepPage() {
                     <div key={i} className="flex-1 flex flex-col items-center gap-1">
                       <div className="w-full bg-muted rounded-t-lg relative" style={{ height: '100px' }}>
                         <div
-                          className={`absolute bottom-0 w-full rounded-t-lg transition-all ${
+                          className={`absolute bottom-0 w-full rounded-t-lg transition-all flex items-center justify-center ${
                             isToday ? 'bg-indigo-500' : 'bg-indigo-300'
                           }`}
-                          style={{ height: `${heightPercent}%` }}
-                        />
+                          style={{ height: `${heightPercent}%`, minHeight: hours > 0 ? '24px' : '0' }}
+                        >
+                          {quality > 0 && heightPercent > 20 && (
+                            <span className={`text-xs font-bold ${isToday ? 'text-white' : 'text-indigo-900'}`}>
+                              {quality}
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <span className="text-xs text-muted-foreground">
                         {format(date, 'EEE', { locale: nl })}
@@ -330,6 +337,11 @@ export default function SleepPage() {
                       {hours > 0 && (
                         <span className="text-xs font-medium">
                           {hours.toFixed(1)}u
+                        </span>
+                      )}
+                      {quality > 0 && heightPercent <= 20 && (
+                        <span className="text-[10px] text-muted-foreground">
+                          ({quality})
                         </span>
                       )}
                     </div>

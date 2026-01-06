@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { differenceInMinutes } from 'date-fns';
 import { 
-  ArrowRight, Moon, Sun, Sparkles, FileText
+  ArrowRight, Moon, Sun, Sparkles, FileText, UtensilsCrossed, Plus
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -26,6 +26,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 
 export default function DashboardPage() {
+  const navigate = useNavigate();
   const { toast } = useToast();
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [qualityScore, setQualityScore] = useState([7]);
@@ -89,6 +90,47 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="grid gap-4">
+        {/* Quick Action Buttons - 3 columns */}
+        <div className="grid grid-cols-3 gap-2">
+          <Button
+            variant="outline"
+            className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
+            onClick={() => navigate('/cycle')}
+          >
+            <Sparkles className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium">Check-in</span>
+          </Button>
+          <Button
+            variant="outline"
+            className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
+            onClick={() => navigate('/dagboek')}
+          >
+            <UtensilsCrossed className="h-5 w-5 text-primary" />
+            <span className="text-xs font-medium">Maaltijd</span>
+          </Button>
+          {activeSession ? (
+            <Button
+              variant="default"
+              className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600"
+              onClick={handleWakeUp}
+              disabled={endSleep.isPending}
+            >
+              <Sun className="h-5 w-5" />
+              <span className="text-xs font-medium">Wakker</span>
+            </Button>
+          ) : (
+            <Button
+              variant="outline"
+              className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
+              onClick={handleStartSleep}
+              disabled={startSleep.isPending}
+            >
+              <Moon className="h-5 w-5 text-primary" />
+              <span className="text-xs font-medium">Slaap</span>
+            </Button>
+          )}
+        </div>
+
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
 
@@ -98,25 +140,9 @@ export default function DashboardPage() {
         {/* Blik Vooruit - Look Ahead Widget */}
         <LookAheadWidget />
 
-        {/* Daily Check-in - compact CTA */}
-        <Link to="/cycle">
-          <Card className="glass rounded-2xl hover:shadow-soft transition-all">
-            <CardContent className="p-4 flex items-center gap-3">
-              <div className="p-2 rounded-full bg-muted/50">
-                <Sparkles className="h-4 w-4" />
-              </div>
-              <div className="flex-1">
-                <p className="font-medium text-foreground">Dagelijkse check-in</p>
-                <p className="text-xs text-muted-foreground">Log energie, stemming & klachten</p>
-              </div>
-              <ArrowRight className="h-4 w-4 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        </Link>
-
         {/* Sleep Card - compact */}
         <Card className="glass rounded-2xl">
-          <CardContent className="p-4 space-y-3">
+          <CardContent className="p-4">
             <Link to="/slaap" className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-full bg-muted/50">
@@ -135,32 +161,6 @@ export default function DashboardPage() {
               </div>
               <ArrowRight className="h-4 w-4 text-muted-foreground" />
             </Link>
-
-            {/* Sleep action */}
-            <div className="pt-2 border-t">
-              {activeSession ? (
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium">Je slaapt nu</p>
-                    <p className="font-semibold">
-                      {currentSleepHours}u {currentSleepMins}m
-                    </p>
-                  </div>
-                  <Button size="sm" onClick={handleWakeUp} disabled={endSleep.isPending}>
-                    <Sun className="h-4 w-4 mr-1" />
-                    Wakker
-                  </Button>
-                </div>
-              ) : (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">Klaar om te slapen?</p>
-                  <Button size="sm" variant="outline" onClick={handleStartSleep} disabled={startSleep.isPending}>
-                    <Moon className="h-4 w-4 mr-1" />
-                    Start slaap
-                  </Button>
-                </div>
-              )}
-            </div>
           </CardContent>
         </Card>
 
