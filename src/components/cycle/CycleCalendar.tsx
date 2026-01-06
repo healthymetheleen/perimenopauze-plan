@@ -339,7 +339,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
 
       <CardContent className="pt-0">
         <div className="relative">
-          {/* Season backgrounds with labels ABOVE the day cells */}
+          {/* Season backgrounds with labels */}
           {showSeasons && (
             <div 
               className="absolute inset-0 pointer-events-none"
@@ -347,10 +347,8 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                 display: 'grid',
                 gridTemplateColumns: 'repeat(7, 1fr)',
                 gridTemplateRows: `repeat(${Math.ceil(calendarDays.length / 7)}, 1fr)`,
-                gap: '0.5rem',
-                // Extend the background slightly so labels fit above
-                margin: '-1rem -0.25rem 0 -0.25rem',
-                padding: '1rem 0.25rem 0 0.25rem',
+                columnGap: '0.5rem',
+                rowGap: '1.5rem', // Match the days grid row gap
               }}
             >
               {backgroundPieces.map((p, idx) => (
@@ -360,14 +358,12 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                   style={{
                     gridRow: `${p.row} / ${p.row + 1}`,
                     gridColumn: `${p.colStart} / ${p.colEnd + 1}`,
-                    marginTop: p.showLabel ? '-1.25rem' : '0',
-                    paddingTop: p.showLabel ? '1.25rem' : '0',
                   }}
                 >
-                  {/* Season label above the cells */}
+                  {/* Season label positioned above the background */}
                   {p.showLabel && (
                     <span 
-                      className={`absolute -top-0.5 left-1.5 text-[11px] font-bold leading-none ${seasonTextClass[p.season]}`}
+                      className={`absolute -top-5 left-1 text-xs font-bold ${seasonTextClass[p.season]} z-20`}
                     >
                       {seasonLabels[p.season]}
                     </span>
@@ -377,8 +373,8 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             </div>
           )}
 
-          {/* Days grid */}
-          <div className="relative z-10 grid grid-cols-7 gap-2">
+          {/* Days grid - with extra row gap for label space */}
+          <div className="relative z-10 grid grid-cols-7 gap-x-2 gap-y-6">
             {calendarDays.map((day, idx) => {
               const hasBleeding = !!day.bleeding && showMenstruation;
               const showPredicted = !!day.isPredictedPeriod && showMenstruation;
