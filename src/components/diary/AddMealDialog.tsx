@@ -78,7 +78,13 @@ interface MealAnalysis {
   verification_questions?: VerificationQuestion[];
   quality_flags?: QualityFlags;
   notes?: string;
+  // New fields for cost tracking
+  model_used?: string;
+  tokens_used?: number;
+  cost_eur?: number;
 }
+
+type AnalysisStep = 'idle' | 'compressing' | 'analyzing' | 'clarifying' | 'done';
 
 export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selectedDate, onDateChange }: AddMealDialogProps) {
   const { user } = useAuth();
@@ -97,6 +103,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcription, setTranscription] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisStep, setAnalysisStep] = useState<AnalysisStep>('idle');
+  const [clarificationAnswer, setClarificationAnswer] = useState('');
   const [mealDate, setMealDate] = useState(selectedDate);
   const [currentDayId, setCurrentDayId] = useState(initialDayId);
 
@@ -133,6 +141,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     setAnalysis(null);
     setEditableAnalysis(null);
     setShowConfirmation(false);
+    setAnalysisStep('idle');
+    setClarificationAnswer('');
     setTime(new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }));
     setMealDate(selectedDate);
     setCurrentDayId(initialDayId);
@@ -200,7 +210,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const { compressImage: compressWithHook, progress: compressionProgress, reset: resetCompression } = useImageCompression();
 
   // Analyze meal with AI
-  const analyzeMeal = async (text?: string, imageBase64?: string) => {
+  const analyzeMeal = async (text?: string, imageBase64?: string, isClarification = false) => {
     // Check AI usage limit
     if (aiUsage && aiUsage.remaining <= 0) {
       toast({
@@ -212,13 +222,22 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     }
 
     setIsAnalyzing(true);
+    setAnalysisStep(isClarification ? 'clarifying' : 'analyzing');
+    
     try {
+      // Build the description with clarification if provided
+      let fullDescription = text;
+      if (isClarification && analysis?.description) {
+        fullDescription = `${analysis.description}. Extra info: ${text}`;
+      }
+      
       // Use supabase.functions.invoke which automatically includes auth header
       const { data: result, error } = await supabase.functions.invoke('analyze-meal', {
         body: {
-          description: text,
+          description: fullDescription,
           imageBase64: imageBase64,
           hasAIConsent: hasAIConsent,
+          mealTime: time,
         },
       });
 
@@ -241,7 +260,27 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
       setAnalysis(result);
       setEditableAnalysis(result);
-      setShowConfirmation(true);
+      
+      // Check if we need clarification (low confidence < 65%)
+      const confidence = typeof result.confidence === 'number' ? result.confidence : 0.5;
+      if (confidence < 0.65 && result.clarification_question && !isClarification) {
+        setAnalysisStep('clarifying');
+        // Show clarification UI but don't go to confirmation yet
+        toast({
+          title: 'Meer details nodig',
+          description: 'De AI is niet zeker genoeg. Beantwoord de vraag voor een betere analyse.',
+        });
+      } else {
+        setShowConfirmation(true);
+        setAnalysisStep('done');
+        
+        // Show success toast with cost info
+        const costDisplay = result.cost_eur ? `€${result.cost_eur.toFixed(4)}` : '';
+        toast({
+          title: `${result.description?.substring(0, 30)}...`,
+          description: `${result.kcal || '?'} kcal ${costDisplay ? `(${costDisplay})` : ''}`,
+        });
+      }
       
       // Invalidate AI usage cache
       queryClient.invalidateQueries({ queryKey: ['ai-usage'] });
@@ -251,8 +290,24 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
         description: error instanceof Error ? error.message : 'Probeer het opnieuw',
         variant: 'destructive',
       });
+      setAnalysisStep('idle');
     } finally {
       setIsAnalyzing(false);
+    }
+  };
+
+  // Handle clarification answer
+  const handleClarificationSubmit = () => {
+    if (!clarificationAnswer.trim()) return;
+    analyzeMeal(clarificationAnswer, imagePreview || undefined, true);
+    setClarificationAnswer('');
+  };
+
+  // Skip clarification and use current analysis
+  const skipClarification = () => {
+    if (analysis) {
+      setShowConfirmation(true);
+      setAnalysisStep('done');
     }
   };
 
@@ -598,60 +653,94 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                             className="w-full h-48 object-cover"
                           />
                           {isAnalyzing && (
-                            <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                            <div className="absolute inset-0 bg-black/50 flex flex-col items-center justify-center gap-2">
                               <Loader2 className="h-8 w-8 animate-spin text-white" />
+                              <p className="text-white text-sm font-medium">
+                                {analysisStep === 'analyzing' && '60% - Analyseren...'}
+                                {analysisStep === 'clarifying' && '80% - Verduidelijken...'}
+                              </p>
                             </div>
                           )}
                           {/* Show compression result badge */}
-                          {compressionProgress.status === 'done' && compressionProgress.compressedSize && (
+                          {compressionProgress.status === 'done' && compressionProgress.compressedSize && !isAnalyzing && (
                             <div className="absolute bottom-2 right-2 bg-green-500/90 text-white text-xs px-2 py-1 rounded-md font-medium">
                               {formatBytes(compressionProgress.originalSize)} → {formatBytes(compressionProgress.compressedSize)}
                             </div>
                           )}
                         </div>
                         
-                        {/* Extra beschrijving veld */}
-                        <div className="space-y-2">
-                          <Label htmlFor="photo-description">Extra details (optioneel)</Label>
-                          <Input
-                            id="photo-description"
-                            placeholder="Bijv: volkoren brood, havermelk, biologisch"
-                            value={photoDescription}
-                            onChange={(e) => setPhotoDescription(e.target.value)}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
-                          </p>
-                        </div>
+                        {/* Clarification question UI */}
+                        {analysisStep === 'clarifying' && analysis?.clarification_question && !isAnalyzing && (
+                          <Alert className="bg-warning/10 border-warning/30">
+                            <AlertTriangle className="h-4 w-4 text-warning" />
+                            <AlertDescription className="space-y-3">
+                              <p className="text-sm font-medium">{analysis.clarification_question}</p>
+                              <div className="flex gap-2">
+                                <Input
+                                  placeholder="Bijv: 2 sneetjes, met boter"
+                                  value={clarificationAnswer}
+                                  onChange={(e) => setClarificationAnswer(e.target.value)}
+                                  onKeyDown={(e) => e.key === 'Enter' && handleClarificationSubmit()}
+                                  className="flex-1"
+                                />
+                                <Button size="sm" onClick={handleClarificationSubmit}>
+                                  Bevestig
+                                </Button>
+                              </div>
+                              <Button variant="ghost" size="sm" onClick={skipClarification} className="w-full text-muted-foreground">
+                                Overslaan (huidige analyse gebruiken)
+                              </Button>
+                            </AlertDescription>
+                          </Alert>
+                        )}
                         
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setImagePreview(null);
-                              setRawImage(null);
-                              setPhotoDescription('');
-                              resetCompression();
-                            }}
-                            className="flex-1"
-                          >
-                            Andere foto
-                          </Button>
-                          <Button
-                            onClick={handlePhotoAnalyze}
-                            disabled={isAnalyzing}
-                            className="flex-1"
-                          >
-                            {isAnalyzing ? (
-                              <>
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Analyseren...
-                              </>
-                            ) : (
-                              'Analyseer'
-                            )}
-                          </Button>
-                        </div>
+                        {/* Extra beschrijving veld - only show if not in clarification mode */}
+                        {analysisStep !== 'clarifying' && (
+                          <div className="space-y-2">
+                            <Label htmlFor="photo-description">Extra details (optioneel)</Label>
+                            <Input
+                              id="photo-description"
+                              placeholder="Bijv: volkoren brood, havermelk, biologisch"
+                              value={photoDescription}
+                              onChange={(e) => setPhotoDescription(e.target.value)}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
+                            </p>
+                          </div>
+                        )}
+                        
+                        {analysisStep !== 'clarifying' && (
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              onClick={() => {
+                                setImagePreview(null);
+                                setRawImage(null);
+                                setPhotoDescription('');
+                                resetCompression();
+                                setAnalysisStep('idle');
+                              }}
+                              className="flex-1"
+                            >
+                              Andere foto
+                            </Button>
+                            <Button
+                              onClick={handlePhotoAnalyze}
+                              disabled={isAnalyzing}
+                              className="flex-1"
+                            >
+                              {isAnalyzing ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                  Analyseren...
+                                </>
+                              ) : (
+                                'Analyseer'
+                              )}
+                            </Button>
+                          </div>
+                        )}
                       </div>
                     ) : compressionProgress.status === 'compressing' ? (
                       <div className="w-full h-32 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center gap-3 bg-primary/5">

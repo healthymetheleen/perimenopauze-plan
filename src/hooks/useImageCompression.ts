@@ -24,6 +24,12 @@ export const COMPRESSION_PRESETS = {
     quality: 0.75,
     fileType: 'image/webp',
   },
+  mealAnalysis: {
+    maxSizeMB: 0.06,         // 60kb for AI analysis (smaller = faster)
+    maxWidthOrHeight: 512,   // 512×512 max for vision API
+    quality: 0.7,
+    fileType: 'image/webp',
+  },
   recipe: {
     maxSizeMB: 0.1,          // 100kb max for recipe images
     maxWidthOrHeight: 1200,
