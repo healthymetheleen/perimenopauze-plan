@@ -16,6 +16,7 @@ import {
   Heart,
   Users,
   BarChart3,
+  ShoppingBag,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -49,6 +50,7 @@ const baseNavItems: NavItem[] = [
   { href: '/bewegen', label: 'Bewegen', icon: <Dumbbell className="h-5 w-5" /> },
   { href: '/meditatie', label: 'Meditaties', icon: <Heart className="h-5 w-5" /> },
   { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
+  { href: '/producten', label: 'Producten', icon: <ShoppingBag className="h-5 w-5" /> },
   { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
   { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   { href: '/admin', label: 'Admin', icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
