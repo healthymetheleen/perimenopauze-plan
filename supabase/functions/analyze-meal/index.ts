@@ -167,7 +167,7 @@ BEWERKINGSNIVEAU (ultra_processed_level 0-3):
 
 Antwoord ALLEEN met een JSON object:
 {
-  "description": "korte neutrale beschrijving",
+  "description": "gedetailleerde beschrijving met portie en bereiding (bijv. '2 sneetjes volkoren brood met 2 plakjes belegen kaas (40g) en een gekookt ei')",
   "items": [
     {
       "name": "item naam",
@@ -194,6 +194,7 @@ Antwoord ALLEEN met een JSON object:
   "ultra_processed_level": 0-3,
   "confidence": 0.0-1.0,
   "missing_info": ["portie onbekend", "saus onbekend"],
+  "clarification_question": "string of null - vraag om verduidelijking als confidence < 0.5",
   "quality_flags": {
     "has_protein": boolean,
     "has_fiber": boolean,
@@ -204,10 +205,12 @@ Antwoord ALLEEN met een JSON object:
 }
 
 BELANGRIJK:
+- **description** moet GEDETAILLEERD zijn: noem exact welke producten, hoeveel (grammen of stuks), en hoe bereid
 - confidence is een getal tussen 0.0 en 1.0 (bijv. 0.62, 0.85)
 - kcal_min en kcal_max geven de range aan (bijv. 520-720)
 - kcal is het gemiddelde van de range
 - missing_info bevat ALLE ontbrekende informatie die de schatting beïnvloedt
+- **clarification_question**: Als confidence < 0.5, stel EEN duidelijke vraag om de maaltijd beter te begrijpen. Bijv: "Hoeveel sneetjes brood waren het?" of "Welke saus zat erbij?"
 - Bij informele beschrijvingen, gebruik standaard portiegroottes
 - alcohol_g en caffeine_mg alleen invullen indien relevant (anders null)
 - Hoe meer info ontbreekt, hoe breder de range en lager de confidence`;

@@ -72,6 +72,7 @@ interface MealAnalysis {
   ultra_processed_level?: number | null;
   confidence: number; // 0.0 - 1.0
   missing_info?: string[];
+  clarification_question?: string | null;
   verification_questions?: VerificationQuestion[];
   quality_flags?: QualityFlags;
   notes?: string;
@@ -678,17 +679,31 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
               <TabsContent value="voice" className="space-y-4 mt-4">
                 <div className="flex flex-col items-center gap-4 py-8">
-                  <Button
-                    size="lg"
-                    variant={isRecording ? 'destructive' : 'default'}
-                    className="h-20 w-20 rounded-full"
-                    onClick={isRecording ? stopRecording : startRecording}
-                  >
-                    <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    {isRecording ? 'Tap om te stoppen' : 'Tap om in te spreken'}
-                  </p>
+                  {isAnalyzing ? (
+                    <>
+                      <div className="h-20 w-20 rounded-full bg-primary/20 flex items-center justify-center">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                      </div>
+                      <div className="text-center space-y-1">
+                        <p className="text-sm font-medium">Bezig met analyseren...</p>
+                        <p className="text-xs text-muted-foreground">Dit kan enkele seconden duren</p>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        size="lg"
+                        variant={isRecording ? 'destructive' : 'default'}
+                        className="h-20 w-20 rounded-full"
+                        onClick={isRecording ? stopRecording : startRecording}
+                      >
+                        <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
+                      </Button>
+                      <p className="text-sm text-muted-foreground">
+                        {isRecording ? 'Tap om te stoppen' : 'Tap om in te spreken'}
+                      </p>
+                    </>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>
@@ -700,9 +715,9 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               <>
                 {/* AI Analysis result with range and confidence */}
                 <div className="p-3 rounded-lg bg-muted/50 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{editableAnalysis.description}</span>
-                    <span className={`text-xs px-2 py-0.5 rounded-full ${getConfidenceDisplay(editableAnalysis.confidence).color}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="font-medium text-sm">{editableAnalysis.description}</span>
+                    <span className={`text-xs px-2 py-0.5 rounded-full whitespace-nowrap ${getConfidenceDisplay(editableAnalysis.confidence).color}`}>
                       {Math.round(editableAnalysis.confidence * 100)}% {getConfidenceDisplay(editableAnalysis.confidence).label}
                     </span>
                   </div>
@@ -719,6 +734,19 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     <div className="text-xs text-warning-foreground bg-warning/10 px-2 py-1.5 rounded">
                       ⚠️ Ontbrekend: {editableAnalysis.missing_info.join(', ')}
                     </div>
+                  )}
+                  
+                  {/* Clarification question for low confidence */}
+                  {editableAnalysis.clarification_question && editableAnalysis.confidence < 0.5 && (
+                    <Alert className="mt-2 bg-info/10 border-info/30">
+                      <Info className="h-4 w-4 text-info" />
+                      <AlertDescription className="text-sm">
+                        <strong>Verduidelijking nodig:</strong> {editableAnalysis.clarification_question}
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Je kunt teruggaan en meer details toevoegen, of de waarden handmatig aanpassen.
+                        </p>
+                      </AlertDescription>
+                    </Alert>
                   )}
                 </div>
 
