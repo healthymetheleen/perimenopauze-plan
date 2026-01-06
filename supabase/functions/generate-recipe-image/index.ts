@@ -1,10 +1,40 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.1";
+import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Compress and resize image to reduce file size
+async function compressImage(base64Data: string, maxWidth = 1200, quality = 80): Promise<Uint8Array> {
+  // Remove data URL prefix if present
+  const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
+  const imageBytes = Uint8Array.from(atob(cleanBase64), c => c.charCodeAt(0));
+  
+  try {
+    // Decode the image
+    const image = await Image.decode(imageBytes);
+    
+    // Resize if wider than maxWidth while maintaining aspect ratio
+    if (image.width > maxWidth) {
+      const ratio = maxWidth / image.width;
+      const newHeight = Math.round(image.height * ratio);
+      image.resize(maxWidth, newHeight);
+    }
+    
+    // Encode as WebP with compression (quality 1-100)
+    // ImageScript uses JPEG for compression, we'll use that
+    const compressed = await image.encodeJPEG(quality);
+    
+    console.log(`Image compressed: original ${imageBytes.length} bytes -> ${compressed.length} bytes`);
+    return compressed;
+  } catch (error) {
+    console.error("Image compression failed, using original:", error);
+    return imageBytes;
+  }
+}
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -121,19 +151,18 @@ The entire frame should be filled with just the wooden table and the plated dish
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Convert base64 to buffer - handle data URL format
-        const base64Data = imageData.replace(/^data:image\/\w+;base64,/, '');
-        const imageBuffer = Uint8Array.from(atob(base64Data), c => c.charCodeAt(0));
+        // Compress and resize the image (max 1200px wide, 75% quality)
+        const compressedImage = await compressImage(imageData, 1200, 75);
         
         // Generate unique filename
-        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
+        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const filePath = `recipe-images/${fileName}`;
         
-        // Upload to storage as WebP
+        // Upload to storage as JPEG (compressed)
         const { error: uploadError } = await supabase.storage
           .from('public')
-          .upload(filePath, imageBuffer, {
-            contentType: 'image/webp',
+          .upload(filePath, compressedImage, {
+            contentType: 'image/jpeg',
             upsert: false
           });
         
