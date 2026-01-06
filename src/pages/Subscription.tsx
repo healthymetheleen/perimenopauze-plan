@@ -27,6 +27,7 @@ import {
   useCreateFirstPayment,
   SUBSCRIPTION_PLANS
 } from '@/hooks/useMollie';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/lib/auth';
 import { supabase } from '@/integrations/supabase/client';
@@ -37,6 +38,7 @@ export default function SubscriptionPage() {
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: subscription, isLoading: loadingSubscription } = useSubscription();
+  const { data: entitlements } = useEntitlements();
   const createFirstPayment = useCreateFirstPayment();
 
   const [selectedPlan] = useState<PlanId>('monthly');
@@ -46,6 +48,8 @@ export default function SubscriptionPage() {
 
   const isActive = subscription?.status === 'active';
   const isPremium = isActive && subscription?.plan !== 'free';
+  const trialDaysRemaining = entitlements?.trial_days_remaining ?? 0;
+  const isTrialExpired = entitlements?.is_trial_expired ?? false;
 
   const handleSubscribe = async () => {
     if (!user) {
@@ -243,17 +247,57 @@ export default function SubscriptionPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-full bg-muted">
-                    <CreditCard className="h-5 w-5 text-muted-foreground" />
-                  </div>
-                  <div>
-                    <p className="font-semibold">Gratis account</p>
-                    <p className="text-sm text-muted-foreground">
-                      Upgrade naar Premium voor volledige toegang
+                {/* Trial countdown for non-premium users */}
+                {trialDaysRemaining > 0 ? (
+                  <>
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 rounded-full bg-primary/20">
+                        <Clock className="h-5 w-5 text-primary" />
+                      </div>
+                      <div>
+                        <p className="font-semibold">Proefperiode actief</p>
+                        <p className="text-sm text-muted-foreground">
+                          Nog {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dag' : 'dagen'} volledige toegang
+                        </p>
+                      </div>
+                    </div>
+                    <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-sm font-medium text-primary">Trial voortgang</span>
+                        <span className="text-xs text-primary">{trialDaysRemaining} van 7 dagen over</span>
+                      </div>
+                      <Progress value={((7 - trialDaysRemaining) / 7) * 100} className="h-2" />
+                      <p className="text-xs text-muted-foreground mt-2">
+                        Na de proefperiode kun je geen nieuwe gegevens invoeren tot je upgradet.
+                      </p>
+                    </div>
+                  </>
+                ) : isTrialExpired ? (
+                  <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <AlertCircle className="h-4 w-4 text-destructive" />
+                      <span className="text-sm font-medium text-destructive">Proefperiode verlopen</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Je kunt geen nieuwe gegevens meer invoeren. Upgrade naar Premium om door te gaan.
+                    </p>
+                    <p className="text-xs text-destructive/70 mt-1">
+                      Let op: zonder abonnement wordt je data na 30 dagen automatisch verwijderd.
                     </p>
                   </div>
-                </div>
+                ) : (
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 rounded-full bg-muted">
+                      <CreditCard className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <p className="font-semibold">Gratis account</p>
+                      <p className="text-sm text-muted-foreground">
+                        Upgrade naar Premium voor volledige toegang
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>
@@ -262,20 +306,24 @@ export default function SubscriptionPage() {
         {/* Upgrade section - only show if not premium */}
         {!isPremium && (
           <>
-            {/* Trial info and pricing */}
-            <Card className="glass-strong rounded-2xl bg-gradient-to-r from-primary/10 via-accent/5 to-primary/10">
-              <CardContent className="p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="p-3 rounded-full bg-primary/20">
-                    <Sparkles className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-2xl font-bold">7 dagen gratis</p>
-                    <p className="text-muted-foreground">Daarna €7,50 per maand</p>
-                  </div>
+            {/* Premium pricing card */}
+            <Card className="glass-strong rounded-2xl">
+              <CardHeader className="text-center pb-2">
+                <div className="mx-auto p-3 rounded-full bg-primary/20 w-fit mb-2">
+                  <Crown className="h-6 w-6 text-primary" />
+                </div>
+                <CardTitle className="text-xl">Premium</CardTitle>
+                <CardDescription>
+                  Speciaal voor vrouwen in de perimenopauze
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-center">
+                  <p className="text-3xl font-bold text-primary">€{SUBSCRIPTION_PLANS.monthly.price}</p>
+                  <p className="text-muted-foreground text-sm">per maand</p>
                 </div>
                 
-                <Separator className="my-4" />
+                <Separator />
                 
                 <ul className="space-y-2">
                   {SUBSCRIPTION_PLANS.monthly.features.map((feature, i) => (
@@ -287,7 +335,6 @@ export default function SubscriptionPage() {
                 </ul>
               </CardContent>
             </Card>
-
 
             {/* Subscribe button */}
             <Button
@@ -304,7 +351,7 @@ export default function SubscriptionPage() {
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Upgrade naar Premium - €{SUBSCRIPTION_PLANS[selectedPlan].price}
+                  Start Premium - €{SUBSCRIPTION_PLANS[selectedPlan].price}/maand
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </>
               )}
@@ -312,7 +359,7 @@ export default function SubscriptionPage() {
 
             {/* Payment info */}
             <p className="text-xs text-center text-muted-foreground">
-              Veilig betalen via Mollie. Je wordt doorgestuurd naar de betaalpagina.
+              Veilig betalen via Mollie. Elk moment opzegbaar.
             </p>
           </>
         )}
