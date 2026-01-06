@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -8,9 +8,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import { useToast } from '@/hooks/use-toast';
 import { useAIUsage } from '@/hooks/useAIUsage';
 import { useConsent } from '@/hooks/useConsent';
+import { useImageCompression, formatBytes, COMPRESSION_PRESETS } from '@/hooks/useImageCompression';
 import { ImageCropper } from './ImageCropper';
 import { Loader2, Type, Camera, Mic, Check, Edit2, Crop, AlertTriangle, Info } from 'lucide-react';
 import type { Json } from '@/integrations/supabase/types';
@@ -134,6 +136,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     setTime(new Date().toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' }));
     setMealDate(selectedDate);
     setCurrentDayId(initialDayId);
+    resetCompression();
   };
 
   const handleClose = () => {
@@ -192,6 +195,9 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const { consent } = useConsent();
   const hasAIConsent = consent?.accepted_ai_processing ?? false;
   const hasPhotoConsent = consent?.accepted_photo_analysis ?? false;
+  
+  // Image compression hook
+  const { compressImage: compressWithHook, progress: compressionProgress, reset: resetCompression } = useImageCompression();
 
   // Analyze meal with AI
   const analyzeMeal = async (text?: string, imageBase64?: string) => {
@@ -256,49 +262,12 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     analyzeMeal(description);
   };
 
-  // Compress and resize image to WebP format for efficient storage - GDPR: max 1280px
-  const compressImage = (file: File, maxWidth: number = 1280, quality: number = 0.8): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const img = new Image();
-        img.onload = () => {
-          const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Calculate new dimensions while maintaining aspect ratio
-          if (width > maxWidth) {
-            height = (height * maxWidth) / width;
-            width = maxWidth;
-          }
-          
-          canvas.width = width;
-          canvas.height = height;
-          
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('Could not get canvas context'));
-            return;
-          }
-          
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // Use WebP for better compression (25-34% smaller than JPEG)
-          // Check if browser supports WebP, fallback to JPEG
-          const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
-          const format = supportsWebP ? 'image/webp' : 'image/jpeg';
-          const compressedBase64 = canvas.toDataURL(format, quality);
-          
-          resolve(compressedBase64);
-        };
-        img.onerror = () => reject(new Error('Failed to load image'));
-        img.src = e.target?.result as string;
-      };
-      reader.onerror = () => reject(new Error('Failed to read file'));
-      reader.readAsDataURL(file);
-    });
-  };
+  // Reset compression state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      resetCompression();
+    }
+  }, [open, resetCompression]);
 
   // Handle photo upload with compression - show cropper first
   const handlePhotoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -306,14 +275,19 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     if (!file) return;
 
     try {
-      // GDPR: Use 1280px max for privacy (reduces detail/identifiability)
-      const compressedBase64 = await compressImage(file, 1280, 0.7);
-      setRawImage(compressedBase64);
+      // Use the compression hook with meal preset (max 80kb WebP)
+      const result = await compressWithHook(file, COMPRESSION_PRESETS.meal);
+      
+      if (!result) {
+        throw new Error(compressionProgress.error || 'Compressie mislukt');
+      }
+      
+      setRawImage(result.base64);
       setShowCropper(true); // Show cropper first
     } catch (error) {
       toast({
         title: 'Foto kon niet worden geladen',
-        description: 'Probeer een andere foto of verklein de bestandsgrootte.',
+        description: error instanceof Error ? error.message : 'Probeer een andere foto of verklein de bestandsgrootte.',
         variant: 'destructive',
       });
     }
@@ -628,6 +602,12 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                               <Loader2 className="h-8 w-8 animate-spin text-white" />
                             </div>
                           )}
+                          {/* Show compression result badge */}
+                          {compressionProgress.status === 'done' && compressionProgress.compressedSize && (
+                            <div className="absolute bottom-2 right-2 bg-green-500/90 text-white text-xs px-2 py-1 rounded-md font-medium">
+                              {formatBytes(compressionProgress.originalSize)} → {formatBytes(compressionProgress.compressedSize)}
+                            </div>
+                          )}
                         </div>
                         
                         {/* Extra beschrijving veld */}
@@ -651,6 +631,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                               setImagePreview(null);
                               setRawImage(null);
                               setPhotoDescription('');
+                              resetCompression();
                             }}
                             className="flex-1"
                           >
@@ -672,16 +653,27 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                           </Button>
                         </div>
                       </div>
+                    ) : compressionProgress.status === 'compressing' ? (
+                      <div className="w-full h-32 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center gap-3 bg-primary/5">
+                        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                        <div className="text-center space-y-2 w-full px-4">
+                          <p className="text-sm font-medium">Foto comprimeren...</p>
+                          <Progress value={compressionProgress.progress} className="h-2" />
+                          <p className="text-xs text-muted-foreground">
+                            {formatBytes(compressionProgress.originalSize)} → optimaliseren
+                          </p>
+                        </div>
+                      </div>
                     ) : (
                       <Button
                         variant="outline"
-                        className="w-full h-32 border-dashed"
+                        className="w-full h-32 border-dashed hover:border-primary transition-colors"
                         onClick={() => fileInputRef.current?.click()}
                       >
                         <div className="flex flex-col items-center gap-2">
                           <Camera className="h-8 w-8 text-muted-foreground" />
                           <span className="text-muted-foreground">Maak of kies een foto</span>
-                          <span className="text-xs text-muted-foreground">Alleen eten in beeld - bijsnijden mogelijk</span>
+                          <span className="text-xs text-muted-foreground">Max 10MB • wordt gecomprimeerd naar ~80kb</span>
                         </div>
                       </Button>
                     )}
