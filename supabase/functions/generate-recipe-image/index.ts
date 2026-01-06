@@ -30,8 +30,21 @@ serve(async (req) => {
 
     console.log(`Generating image for recipe: ${recipeTitle}`);
 
-    // Simplified prompt focusing on food photography
-    const imagePrompt = `Professional overhead food photography of ${recipeTitle}. ${mealType || 'dish'}. Light wooden table, natural daylight, ceramic plate, Scandinavian minimal style. No text, no watermarks.`;
+    // Detailed prompt for clean food photography
+    const imagePrompt = `Professional overhead food photography of ${recipeTitle}. ${mealType || 'dish'}.
+
+REQUIREMENTS:
+- Bird's eye view, looking straight down
+- Wooden table background (oak, walnut, pine, or other natural wood - NO metal, NO plastic, NO glass surfaces)
+- Natural soft daylight
+- Beautiful ceramic or porcelain plate
+- Clean composition: NO loose food items scattered on the table (no loose herbs, leaves, twigs, seeds, grains, crumbs outside the plate)
+- Background shows ONLY the wooden table surface - NO windows, NO doors, NO walls, NO room visible
+- Optional: a folded linen napkin beside the plate
+- Scandinavian minimal aesthetic, soft natural colors
+- No text, no watermarks, no logos, no writing of any kind
+
+The entire frame should be filled with just the wooden table and the plated dish.`;
 
     console.log("Using prompt:", imagePrompt);
 
