@@ -256,8 +256,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     analyzeMeal(description);
   };
 
-  // Compress and resize image to reduce memory usage - GDPR: max 1280px
-  const compressImage = (file: File, maxWidth: number = 1280, quality: number = 0.7): Promise<string> => {
+  // Compress and resize image to WebP format for efficient storage - GDPR: max 1280px
+  const compressImage = (file: File, maxWidth: number = 1280, quality: number = 0.8): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -283,7 +283,13 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
           }
           
           ctx.drawImage(img, 0, 0, width, height);
-          const compressedBase64 = canvas.toDataURL('image/jpeg', quality);
+          
+          // Use WebP for better compression (25-34% smaller than JPEG)
+          // Check if browser supports WebP, fallback to JPEG
+          const supportsWebP = canvas.toDataURL('image/webp').indexOf('data:image/webp') === 0;
+          const format = supportsWebP ? 'image/webp' : 'image/jpeg';
+          const compressedBase64 = canvas.toDataURL(format, quality);
+          
           resolve(compressedBase64);
         };
         img.onerror = () => reject(new Error('Failed to load image'));
