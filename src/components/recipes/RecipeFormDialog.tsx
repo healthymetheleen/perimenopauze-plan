@@ -17,13 +17,14 @@ import {
   useRecipe,
   useCreateRecipe,
   useUpdateRecipe,
+  useGenerateRecipeImage,
   mealTypes,
   seasons,
   dietTags,
   Ingredient,
 } from '@/hooks/useRecipes';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Sparkles, Loader2 } from 'lucide-react';
 
 interface RecipeFormDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
   const { data: existingRecipe } = useRecipe(recipeId || null);
   const createRecipe = useCreateRecipe();
   const updateRecipe = useUpdateRecipe();
+  const generateImage = useGenerateRecipeImage();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -212,12 +214,64 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
 
               <div>
                 <Label htmlFor="imageUrl">Afbeelding URL</Label>
-                <Input
-                  id="imageUrl"
-                  value={imageUrl}
-                  onChange={(e) => setImageUrl(e.target.value)}
-                  placeholder="https://..."
-                />
+                <div className="flex gap-2">
+                  <Input
+                    id="imageUrl"
+                    value={imageUrl}
+                    onChange={(e) => setImageUrl(e.target.value)}
+                    placeholder="https://... of genereer met AI"
+                    className="flex-1"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      if (!title) {
+                        toast({
+                          title: 'Titel vereist',
+                          description: 'Vul eerst een titel in om een afbeelding te genereren.',
+                          variant: 'destructive',
+                        });
+                        return;
+                      }
+                      try {
+                        const url = await generateImage.mutateAsync({
+                          recipeTitle: title,
+                          recipeDescription: description,
+                          mealType,
+                        });
+                        setImageUrl(url);
+                        toast({
+                          title: 'Afbeelding gegenereerd',
+                          description: 'De AI heeft een afbeelding voor dit recept gemaakt.',
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: 'Genereren mislukt',
+                          description: error.message || 'Kon geen afbeelding genereren.',
+                          variant: 'destructive',
+                        });
+                      }
+                    }}
+                    disabled={generateImage.isPending || !title}
+                  >
+                    {generateImage.isPending ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Sparkles className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+                {imageUrl && (
+                  <div className="mt-2 relative">
+                    <img 
+                      src={imageUrl} 
+                      alt="Preview" 
+                      className="h-32 w-full object-cover rounded-md"
+                    />
+                  </div>
+                )}
               </div>
             </div>
 

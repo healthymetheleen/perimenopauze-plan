@@ -17,6 +17,7 @@ import {
   Flower2,
   Leaf,
   Sun,
+  Home,
   type LucideIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
@@ -452,6 +453,10 @@ export default function PerimenopauseTest() {
                       Bekijk eerdere resultaten
                     </Button>
                   )}
+                  <Button variant="ghost" onClick={() => navigate('/dashboard')}>
+                    <Home className="mr-2 h-4 w-4" />
+                    Terug naar home
+                  </Button>
                 </div>
               </CardContent>
             </Card>

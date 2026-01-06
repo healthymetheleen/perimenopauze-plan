@@ -405,3 +405,27 @@ export function useRemoveFavorite() {
     },
   });
 }
+
+// Generate recipe image with AI
+export function useGenerateRecipeImage() {
+  return useMutation({
+    mutationFn: async ({ 
+      recipeTitle, 
+      recipeDescription, 
+      mealType 
+    }: { 
+      recipeTitle: string; 
+      recipeDescription?: string; 
+      mealType?: string; 
+    }) => {
+      const { data, error } = await supabase.functions.invoke('generate-recipe-image', {
+        body: { recipeTitle, recipeDescription, mealType },
+      });
+      
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      
+      return data.imageUrl as string;
+    },
+  });
+}
