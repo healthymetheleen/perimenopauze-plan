@@ -325,7 +325,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         <div className="relative">
           {/* Season backgrounds (panels) behind a fixed grid */}
           {showSeasons && (
-            <div className="absolute inset-0 grid grid-cols-7 gap-2 pointer-events-none" style={{ marginTop: '28px' }}>
+            <div className="absolute inset-0 grid grid-cols-7 gap-2 pointer-events-none">
               {backgroundPieces.map((p, idx) => (
                 <div
                   key={`${p.season}-${p.row}-${p.colStart}-${p.colEnd}-${idx}`}
