@@ -51,4 +51,37 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Bundle alle lucide icons samen (voorkomt 20+ separate requests)
+          'lucide-icons': ['lucide-react'],
+          // React vendor bundle
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          // UI components bundle
+          'ui-radix': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-select',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-slot',
+            '@radix-ui/react-popover',
+            '@radix-ui/react-tooltip',
+          ],
+          // Charting library
+          'charts': ['recharts'],
+          // Framer motion
+          'motion': ['framer-motion'],
+        },
+      },
+    },
+    // Remove sourcemaps in production for smaller bundles
+    sourcemap: false,
+  },
+  // Pre-bundle lucide for faster dev starts
+  optimizeDeps: {
+    include: ['lucide-react'],
+  },
 }));
