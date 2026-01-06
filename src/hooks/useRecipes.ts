@@ -13,6 +13,7 @@ export interface Recipe {
   cook_time_minutes: number | null;
   servings: number | null;
   image_url: string | null;
+  thumbnail_url: string | null;
   meal_type: string;
   seasons: string[];
   cycle_phases: string[];
@@ -43,6 +44,7 @@ export type RecipeInsert = {
   cook_time_minutes?: number | null;
   servings?: number | null;
   image_url?: string | null;
+  thumbnail_url?: string | null;
   seasons?: string[];
   cycle_phases?: string[];
   diet_tags?: string[];
@@ -417,7 +419,7 @@ export function useGenerateRecipeImage() {
       recipeTitle: string; 
       recipeDescription?: string; 
       mealType?: string; 
-    }) => {
+    }): Promise<{ imageUrl: string; thumbnailUrl: string | null }> => {
       const { data, error } = await supabase.functions.invoke('generate-recipe-image', {
         body: { recipeTitle, recipeDescription, mealType },
       });
@@ -425,7 +427,10 @@ export function useGenerateRecipeImage() {
       if (error) throw error;
       if (data.error) throw new Error(data.error);
       
-      return data.imageUrl as string;
+      return {
+        imageUrl: data.imageUrl as string,
+        thumbnailUrl: data.thumbnailUrl as string | null,
+      };
     },
   });
 }

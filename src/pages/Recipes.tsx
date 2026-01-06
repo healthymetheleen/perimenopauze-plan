@@ -223,11 +223,12 @@ export default function RecipesPage() {
                       to={`/recepten/${recipe.id}`}
                       className="flex items-center gap-3 flex-1 min-w-0"
                     >
-                      {sanitizeImageUrl(recipe.image_url) ? (
+                      {sanitizeImageUrl(recipe.thumbnail_url || recipe.image_url) ? (
                         <img
-                          src={sanitizeImageUrl(recipe.image_url)}
+                          src={sanitizeImageUrl(recipe.thumbnail_url || recipe.image_url)}
                           alt={recipe.title}
                           className="w-16 h-16 rounded-lg object-cover"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
@@ -403,11 +404,12 @@ export default function RecipesPage() {
                       )}
                     </div>
                     <Link to={`/recepten/${recipe.id}`} className="flex gap-4 flex-1 min-w-0">
-                      {sanitizeImageUrl(recipe.image_url) ? (
+                      {sanitizeImageUrl(recipe.thumbnail_url || recipe.image_url) ? (
                         <img
-                          src={sanitizeImageUrl(recipe.image_url)}
+                          src={sanitizeImageUrl(recipe.thumbnail_url || recipe.image_url)}
                           alt={recipe.title}
                           className="w-24 h-24 rounded-xl object-cover flex-shrink-0"
+                          loading="lazy"
                         />
                       ) : (
                         <div className="w-24 h-24 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">

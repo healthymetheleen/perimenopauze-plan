@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Compress and resize image to wide landscape format (16:9 ratio, max 100kb)
-async function compressImage(base64Data: string, maxWidth = 1200, maxHeight = 675, targetSizeKB = 100): Promise<Uint8Array> {
+// Compress and resize image
+async function compressImage(base64Data: string, maxWidth: number, maxHeight: number, targetSizeKB: number): Promise<Uint8Array> {
   // Remove data URL prefix if present
   const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
   const imageBytes = Uint8Array.from(atob(cleanBase64), c => c.charCodeAt(0));
@@ -17,7 +17,7 @@ async function compressImage(base64Data: string, maxWidth = 1200, maxHeight = 67
     // Decode the image
     const image = await Image.decode(imageBytes);
     
-    // Calculate new dimensions to fit within maxWidth x maxHeight (16:9 landscape)
+    // Calculate new dimensions to fit within max bounds
     const aspectRatio = image.width / image.height;
     let newWidth = image.width;
     let newHeight = image.height;
@@ -40,10 +40,9 @@ async function compressImage(base64Data: string, maxWidth = 1200, maxHeight = 67
     
     // If still too large, reduce quality iteratively
     const targetBytes = targetSizeKB * 1024;
-    while (compressed.length > targetBytes && quality > 40) {
+    while (compressed.length > targetBytes && quality > 30) {
       quality -= 10;
       compressed = await image.encodeJPEG(quality);
-      console.log(`Reducing quality to ${quality}, size: ${compressed.length} bytes`);
     }
     
     console.log(`Image compressed: ${newWidth}x${newHeight}, quality ${quality}, ${imageBytes.length} -> ${compressed.length} bytes (${Math.round(compressed.length/1024)}kb)`);
@@ -169,39 +168,62 @@ The entire frame should be filled with just the wooden table and the plated dish
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Compress and resize the image (max 1200x675 wide landscape, target 100kb)
-        const compressedImage = await compressImage(imageData, 1200, 675, 100);
+        // Generate unique filename base
+        const fileId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
         
-        // Generate unique filename
-        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
-        const filePath = `recipe-images/${fileName}`;
+        // 1. Compress and upload full-size image (max 1200x675 wide landscape, target 100kb)
+        const fullImage = await compressImage(imageData, 1200, 675, 100);
+        const fullFileName = `recipe-${fileId}.webp`;
+        const fullFilePath = `recipe-images/${fullFileName}`;
         
-        // Upload to storage as WebP
-        const { error: uploadError } = await supabase.storage
+        const { error: fullUploadError } = await supabase.storage
           .from('public')
-          .upload(filePath, compressedImage, {
+          .upload(fullFilePath, fullImage, {
             contentType: 'image/webp',
             upsert: false
           });
         
-        if (uploadError) {
-          console.error("Storage upload error:", uploadError);
-          // Fall back to returning base64
+        if (fullUploadError) {
+          console.error("Full image upload error:", fullUploadError);
           return new Response(
             JSON.stringify({ imageUrl: imageData }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
         
-        // Get public URL
-        const { data: urlData } = supabase.storage
-          .from('public')
-          .getPublicUrl(filePath);
+        // 2. Create and upload thumbnail (150x150, target 15kb)
+        const thumbnail = await compressImage(imageData, 150, 150, 15);
+        const thumbFileName = `recipe-${fileId}-thumb.webp`;
+        const thumbFilePath = `recipe-images/${thumbFileName}`;
         
-        console.log("Image uploaded successfully:", urlData.publicUrl);
+        const { error: thumbUploadError } = await supabase.storage
+          .from('public')
+          .upload(thumbFilePath, thumbnail, {
+            contentType: 'image/webp',
+            upsert: false
+          });
+        
+        if (thumbUploadError) {
+          console.error("Thumbnail upload error:", thumbUploadError);
+          // Continue with just the full image
+        }
+        
+        // Get public URLs
+        const { data: fullUrlData } = supabase.storage
+          .from('public')
+          .getPublicUrl(fullFilePath);
+        
+        const { data: thumbUrlData } = supabase.storage
+          .from('public')
+          .getPublicUrl(thumbFilePath);
+        
+        console.log("Images uploaded successfully:", fullUrlData.publicUrl, thumbUrlData.publicUrl);
         
         return new Response(
-          JSON.stringify({ imageUrl: urlData.publicUrl }),
+          JSON.stringify({ 
+            imageUrl: fullUrlData.publicUrl,
+            thumbnailUrl: thumbUploadError ? null : thumbUrlData.publicUrl
+          }),
           { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       } catch (storageError) {
