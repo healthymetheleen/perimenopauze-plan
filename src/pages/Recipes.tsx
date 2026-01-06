@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRecipes, useCyclePhaseRecipes, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
@@ -16,6 +17,14 @@ import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
 import { RecipeFilters } from '@/components/recipes/RecipeFilters';
 import { sanitizeImageUrl } from '@/lib/sanitize';
 import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart } from 'lucide-react';
+
+// Time categories for filtering
+const timeCategories = [
+  { value: 'supersnel', label: '⚡ Supersnel', maxMinutes: 15 },
+  { value: 'snel', label: '🏃 Snel', maxMinutes: 30 },
+  { value: 'normaal', label: '👨‍🍳 Normaal', maxMinutes: 60 },
+  { value: 'uitgebreid', label: '🍽️ Uitgebreid', maxMinutes: Infinity },
+] as const;
 
 // Map cycle seasons to cycle phases
 const seasonToCyclePhase: Record<string, string> = {
@@ -37,6 +46,7 @@ function getCurrentCalendarSeason(): string {
 export default function RecipesPage() {
   const [search, setSearch] = useState('');
   const [mealType, setMealType] = useState<string>('');
+  const [timeCategory, setTimeCategory] = useState<string>('');
   const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
@@ -71,14 +81,33 @@ export default function RecipesPage() {
     const combined = new Set([...savedAllergyTags, ...selectedDietTags]);
     return Array.from(combined);
   }, [savedAllergyTags, selectedDietTags]);
+  // Filter out "all" values for API
+  const effectiveMealType = mealType && mealType !== 'all' ? mealType : undefined;
 
-  const { data: recipes, isLoading } = useRecipes({
-    mealType: mealType || undefined,
+  const { data: allRecipes, isLoading } = useRecipes({
+    mealType: effectiveMealType,
     season: effectiveSeason,
     cyclePhase: effectiveCyclePhase,
     dietTags: allDietTags.length > 0 ? allDietTags : undefined,
     search: search || undefined,
   });
+
+  // Client-side filter for time category
+  const recipes = useMemo(() => {
+    if (!allRecipes) return [];
+    if (!timeCategory || timeCategory === 'all') return allRecipes;
+    
+    const category = timeCategories.find(c => c.value === timeCategory);
+    if (!category) return allRecipes;
+    
+    const prevCategory = timeCategories[timeCategories.findIndex(c => c.value === timeCategory) - 1];
+    const minMinutes = prevCategory?.maxMinutes || 0;
+    
+    return allRecipes.filter(recipe => {
+      const totalTime = (recipe.prep_time_minutes || 0) + (recipe.cook_time_minutes || 0);
+      return totalTime > minMinutes && totalTime <= category.maxMinutes;
+    });
+  }, [allRecipes, timeCategory]);
 
   const { data: cycleRecipes } = useCyclePhaseRecipes(currentCyclePhase);
 
@@ -93,15 +122,17 @@ export default function RecipesPage() {
     shoppingList,
   } = useShoppingList();
 
-  const hasManualFilters = mealType || selectedDietTags.length > 0 || search;
+  const hasManualFilters = mealType || timeCategory || selectedDietTags.length > 0 || search;
   const activeFilterCount = [
     mealType ? 1 : 0,
+    timeCategory ? 1 : 0,
     savedAllergyTags.length,
     selectedDietTags.length,
   ].reduce((a, b) => a + b, 0);
 
   const clearFilters = () => {
     setMealType('');
+    setTimeCategory('');
     setSelectedDietTags([]);
     setSearch('');
   };
@@ -200,8 +231,51 @@ export default function RecipesPage() {
           </Card>
         )}
 
-        {/* Search and filter toggle */}
+        {/* Quick filters and search */}
         <div className="space-y-3">
+          {/* Quick dropdowns row */}
+          <div className="flex gap-2 flex-wrap">
+            <Select value={mealType} onValueChange={setMealType}>
+              <SelectTrigger className="w-[140px] bg-background">
+                <SelectValue placeholder="🍽️ Maaltijd" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="all">Alle maaltijden</SelectItem>
+                {mealTypes.map((type) => (
+                  <SelectItem key={type.value} value={type.value}>
+                    {type.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={timeCategory} onValueChange={setTimeCategory}>
+              <SelectTrigger className="w-[140px] bg-background">
+                <SelectValue placeholder="⏱️ Tijd" />
+              </SelectTrigger>
+              <SelectContent className="bg-background z-50">
+                <SelectItem value="all">Alle tijden</SelectItem>
+                {timeCategories.map((cat) => (
+                  <SelectItem key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            {(mealType || timeCategory) && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={() => { setMealType(''); setTimeCategory(''); }}
+                className="text-muted-foreground"
+              >
+                Wissen
+              </Button>
+            )}
+          </div>
+
+          {/* Search and advanced filters */}
           <div className="flex gap-2">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -218,7 +292,7 @@ export default function RecipesPage() {
               className="relative"
             >
               <Filter className="h-4 w-4 mr-2" />
-              Filters
+              Meer
               {activeFilterCount > 0 && (
                 <Badge
                   variant="secondary"
