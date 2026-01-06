@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { createContext, useContext, useState, useMemo, useCallback, ReactNode } from 'react';
 import { Recipe, Ingredient } from './useRecipes';
 
 export interface SelectedRecipe extends Recipe {
@@ -56,9 +56,24 @@ function formatAmount(num: number): string {
   return String(rounded);
 }
 
-export function useShoppingList() {
+interface ShoppingListContextValue {
+  selectedRecipes: SelectedRecipe[];
+  selectedCount: number;
+  addRecipe: (recipe: Recipe, servings?: number) => void;
+  removeRecipe: (recipeId: string) => void;
+  toggleRecipe: (recipe: Recipe, servings?: number) => void;
+  updateServings: (recipeId: string, newServings: number) => void;
+  isSelected: (recipeId: string) => boolean;
+  getSelectedServings: (recipeId: string) => number | undefined;
+  clearAll: () => void;
+  shoppingList: ShoppingItem[];
+}
+
+const ShoppingListContext = createContext<ShoppingListContextValue | null>(null);
+
+export function ShoppingListProvider({ children }: { children: ReactNode }) {
   // Store recipes with their selected servings
-  const [selectedRecipes, setSelectedRecipes] = useState<Map<string, SelectedRecipe>>(new Map());
+  const [selectedRecipesMap, setSelectedRecipes] = useState<Map<string, SelectedRecipe>>(new Map());
 
   const addRecipe = useCallback((recipe: Recipe, servings?: number) => {
     const selectedServings = servings || recipe.servings || 4;
@@ -74,12 +89,17 @@ export function useShoppingList() {
   }, []);
 
   const toggleRecipe = useCallback((recipe: Recipe, servings?: number) => {
-    if (selectedRecipes.has(recipe.id)) {
-      removeRecipe(recipe.id);
-    } else {
-      addRecipe(recipe, servings);
-    }
-  }, [selectedRecipes, addRecipe, removeRecipe]);
+    setSelectedRecipes(prev => {
+      if (prev.has(recipe.id)) {
+        const next = new Map(prev);
+        next.delete(recipe.id);
+        return next;
+      } else {
+        const selectedServings = servings || recipe.servings || 4;
+        return new Map(prev).set(recipe.id, { ...recipe, selectedServings });
+      }
+    });
+  }, []);
 
   const updateServings = useCallback((recipeId: string, newServings: number) => {
     setSelectedRecipes(prev => {
@@ -93,12 +113,12 @@ export function useShoppingList() {
   }, []);
 
   const isSelected = useCallback((recipeId: string) => {
-    return selectedRecipes.has(recipeId);
-  }, [selectedRecipes]);
+    return selectedRecipesMap.has(recipeId);
+  }, [selectedRecipesMap]);
 
   const getSelectedServings = useCallback((recipeId: string) => {
-    return selectedRecipes.get(recipeId)?.selectedServings;
-  }, [selectedRecipes]);
+    return selectedRecipesMap.get(recipeId)?.selectedServings;
+  }, [selectedRecipesMap]);
 
   const clearAll = useCallback(() => {
     setSelectedRecipes(new Map());
@@ -108,7 +128,7 @@ export function useShoppingList() {
   const shoppingList = useMemo(() => {
     const ingredientMap = new Map<string, ShoppingItem>();
 
-    selectedRecipes.forEach((recipe) => {
+    selectedRecipesMap.forEach((recipe) => {
       const ingredients = recipe.ingredients || [];
       const originalServings = recipe.servings || 4;
       const scaleFactor = recipe.selectedServings / originalServings;
@@ -178,11 +198,11 @@ export function useShoppingList() {
     });
 
     return result.sort((a, b) => a.name.localeCompare(b.name, 'nl'));
-  }, [selectedRecipes]);
+  }, [selectedRecipesMap]);
 
-  return {
-    selectedRecipes: Array.from(selectedRecipes.values()),
-    selectedCount: selectedRecipes.size,
+  const value: ShoppingListContextValue = {
+    selectedRecipes: Array.from(selectedRecipesMap.values()),
+    selectedCount: selectedRecipesMap.size,
     addRecipe,
     removeRecipe,
     toggleRecipe,
@@ -192,4 +212,18 @@ export function useShoppingList() {
     clearAll,
     shoppingList,
   };
+
+  return (
+    <ShoppingListContext.Provider value={value}>
+      {children}
+    </ShoppingListContext.Provider>
+  );
+}
+
+export function useShoppingList() {
+  const context = useContext(ShoppingListContext);
+  if (!context) {
+    throw new Error('useShoppingList must be used within a ShoppingListProvider');
+  }
+  return context;
 }

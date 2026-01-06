@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { LoadingState } from '@/components/ui/loading-state';
-import { useRecipe, useFavoriteIds, useAddFavorite, useRemoveFavorite, mealTypes, seasons, cyclePhases, dietTags, Ingredient } from '@/hooks/useRecipes';
+import { useRecipe, useFavoriteIds, useAddFavorite, useRemoveFavorite, mealTypes, dietTags, Ingredient } from '@/hooks/useRecipes';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { sanitizeImageUrl } from '@/lib/sanitize';
 import { useAuth } from '@/lib/auth';
@@ -180,12 +180,8 @@ export default function RecipeDetailPage() {
           </div>
         </div>
 
-        {/* Tags - only show if specific (not all options selected) */}
+        {/* Diet tags only - removed seasons and cycle phases */}
         {(() => {
-          // Don't show seasons if ALL 4 are selected (implies year-round)
-          const showSeasons = recipe.seasons.length > 0 && recipe.seasons.length < 4;
-          // Don't show cycle phases if ALL 4 are selected (implies all phases)
-          const showCyclePhases = recipe.cycle_phases && recipe.cycle_phases.length > 0 && recipe.cycle_phases.length < 4;
           // Prioritize important diet tags, limit display
           const priorityTags = ['vegetarisch', 'veganistisch', 'pescotarisch', 'glutenvrij', 'zuivelvrij', 'lactosevrij', 'eivrij', 'notenvrij', 'zwangerschapsveilig', 'kinderwensvriendelijk'];
           const sortedDietTags = [...recipe.diet_tags].sort((a, b) => {
@@ -199,20 +195,10 @@ export default function RecipeDetailPage() {
           const displayDietTags = sortedDietTags.slice(0, 6); // Max 6 tags
           const hasMoreTags = sortedDietTags.length > 6;
 
-          if (!showSeasons && !showCyclePhases && displayDietTags.length === 0) return null;
+          if (displayDietTags.length === 0) return null;
 
           return (
             <div className="flex flex-wrap gap-2">
-              {showSeasons && recipe.seasons.map((s) => (
-                <Badge key={s} variant="secondary" className="bg-muted text-foreground">
-                  {seasons.find(season => season.value === s)?.label || s}
-                </Badge>
-              ))}
-              {showCyclePhases && recipe.cycle_phases?.map((p) => (
-                <Badge key={p} variant="secondary" className="bg-primary/10 text-primary">
-                  {cyclePhases.find(phase => phase.value === p)?.label || p}
-                </Badge>
-              ))}
               {displayDietTags.map((tag) => (
                 <Badge key={tag} variant="outline">
                   {dietTags.find(t => t.value === tag)?.label || tag}

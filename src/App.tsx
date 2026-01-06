@@ -9,6 +9,7 @@ import { useConsent } from "@/hooks/useConsent";
 import { useProfile } from "@/hooks/useProfile";
 import { LoadingPage } from "@/components/ui/loading-state";
 import { CookieBanner } from "@/components/layout/CookieBanner";
+import { ShoppingListProvider } from "@/hooks/useShoppingList";
 
 // Lazy loaded pages for code splitting
 const LoginPage = lazy(() => import("./pages/Login"));
@@ -302,8 +303,10 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
-          <AppRoutes />
-          <CookieBanner />
+          <ShoppingListProvider>
+            <AppRoutes />
+            <CookieBanner />
+          </ShoppingListProvider>
         </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
