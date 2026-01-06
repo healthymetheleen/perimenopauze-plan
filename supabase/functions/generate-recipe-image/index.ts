@@ -7,8 +7,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Compress and resize image to reduce file size
-async function compressImage(base64Data: string, maxWidth = 1200, quality = 80): Promise<Uint8Array> {
+// Compress and resize image to landscape format (3:2 ratio)
+async function compressImage(base64Data: string, maxWidth = 1200, maxHeight = 800, quality = 75): Promise<Uint8Array> {
   // Remove data URL prefix if present
   const cleanBase64 = base64Data.replace(/^data:image\/\w+;base64,/, '');
   const imageBytes = Uint8Array.from(atob(cleanBase64), c => c.charCodeAt(0));
@@ -17,18 +17,28 @@ async function compressImage(base64Data: string, maxWidth = 1200, quality = 80):
     // Decode the image
     const image = await Image.decode(imageBytes);
     
-    // Resize if wider than maxWidth while maintaining aspect ratio
-    if (image.width > maxWidth) {
-      const ratio = maxWidth / image.width;
-      const newHeight = Math.round(image.height * ratio);
-      image.resize(maxWidth, newHeight);
+    // Calculate new dimensions to fit within maxWidth x maxHeight (landscape)
+    const aspectRatio = image.width / image.height;
+    let newWidth = image.width;
+    let newHeight = image.height;
+    
+    if (newWidth > maxWidth) {
+      newWidth = maxWidth;
+      newHeight = Math.round(maxWidth / aspectRatio);
+    }
+    if (newHeight > maxHeight) {
+      newHeight = maxHeight;
+      newWidth = Math.round(maxHeight * aspectRatio);
     }
     
-    // Encode as WebP with compression (quality 1-100)
-    // ImageScript uses JPEG for compression, we'll use that
+    // Resize the image
+    image.resize(newWidth, newHeight);
+    
+    // Encode as PNG first (ImageScript limitation), then we upload as webp content-type
+    // Note: ImageScript encodeJPEG provides good compression
     const compressed = await image.encodeJPEG(quality);
     
-    console.log(`Image compressed: original ${imageBytes.length} bytes -> ${compressed.length} bytes`);
+    console.log(`Image compressed: ${image.width}x${image.height}, ${imageBytes.length} -> ${compressed.length} bytes`);
     return compressed;
   } catch (error) {
     console.error("Image compression failed, using original:", error);
@@ -151,18 +161,18 @@ The entire frame should be filled with just the wooden table and the plated dish
       try {
         const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
         
-        // Compress and resize the image (max 1200px wide, 75% quality)
-        const compressedImage = await compressImage(imageData, 1200, 75);
+        // Compress and resize the image (max 1200x800 landscape, 75% quality)
+        const compressedImage = await compressImage(imageData, 1200, 800, 75);
         
         // Generate unique filename
-        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
+        const fileName = `recipe-${Date.now()}-${Math.random().toString(36).substring(7)}.webp`;
         const filePath = `recipe-images/${fileName}`;
         
-        // Upload to storage as JPEG (compressed)
+        // Upload to storage as WebP
         const { error: uploadError } = await supabase.storage
           .from('public')
           .upload(filePath, compressedImage, {
-            contentType: 'image/jpeg',
+            contentType: 'image/webp',
             upsert: false
           });
         
