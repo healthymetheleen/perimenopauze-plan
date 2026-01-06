@@ -38,9 +38,10 @@ VOEDINGSFILOSOFIE (ALTIJD TOEPASSEN):
 - Vlees/zuivel: grasgevoerd en biologisch
 - Zuivel: rauwe zuivel, kefir, gefermenteerde producten
 - Inclusief kiemen en gefermenteerde voeding
+- Fruit mag: vers seizoensfruit, bessen, appels, peren (met mate, bij voorkeur met eiwit/vet)
 - Minimaal peulvruchten (beperkt gebruik)
 - Vis: alleen zalm en kleiner (makreel, sardines, haring) vanwege gifstoffen
-- 100% suikervrij - GEEN suiker en GEEN suikeralternatieven (geen honing, agave, stevia, etc.)
+- 100% suikervrij - GEEN toegevoegde suiker en GEEN suikeralternatieven (geen honing, agave, stevia, etc.)
 - Geen bewerkte voeding, geen E-nummers
 
 CYCLUSFASEN ("seasons" veld):
