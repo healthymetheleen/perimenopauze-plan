@@ -339,17 +339,6 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             </div>
           )}
 
-          {/* Week day headers */}
-          <div className="grid grid-cols-7 gap-1 mb-1">
-            {weekDays.map((day) => (
-              <div
-                key={day}
-                className="text-center text-xs font-medium text-muted-foreground py-1"
-              >
-                {day}
-              </div>
-            ))}
-          </div>
 
           {/* Days */}
           <div className="relative z-10 grid grid-cols-7 gap-2">
@@ -379,7 +368,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                 >
                   {/* Season label (first day in a season segment) */}
                   {showSeasonLabel && (
-                    <span className={`absolute top-0.5 left-0.5 text-[9px] font-medium leading-none ${seasonTextClass[season as SeasonKey]} opacity-80`}>
+                    <span className={`absolute top-0.5 left-1 text-[10px] font-semibold leading-none ${seasonTextClass[season as SeasonKey]}`}>
                       {seasonLabels[season as SeasonKey]}
                     </span>
                   )}
@@ -398,6 +387,10 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     <span className="absolute top-1 right-1 cycle-ovulation-star text-xs font-bold">★</span>
                   )}
 
+                  {/* Day abbreviation */}
+                  <span className="text-[10px] text-muted-foreground leading-none mb-0.5">
+                    {format(day.date, 'EE', { locale: nl }).substring(0, 2)}
+                  </span>
                   <span className="text-lg font-bold leading-tight">
                     {format(day.date, 'd')}
                   </span>
