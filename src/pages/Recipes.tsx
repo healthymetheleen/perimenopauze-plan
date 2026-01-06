@@ -6,37 +6,48 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
-import { useRecipes, useSeasonRecipes, mealTypes, seasons, dietTags, Recipe } from '@/hooks/useRecipes';
+import { useRecipes, useCyclePhaseRecipes, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
+import { RecipeFilters } from '@/components/recipes/RecipeFilters';
 import { sanitizeImageUrl } from '@/lib/sanitize';
-import { Search, Clock, Users, ChefHat, Sparkles, Filter, X, ShoppingCart } from 'lucide-react';
+import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart } from 'lucide-react';
+
+// Map cycle seasons to cycle phases
+const seasonToCyclePhase: Record<string, string> = {
+  winter: 'menstruatie',
+  lente: 'folliculair',
+  zomer: 'ovulatie',
+  herfst: 'luteaal',
+};
 
 export default function RecipesPage() {
   const [search, setSearch] = useState('');
   const [mealType, setMealType] = useState<string>('');
   const [season, setSeason] = useState<string>('');
-  const [dietTag, setDietTag] = useState<string>('');
+  const [cyclePhase, setCyclePhase] = useState<string>('');
+  const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
 
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const currentSeason = prediction?.current_season || 'onbekend';
-  const showSeasonSuggestions = preferences?.onboarding_completed && currentSeason !== 'onbekend';
+  const currentCyclePhase = seasonToCyclePhase[currentSeason] || '';
+  const showCycleSuggestions = preferences?.onboarding_completed && currentCyclePhase;
 
   const { data: recipes, isLoading } = useRecipes({
     mealType: mealType || undefined,
     season: season || undefined,
-    dietTag: dietTag || undefined,
+    cyclePhase: cyclePhase || undefined,
+    dietTags: selectedDietTags.length > 0 ? selectedDietTags : undefined,
     search: search || undefined,
   });
 
-  const { data: seasonRecipes } = useSeasonRecipes(currentSeason);
+  const { data: cycleRecipes } = useCyclePhaseRecipes(currentCyclePhase);
 
   const {
     selectedRecipes,
@@ -48,19 +59,20 @@ export default function RecipesPage() {
     shoppingList,
   } = useShoppingList();
 
-  const hasFilters = mealType || season || dietTag || search;
+  const hasFilters = mealType || season || cyclePhase || selectedDietTags.length > 0 || search;
+  const activeFilterCount = [
+    mealType ? 1 : 0,
+    season ? 1 : 0,
+    cyclePhase ? 1 : 0,
+    selectedDietTags.length,
+  ].reduce((a, b) => a + b, 0);
 
   const clearFilters = () => {
     setMealType('');
     setSeason('');
-    setDietTag('');
+    setCyclePhase('');
+    setSelectedDietTags([]);
     setSearch('');
-  };
-
-  const handleRecipeCheckbox = (recipe: Recipe, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleRecipe(recipe);
   };
 
   return (
@@ -71,7 +83,7 @@ export default function RecipesPage() {
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Recepten</h1>
             <p className="text-muted-foreground">
-              Gezonde recepten afgestemd op je cyclusfase
+              Gezonde recepten afgestemd op seizoen & cyclus
             </p>
           </div>
           <Button
@@ -92,21 +104,21 @@ export default function RecipesPage() {
           </Button>
         </div>
 
-        {/* Season suggestions */}
-        {showSeasonSuggestions && seasonRecipes && seasonRecipes.length > 0 && !hasFilters && (
-          <Card className="rounded-2xl bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
+        {/* Cycle phase suggestions */}
+        {showCycleSuggestions && cycleRecipes && cycleRecipes.length > 0 && !hasFilters && (
+          <Card className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <Sparkles className="h-5 w-5 text-purple-600" />
                 Aanbevolen voor {seasonLabels[currentSeason].toLowerCase()}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Recepten die passen bij je huidige cyclusfase
+                Recepten die passen bij je huidige cyclusfase ({currentCyclePhase})
               </p>
             </CardHeader>
             <CardContent>
               <div className="grid gap-3">
-                {seasonRecipes.slice(0, 3).map((recipe) => (
+                {cycleRecipes.slice(0, 3).map((recipe) => (
                   <div
                     key={recipe.id}
                     className="flex items-center gap-3 p-3 rounded-lg bg-background hover:bg-muted transition-colors"
@@ -154,7 +166,7 @@ export default function RecipesPage() {
           </Card>
         )}
 
-        {/* Search and filters */}
+        {/* Search and filter toggle */}
         <div className="space-y-3">
           <div className="flex gap-2">
             <div className="relative flex-1">
@@ -168,61 +180,39 @@ export default function RecipesPage() {
             </div>
             <Button
               variant={showFilters ? 'default' : 'outline'}
-              size="icon"
               onClick={() => setShowFilters(!showFilters)}
+              className="relative"
             >
-              <Filter className="h-4 w-4" />
+              <Filter className="h-4 w-4 mr-2" />
+              Filters
+              {activeFilterCount > 0 && (
+                <Badge
+                  variant="secondary"
+                  className="absolute -top-2 -right-2 h-5 w-5 p-0 flex items-center justify-center text-xs"
+                >
+                  {activeFilterCount}
+                </Badge>
+              )}
             </Button>
           </div>
 
+          {/* Collapsible filter panel */}
           {showFilters && (
-            <div className="grid grid-cols-3 gap-2">
-              <Select value={mealType} onValueChange={setMealType}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Moment" />
-                </SelectTrigger>
-                <SelectContent>
-                  {mealTypes.map((type) => (
-                    <SelectItem key={type.value} value={type.value}>
-                      {type.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={season} onValueChange={setSeason}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Seizoen" />
-                </SelectTrigger>
-                <SelectContent>
-                  {seasons.map((s) => (
-                    <SelectItem key={s.value} value={s.value}>
-                      {s.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={dietTag} onValueChange={setDietTag}>
-                <SelectTrigger className="text-sm">
-                  <SelectValue placeholder="Dieet" />
-                </SelectTrigger>
-                <SelectContent>
-                  {dietTags.map((tag) => (
-                    <SelectItem key={tag.value} value={tag.value}>
-                      {tag.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {hasFilters && (
-            <Button variant="ghost" size="sm" onClick={clearFilters} className="text-muted-foreground">
-              <X className="h-4 w-4 mr-1" />
-              Filters wissen
-            </Button>
+            <Card className="rounded-xl">
+              <CardContent className="p-3">
+                <RecipeFilters
+                  mealType={mealType}
+                  setMealType={setMealType}
+                  season={season}
+                  setSeason={setSeason}
+                  cyclePhase={cyclePhase}
+                  setCyclePhase={setCyclePhase}
+                  selectedDietTags={selectedDietTags}
+                  setSelectedDietTags={setSelectedDietTags}
+                  onClear={clearFilters}
+                />
+              </CardContent>
+            </Card>
           )}
         </div>
 
