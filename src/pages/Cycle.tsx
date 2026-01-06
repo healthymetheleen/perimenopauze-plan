@@ -468,29 +468,45 @@ export default function CyclePage() {
               </div>
             )}
 
-            {preferences?.show_fertile_days && prediction.ovulation_min && prediction.ovulation_max && (
-              <>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="font-medium">Verwachte ovulatie</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(parseISO(prediction.ovulation_min), 'd MMM', { locale: nl })} 
-                      {' - '}
-                      {format(parseISO(prediction.ovulation_max), 'd MMM', { locale: nl })}
-                    </p>
-                  </div>
-                  <Badge variant="outline">
-                    {prediction.ovulation_confidence}% zeker
-                  </Badge>
+            {preferences?.show_fertile_days && prediction.fertile_window_start && prediction.fertile_window_end && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Vruchtbare periode</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })} 
+                    {' - '}
+                    {format(parseISO(prediction.fertile_window_end), 'd MMM', { locale: nl })}
+                  </p>
                 </div>
+                <Badge variant="outline">
+                  {prediction.fertile_confidence || prediction.ovulation_confidence}% zeker
+                </Badge>
+              </div>
+            )}
 
-                <div className="p-3 rounded-lg bg-amber-50 text-amber-800 text-sm flex items-start gap-2">
-                  <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
-                  <span>
-                    Vruchtbare dagen zijn een schatting en niet bedoeld als anticonceptie.
-                  </span>
+            {preferences?.show_fertile_days && prediction.ovulation_min && prediction.ovulation_max && (
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Verwachte ovulatie</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(parseISO(prediction.ovulation_min), 'd MMM', { locale: nl })} 
+                    {' - '}
+                    {format(parseISO(prediction.ovulation_max), 'd MMM', { locale: nl })}
+                  </p>
                 </div>
-              </>
+                <Badge variant="outline">
+                  {prediction.ovulation_confidence}% zeker
+                </Badge>
+              </div>
+            )}
+
+            {preferences?.show_fertile_days && (
+              <div className="p-3 rounded-lg bg-amber-50 text-amber-800 text-sm flex items-start gap-2">
+                <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                <span>
+                  Vruchtbare dagen zijn een schatting en niet bedoeld als anticonceptie.
+                </span>
+              </div>
             )}
 
             {prediction.rationale && (
