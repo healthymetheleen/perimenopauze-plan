@@ -21,10 +21,10 @@ import { useAuth } from '@/lib/auth';
 
 // Time categories for filtering
 const timeCategories = [
-  { value: 'supersnel', label: '⚡ Supersnel', maxMinutes: 15 },
-  { value: 'snel', label: '🏃 Snel', maxMinutes: 30 },
-  { value: 'normaal', label: '👨‍🍳 Normaal', maxMinutes: 60 },
-  { value: 'uitgebreid', label: '🍽️ Uitgebreid', maxMinutes: Infinity },
+  { value: 'supersnel', label: 'Supersnel (<15 min)', maxMinutes: 15 },
+  { value: 'snel', label: 'Snel (<30 min)', maxMinutes: 30 },
+  { value: 'normaal', label: 'Normaal (<60 min)', maxMinutes: 60 },
+  { value: 'uitgebreid', label: 'Uitgebreid (60+ min)', maxMinutes: Infinity },
 ] as const;
 
 // Map cycle seasons to cycle phases
@@ -280,7 +280,7 @@ export default function RecipesPage() {
 
             <Select value={mealType} onValueChange={setMealType}>
               <SelectTrigger className="w-[140px] bg-background">
-                <SelectValue placeholder="🍽️ Maaltijd" />
+                <SelectValue placeholder="Maaltijd" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
                 <SelectItem value="all">Alle maaltijden</SelectItem>
@@ -294,7 +294,7 @@ export default function RecipesPage() {
 
             <Select value={timeCategory} onValueChange={setTimeCategory}>
               <SelectTrigger className="w-[140px] bg-background">
-                <SelectValue placeholder="⏱️ Tijd" />
+                <SelectValue placeholder="Tijd" />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
                 <SelectItem value="all">Alle tijden</SelectItem>
