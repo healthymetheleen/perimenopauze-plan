@@ -209,6 +209,7 @@ export default function CyclePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [showDayLog, setShowDayLog] = useState(false);
+  const [dialogTab, setDialogTab] = useState<'bleeding' | 'symptoms'>('symptoms');
   const [showPeriodStart, setShowPeriodStart] = useState(false);
   const [periodStartDate, setPeriodStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
@@ -259,27 +260,18 @@ export default function CyclePage() {
   const colors = seasonColors[currentSeason];
   const tips = seasonTips[currentSeason];
 
-  // Quick log today
-  const handleQuickLog = async (intensity: 'spotting' | 'licht' | 'normaal' | 'hevig') => {
-    const today = format(new Date(), 'yyyy-MM-dd');
-    try {
-      await logBleeding.mutateAsync({ log_date: today, intensity });
-      
-      // Check if this should start a new cycle
-      const existingToday = bleedingLogs?.find(l => l.log_date === today);
-      if (!existingToday && intensity !== 'spotting') {
-        // Check if last bleeding was more than 2 days ago
-        const lastBleeding = bleedingLogs?.find(l => l.intensity !== 'spotting');
-        if (!lastBleeding || subDays(new Date(), 3) > new Date(lastBleeding.log_date)) {
-          await startCycle.mutateAsync(today);
-          toast({ title: 'Nieuwe cyclus gestart' });
-        }
-      }
-      
-      toast({ title: 'Gelogd!' });
-    } catch {
-      toast({ title: 'Kon niet opslaan', variant: 'destructive' });
-    }
+  // Open bleeding dialog for today
+  const handleBleedingClick = () => {
+    setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+    setDialogTab('bleeding');
+    setShowDayLog(true);
+  };
+
+  // Open symptoms dialog for today
+  const handleSymptomsClick = () => {
+    setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+    setDialogTab('symptoms');
+    setShowDayLog(true);
   };
 
   // Handle setting period start date manually
@@ -369,10 +361,7 @@ export default function CyclePage() {
                 <Button
                   variant="default"
                   className="w-full h-auto py-3"
-                  onClick={() => {
-                    setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
-                    setShowDayLog(true);
-                  }}
+                  onClick={handleSymptomsClick}
                 >
                   <div className="flex flex-col items-center gap-1">
                     <Heart className="h-5 w-5" />
@@ -390,25 +379,16 @@ export default function CyclePage() {
                   <Droplets className="h-3 w-3" />
                   Bloedverlies?
                 </p>
-                <div className="grid grid-cols-2 gap-1.5">
-                  {[
-                    { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800 hover:bg-pink-200' },
-                    { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900 hover:bg-pink-300' },
-                    { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900 hover:bg-red-300' },
-                    { intensity: 'hevig' as const, label: 'Hevig', color: 'bg-red-300 text-red-900 hover:bg-red-400' },
-                  ].map(({ intensity, label, color }) => (
-                    <Button
-                      key={intensity}
-                      variant="outline"
-                      size="sm"
-                      className={`h-auto py-2 text-xs ${color} border-0`}
-                      onClick={() => handleQuickLog(intensity)}
-                      disabled={logBleeding.isPending}
-                    >
-                      {label}
-                    </Button>
-                  ))}
-                </div>
+                <Button
+                  variant="outline"
+                  className="w-full h-auto py-3 bg-pink-50 hover:bg-pink-100 border-pink-200"
+                  onClick={handleBleedingClick}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <Droplets className="h-5 w-5 text-pink-600" />
+                    <span className="text-xs font-medium text-pink-800">Loggen</span>
+                  </div>
+                </Button>
                 <Button
                   variant="ghost"
                   size="sm"
@@ -431,6 +411,7 @@ export default function CyclePage() {
           bleedingLogs={bleedingLogs || []}
           onDayClick={(dateStr) => {
             setSelectedDate(dateStr);
+            setDialogTab('symptoms');
             setShowDayLog(true);
           }}
         />
@@ -627,6 +608,7 @@ export default function CyclePage() {
         open={showDayLog}
         onOpenChange={setShowDayLog}
         date={selectedDate}
+        defaultTab={dialogTab}
       />
 
       {/* Period Start Date Dialog */}
