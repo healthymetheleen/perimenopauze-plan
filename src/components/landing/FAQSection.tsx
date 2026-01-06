@@ -8,8 +8,12 @@ import { motion } from "framer-motion";
 
 const faqs = [
   {
-    question: "Wat is perimenopauze?",
-    answer: "Perimenopauze is de overgangsperiode naar de menopauze, die meestal begint tussen je 40e en 50e levensjaar. Tijdens deze fase fluctueren je hormonen, wat kan leiden tot symptomen zoals onregelmatige menstruatie, opvliegers, slaapproblemen en stemmingswisselingen. Deze periode kan 4 tot 10 jaar duren.",
+    question: "Wat is de perimenopauze?",
+    answer: "De perimenopauze is de overgangsperiode naar de menopauze, die meestal begint tussen je 40e en 50e levensjaar. Tijdens deze fase fluctueren je hormonen, wat kan leiden tot symptomen zoals onregelmatige menstruatie, opvliegers, slaapproblemen en stemmingswisselingen. Deze periode kan 4 tot 10 jaar duren.",
+  },
+  {
+    question: "Wat is cycle syncing?",
+    answer: "Cycle syncing betekent dat je je voeding, beweging en activiteiten afstemt op je cyclusfase. Elke fase (menstruatie, folliculaire fase, ovulatie en luteale fase) heeft andere hormonale kenmerken. Door hiermee rekening te houden kun je beter presteren, minder last hebben van symptomen en je energieniveau optimaliseren. Onze app geeft je dagelijks advies gebaseerd op jouw cyclusfase.",
   },
   {
     question: "Hoe kan ik mijn menstruatie berekenen?",
@@ -70,7 +74,7 @@ export const FAQSection = () => {
             Veelgestelde vragen
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Alles wat je wilt weten over perimenopauze en onze app
+            Alles wat je wilt weten over de perimenopauze en onze app
           </p>
         </motion.div>
 

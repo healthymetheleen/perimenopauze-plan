@@ -35,9 +35,9 @@ export const CTASection = () => {
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8">
-              <a href="#functies">
-                Bekijk alle functies
-              </a>
+              <Link to="/pricing">
+                Bekijk de prijzen
+              </Link>
             </Button>
           </div>
         </motion.div>
