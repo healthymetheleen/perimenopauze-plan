@@ -242,15 +242,18 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
                 />
               </div>
               <div className="space-y-2">
-                <Label>Aantal recepten</Label>
+                <Label>Aantal recepten (max 10)</Label>
                 <Input
                   type="number"
                   min={1}
-                  max={20}
+                  max={10}
                   value={recipeCount}
-                  onChange={(e) => setRecipeCount(Number(e.target.value))}
+                  onChange={(e) => setRecipeCount(Math.min(10, Math.max(1, Number(e.target.value))))}
                   className="w-24"
                 />
+                <p className="text-xs text-muted-foreground">
+                  Voor meer recepten, genereer meerdere keren met verschillende prompts
+                </p>
               </div>
               <Button onClick={handleAiGenerate} disabled={isLoading || !aiPrompt.trim()}>
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
