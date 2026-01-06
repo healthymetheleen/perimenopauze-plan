@@ -72,11 +72,19 @@ export default function DiaryPage() {
 
   // Open meal dialog if query param is set
   useEffect(() => {
-    if (searchParams.get('openMeal') === 'true' && diaryDay) {
-      setShowAddMeal(true);
-      setSearchParams({}, { replace: true });
-    }
-  }, [searchParams, diaryDay, setSearchParams]);
+    const openMealFromDashboard = async () => {
+      if (searchParams.get('openMeal') === 'true') {
+        // Create day if it doesn't exist
+        if (!diaryDay && !dayLoading) {
+          await createDay.mutateAsync();
+        } else if (diaryDay) {
+          setShowAddMeal(true);
+          setSearchParams({}, { replace: true });
+        }
+      }
+    };
+    openMealFromDashboard();
+  }, [searchParams, diaryDay, dayLoading, createDay, setSearchParams]);
   
   const todayScore = scores?.find(s => s.day_date === selectedDate);
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');
