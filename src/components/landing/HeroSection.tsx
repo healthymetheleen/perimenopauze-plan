@@ -72,6 +72,10 @@ export const HeroSection = () => {
               <img
                 src="/app-mockup.png"
                 alt="Perimenopauze Plan app - menstruatie berekenen online, cyclus tracking en symptomen dagboek"
+                width={380}
+                height={507}
+                loading="eager"
+                fetchPriority="high"
                 className="relative w-full max-w-sm mx-auto drop-shadow-2xl rounded-3xl"
               />
             </div>
