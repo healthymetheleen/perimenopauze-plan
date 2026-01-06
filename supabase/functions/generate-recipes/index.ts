@@ -44,11 +44,17 @@ VOEDINGSFILOSOFIE (ALTIJD TOEPASSEN):
 - 100% suikervrij - GEEN toegevoegde suiker en GEEN suikeralternatieven (geen honing, agave, stevia, etc.)
 - Geen bewerkte voeding, geen E-nummers
 
-CYCLUSFASEN ("seasons" veld):
-- winter = menstruatie (focus op ijzerrijk, rustgevend)
-- lente = folliculair (energie opbouwen, lichte maaltijden)
-- zomer = ovulatie (piek energie, sociale maaltijden)
-- herfst = luteaal (comfort, bloedsuikerstabiel, magnesiumrijk)
+WEER/KALENDER SEIZOENEN ("seasons" veld):
+- lente = maart-mei
+- zomer = juni-augustus  
+- herfst = september-november
+- winter = december-februari
+
+CYCLUSFASEN ("cycle_phases" veld - APART van seasons):
+- menstruatie = rustfase, ijzerrijk, verwarmend, comfort
+- folliculair = energie opbouwen, lichte maaltijden, verse groenten
+- ovulatie = piek energie, sociale maaltijden, lichte eiwitten
+- luteaal = comfort, bloedsuikerstabiel, magnesiumrijk, anti-craving
 
 SEIZOENSPRODUCTEN NEDERLAND:
 - Lente (maart-mei): asperges, rabarber, spinazie, prei, radijs, nieuwe aardappelen
@@ -56,10 +62,11 @@ SEIZOENSPRODUCTEN NEDERLAND:
 - Herfst (sep-nov): pompoen, kool, pastinaak, peren, appels, paddenstoelen
 - Winter (dec-feb): boerenkool, spruitjes, witlof, knolselderij, rode kool, wortel
 
-ALLERGENEN & DIËTEN:
+ALLERGENEN & DIËTEN (BELANGRIJK - LOGICA):
+- Als "veganistisch" dan OOK "vegetarisch" toevoegen
+- Als "lactosevrij" dan OOK "zuivelvrij" toevoegen
 - Detecteer automatisch allergenen in ingrediënten
 - Markeer recepten voor zwangerschap/kinderwens waar van toepassing
-- Voeg relevante diet_tags toe
 
 Genereer ${count} recepten in JSON format met deze exacte structuur:
 {
@@ -69,8 +76,9 @@ Genereer ${count} recepten in JSON format met deze exacte structuur:
   "prep_time_minutes": number,
   "cook_time_minutes": number,
   "servings": number,
-  "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje" | "drankje",
-  "seasons": ["winter" | "lente" | "zomer" | "herfst"],
+  "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje" | "drankje" | "smoothie",
+  "seasons": ["lente" | "zomer" | "herfst" | "winter"],
+  "cycle_phases": ["menstruatie" | "folliculair" | "ovulatie" | "luteaal"],
   "diet_tags": [
     "vegetarisch" | "veganistisch" | "pescotarisch" |
     "glutenvrij" | "zuivelvrij" | "lactosevrij" | "eivrij" | "notenvrij" | "pindavrij" | "sojavrij" |

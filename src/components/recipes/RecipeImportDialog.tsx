@@ -21,6 +21,18 @@ interface ParsedRecipe extends RecipeInsert {
   _selected?: boolean;
 }
 
+// Normalize diet tags: if vegan, add vegetarisch; if lactosevrij, add zuivelvrij
+function normalizeDietTags(tags: string[]): string[] {
+  const normalized = new Set(tags);
+  if (normalized.has('veganistisch')) {
+    normalized.add('vegetarisch');
+  }
+  if (normalized.has('lactosevrij')) {
+    normalized.add('zuivelvrij');
+  }
+  return Array.from(normalized);
+}
+
 export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogProps) {
   const { toast } = useToast();
   const createRecipe = useCreateRecipe();
@@ -56,7 +68,8 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         servings: r.servings || 4,
         meal_type: r.meal_type || 'diner',
         seasons: r.seasons || [],
-        diet_tags: r.diet_tags || [],
+        cycle_phases: r.cycle_phases || [],
+        diet_tags: normalizeDietTags(r.diet_tags || []),
         ingredients: (r.ingredients || []).map((i: any) => ({
           name: i.name || '',
           amount: String(i.amount || ''),
@@ -102,7 +115,8 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         servings: r.servings || 4,
         meal_type: r.meal_type || 'diner',
         seasons: r.seasons || [],
-        diet_tags: r.diet_tags || [],
+        cycle_phases: r.cycle_phases || [],
+        diet_tags: normalizeDietTags(r.diet_tags || []),
         // Filter out is_seasonal from ingredients as it's not in the DB schema
         ingredients: (r.ingredients || []).map((i: any) => ({
           name: i.name || '',

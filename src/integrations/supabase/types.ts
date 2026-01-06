@@ -1042,6 +1042,7 @@ export type Database = {
           carbs_g: number | null
           cook_time_minutes: number | null
           created_at: string
+          cycle_phases: string[] | null
           description: string | null
           diet_tags: string[]
           fat_g: number | null
@@ -1065,6 +1066,7 @@ export type Database = {
           carbs_g?: number | null
           cook_time_minutes?: number | null
           created_at?: string
+          cycle_phases?: string[] | null
           description?: string | null
           diet_tags?: string[]
           fat_g?: number | null
@@ -1088,6 +1090,7 @@ export type Database = {
           carbs_g?: number | null
           cook_time_minutes?: number | null
           created_at?: string
+          cycle_phases?: string[] | null
           description?: string | null
           diet_tags?: string[]
           fat_g?: number | null
