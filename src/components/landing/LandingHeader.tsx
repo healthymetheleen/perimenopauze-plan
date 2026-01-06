@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 const navLinks = [
-  { label: "Wat is perimenopauze?", href: "#what-is-perimenopause" },
+  { label: "Wat is de perimenopauze?", href: "#what-is-perimenopause" },
   { label: "Klachten", href: "#symptoms" },
   { label: "Cycle Syncing", href: "#cycle-syncing" },
   { label: "Functies", href: "#functies" },
