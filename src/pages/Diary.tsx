@@ -47,15 +47,15 @@ const translateScoreReason = (reason: string): { text: string; advice: string } 
       advice: 'Het overslaan van maaltijden kan je stresssysteem activeren, vooral in de luteale fase. Probeer regelmatig te eten, ook al heb je weinig trek.'
     },
     'good_protein': {
-      text: 'Goede eiwitinname 💪',
+      text: 'Goede eiwitinname',
       advice: 'Mooi! Voldoende eiwit ondersteunt je spieren, hormonen en verzadiging. Blijf dit volhouden.'
     },
     'good_fiber': {
-      text: 'Voldoende vezels 🥬',
+      text: 'Voldoende vezels',
       advice: 'Top! Je vezelinname ziet er goed uit. Dit helpt je darmen en hormoonbalans.'
     },
     'balanced_meals': {
-      text: 'Gebalanceerde maaltijden ✓',
+      text: 'Gebalanceerde maaltijden',
       advice: 'Uitstekend! Je maaltijden zijn goed samengesteld met een goede balans van macronutriënten.'
     },
   };
@@ -189,7 +189,7 @@ export default function DiaryPage() {
                         return (
                           <div key={i} className="p-3 rounded-lg bg-muted/50">
                             <p className="font-medium text-sm flex items-center gap-2">
-                              <span className={reason.startsWith('good') || reason === 'balanced_meals' ? 'text-green-500' : 'text-amber-500'}>•</span>
+                              <span className={reason.startsWith('good') || reason === 'balanced_meals' ? 'text-primary' : 'text-muted-foreground'}>•</span>
                               {translated.text}
                             </p>
                             {translated.advice && (

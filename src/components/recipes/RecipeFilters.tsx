@@ -5,7 +5,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { mealTypes, seasons, cyclePhases, dietTags } from '@/hooks/useRecipes';
-import { ChevronDown, Leaf, Moon, AlertCircle, Utensils, X, Save } from 'lucide-react';
+import { ChevronDown, Leaf, Moon, AlertCircle, Utensils, X, Save, Dumbbell } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RecipeFiltersProps {
@@ -225,7 +225,8 @@ export function RecipeFilters({
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between h-10 px-3">
             <span className="flex items-center gap-2">
-              💪 Voedingswaarden
+              <Dumbbell className="h-4 w-4" />
+              Voedingswaarden
               {selectedDietTags.filter(t => healthTags.includes(t)).length > 0 && (
                 <Badge variant="secondary" className="ml-2 text-xs">
                   {selectedDietTags.filter(t => healthTags.includes(t)).length}

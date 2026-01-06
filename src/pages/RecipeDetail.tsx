@@ -205,12 +205,12 @@ export default function RecipeDetailPage() {
             <div className="flex flex-wrap gap-2">
               {showSeasons && recipe.seasons.map((s) => (
                 <Badge key={s} variant="secondary" className="bg-muted text-foreground">
-                  🌿 {seasons.find(season => season.value === s)?.label || s}
+                  {seasons.find(season => season.value === s)?.label || s}
                 </Badge>
               ))}
               {showCyclePhases && recipe.cycle_phases?.map((p) => (
                 <Badge key={p} variant="secondary" className="bg-primary/10 text-primary">
-                  🌙 {cyclePhases.find(phase => phase.value === p)?.label || p}
+                  {cyclePhases.find(phase => phase.value === p)?.label || p}
                 </Badge>
               ))}
               {displayDietTags.map((tag) => (

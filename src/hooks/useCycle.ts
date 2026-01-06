@@ -93,11 +93,11 @@ export const phaseToSeason: Record<string, string> = {
 };
 
 export const seasonColors: Record<string, { bg: string; text: string; accent: string }> = {
-  winter: { bg: 'bg-blue-50', text: 'text-blue-800', accent: 'bg-blue-500' },
-  lente: { bg: 'bg-green-50', text: 'text-green-800', accent: 'bg-green-500' },
-  zomer: { bg: 'bg-amber-50', text: 'text-amber-800', accent: 'bg-amber-500' },
-  herfst: { bg: 'bg-orange-50', text: 'text-orange-800', accent: 'bg-orange-500' },
-  onbekend: { bg: 'bg-gray-50', text: 'text-gray-800', accent: 'bg-gray-500' },
+  winter: { bg: 'bg-primary/5', text: 'text-primary', accent: 'bg-primary' },
+  lente: { bg: 'bg-primary/10', text: 'text-primary', accent: 'bg-primary/80' },
+  zomer: { bg: 'bg-primary/15', text: 'text-primary', accent: 'bg-primary/90' },
+  herfst: { bg: 'bg-primary/10', text: 'text-primary', accent: 'bg-primary/70' },
+  onbekend: { bg: 'bg-muted', text: 'text-muted-foreground', accent: 'bg-muted-foreground' },
 };
 
 export const seasonLabels: Record<string, string> = {

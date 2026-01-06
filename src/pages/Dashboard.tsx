@@ -63,7 +63,7 @@ export default function DashboardPage() {
   const handleStartSleep = async () => {
     try {
       await startSleep.mutateAsync();
-      toast({ title: 'Welterusten! 🌙', description: 'Je slaapsessie is gestart.' });
+      toast({ title: 'Welterusten!', description: 'Je slaapsessie is gestart.' });
     } catch {
       toast({ title: 'Kon slaapsessie niet starten', variant: 'destructive' });
     }

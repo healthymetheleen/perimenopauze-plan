@@ -76,7 +76,7 @@ export default function SleepPage() {
   const handleStartSleep = async () => {
     try {
       await startSleep.mutateAsync();
-      toast({ title: 'Welterusten! 🌙', description: 'Je slaapsessie is gestart.' });
+      toast({ title: 'Welterusten!', description: 'Je slaapsessie is gestart.' });
     } catch {
       toast({ title: 'Kon slaapsessie niet starten', variant: 'destructive' });
     }
@@ -124,7 +124,7 @@ export default function SleepPage() {
       });
       
       setShowManualDialog(false);
-      toast({ title: 'Slaap opgeslagen! 🌙' });
+      toast({ title: 'Slaap opgeslagen!' });
     } catch (error) {
       toast({ 
         title: 'Kon slaap niet opslaan', 

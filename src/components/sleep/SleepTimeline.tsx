@@ -154,8 +154,8 @@ export function SleepTimeline({ sessions, onDeleteSession }: SleepTimelineProps)
                           className={cn(
                             "absolute top-1 bottom-1 rounded-md flex items-center justify-center transition-all cursor-pointer group",
                             isActive 
-                              ? "bg-indigo-400/60 animate-pulse" 
-                              : "bg-indigo-500/80 hover:bg-indigo-600/90",
+                              ? "bg-primary/60 animate-pulse" 
+                              : "bg-primary/80 hover:bg-primary/90",
                             isOverlapping && "ring-2 ring-destructive ring-offset-1"
                           )}
                           style={style}

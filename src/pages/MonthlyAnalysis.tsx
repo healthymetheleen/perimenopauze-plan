@@ -32,11 +32,11 @@ const domainLabels: Record<string, string> = {
 };
 
 const domainColors: Record<string, string> = {
-  sleep: 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400',
-  food: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
-  cycle: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-400',
-  mood: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  energy: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  sleep: 'bg-primary/10 text-primary',
+  food: 'bg-primary/15 text-primary',
+  cycle: 'bg-primary/20 text-primary',
+  mood: 'bg-primary/10 text-primary',
+  energy: 'bg-primary/5 text-primary',
 };
 
 export default function MonthlyAnalysisPage() {
@@ -191,7 +191,7 @@ export default function MonthlyAnalysisPage() {
               <CardContent>
                 <p className="text-foreground">{displayAnalysis.summary}</p>
                 {displayAnalysis.positiveNote && (
-                  <p className="text-primary font-medium mt-3">✨ {displayAnalysis.positiveNote}</p>
+                  <p className="text-primary font-medium mt-3">{displayAnalysis.positiveNote}</p>
                 )}
               </CardContent>
             </Card>

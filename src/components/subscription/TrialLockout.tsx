@@ -84,13 +84,13 @@ export function TrialBanner({ daysRemaining }: { daysRemaining: number }) {
   return (
     <div className={`rounded-lg p-3 mb-4 ${
       isUrgent 
-        ? 'bg-amber-500/10 border border-amber-500/20' 
+        ? 'bg-primary/15 border border-primary/30' 
         : 'bg-primary/10 border border-primary/20'
     }`}>
       <div className="flex items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <Crown className={`h-4 w-4 ${isUrgent ? 'text-amber-600' : 'text-primary'}`} />
-          <span className={`text-sm font-medium ${isUrgent ? 'text-amber-700' : 'text-primary'}`}>
+          <Crown className="h-4 w-4 text-primary" />
+          <span className="text-sm font-medium text-primary">
             Proefperiode: nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'}
           </span>
         </div>

@@ -52,7 +52,7 @@ export function InstallPromptDialog({ open, onOpenChange, onInstalled }: Install
           <div className="mx-auto w-16 h-16 rounded-2xl overflow-hidden mb-3 shadow-lg">
             <img src="/pwa-192x192.png" alt="Perimenopauze Plan" className="w-full h-full object-cover" />
           </div>
-          <DialogTitle className="text-xl">Installeer de app! 🎉</DialogTitle>
+          <DialogTitle className="text-xl">Installeer de app</DialogTitle>
           <DialogDescription>
             Krijg de beste ervaring met snelle toegang vanaf je startscherm
           </DialogDescription>
