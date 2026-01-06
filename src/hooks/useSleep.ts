@@ -173,6 +173,25 @@ export function useEndSleep() {
   });
 }
 
+// Delete sleep session
+export function useDeleteSleep() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (sessionId: string) => {
+      const { error } = await supabase
+        .from('sleep_sessions')
+        .delete()
+        .eq('id', sessionId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['sleep-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['active-sleep-session'] });
+    },
+  });
+}
+
 // Calculate sleep statistics
 export function calculateSleepStats(sessions: SleepSession[]) {
   const completedSessions = sessions.filter(s => s.sleep_end && s.duration_minutes);

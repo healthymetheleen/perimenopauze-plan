@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, subDays, isWithinInterval, parseISO } from 'date-fns';
 import { nl } from 'date-fns/locale';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -206,11 +206,20 @@ const seasonTips: Record<string, { voeding: string[]; training: string[]; werk: 
 
 export default function CyclePage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [showDayLog, setShowDayLog] = useState(false);
   const [showPeriodStart, setShowPeriodStart] = useState(false);
   const [periodStartDate, setPeriodStartDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
+
+  // Open check-in dialog if query param is set
+  useEffect(() => {
+    if (searchParams.get('openCheckin') === 'true') {
+      setShowDayLog(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const { data: preferences, isLoading: prefsLoading } = useCyclePreferences();
   const { data: cycles, isLoading: cyclesLoading } = useCycles(6);
@@ -338,7 +347,7 @@ export default function CyclePage() {
           </div>
         </div>
 
-        {/* Daily logging - focused on symptoms first */}
+        {/* Daily logging - symptoms left, bleeding right */}
         <Card className="rounded-2xl">
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
@@ -346,66 +355,68 @@ export default function CyclePage() {
               Vandaag loggen
             </CardTitle>
             <p className="text-sm text-muted-foreground">
-              Log hoe je je voelt - bloedverlies kun je apart aangeven
+              Log hoe je je voelt en eventueel bloedverlies
             </p>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Primary action - symptom logging */}
-            <Button
-              variant="default"
-              className="w-full h-auto py-4"
-              onClick={() => {
-                setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
-                setShowDayLog(true);
-              }}
-            >
-              <div className="flex items-center gap-3">
-                <Sparkles className="h-5 w-5" />
-                <div className="text-left">
-                  <p className="font-medium">Symptomen & gevoel loggen</p>
-                  <p className="text-xs opacity-80">Energie, mood, slaap, klachten</p>
-                </div>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4">
+              {/* Left: Symptom logging */}
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  Hoe voel je je?
+                </p>
+                <Button
+                  variant="default"
+                  className="w-full h-auto py-3"
+                  onClick={() => {
+                    setSelectedDate(format(new Date(), 'yyyy-MM-dd'));
+                    setShowDayLog(true);
+                  }}
+                >
+                  <div className="flex flex-col items-center gap-1">
+                    <Heart className="h-5 w-5" />
+                    <span className="text-xs font-medium">Check-in</span>
+                  </div>
+                </Button>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Energie, stemming & klachten
+                </p>
               </div>
-              <ChevronRight className="h-5 w-5 ml-auto" />
-            </Button>
 
-            {/* Secondary - bleeding (collapsible feel) */}
-            <div className="pt-2 border-t">
-              <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-                <Droplets className="h-3 w-3" />
-                Bloedverlies vandaag?
-              </p>
-              <div className="grid grid-cols-5 gap-2">
-                {[
-                  { intensity: 'geen' as const, label: 'Geen', color: 'bg-muted text-muted-foreground' },
-                  { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800' },
-                  { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900' },
-                  { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900' },
-                  { intensity: 'hevig' as const, label: 'Hevig', color: 'bg-red-300 text-red-900' },
-                ].map(({ intensity, label, color }) => (
-                  <Button
-                    key={intensity}
-                    variant="outline"
-                    size="sm"
-                    className={`h-auto py-1.5 text-xs ${color} border-0`}
-                    onClick={() => intensity !== 'geen' && handleQuickLog(intensity)}
-                    disabled={logBleeding.isPending || intensity === 'geen'}
-                  >
-                    {label}
-                  </Button>
-                ))}
-              </div>
-              
-              {/* Quick set period start date */}
-              <div className="pt-2">
+              {/* Right: Bleeding */}
+              <div className="space-y-3">
+                <p className="text-xs font-medium text-muted-foreground flex items-center gap-1">
+                  <Droplets className="h-3 w-3" />
+                  Bloedverlies?
+                </p>
+                <div className="grid grid-cols-2 gap-1.5">
+                  {[
+                    { intensity: 'spotting' as const, label: 'Spotting', color: 'bg-pink-100 text-pink-800 hover:bg-pink-200' },
+                    { intensity: 'licht' as const, label: 'Licht', color: 'bg-pink-200 text-pink-900 hover:bg-pink-300' },
+                    { intensity: 'normaal' as const, label: 'Normaal', color: 'bg-red-200 text-red-900 hover:bg-red-300' },
+                    { intensity: 'hevig' as const, label: 'Hevig', color: 'bg-red-300 text-red-900 hover:bg-red-400' },
+                  ].map(({ intensity, label, color }) => (
+                    <Button
+                      key={intensity}
+                      variant="outline"
+                      size="sm"
+                      className={`h-auto py-2 text-xs ${color} border-0`}
+                      onClick={() => handleQuickLog(intensity)}
+                      disabled={logBleeding.isPending}
+                    >
+                      {label}
+                    </Button>
+                  ))}
+                </div>
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="w-full text-muted-foreground"
+                  className="w-full text-muted-foreground text-xs"
                   onClick={() => setShowPeriodStart(true)}
                 >
-                  <CalendarPlus className="h-4 w-4 mr-2" />
-                  Eerste dag menstruatie invoeren
+                  <CalendarPlus className="h-3 w-3 mr-1" />
+                  Eerste dag invoeren
                 </Button>
               </div>
             </div>

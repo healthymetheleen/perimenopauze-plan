@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format, subDays, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Plus, Utensils } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
@@ -61,12 +62,21 @@ const translateScoreReason = (reason: string): { text: string; advice: string } 
 };
 
 export default function DiaryPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showAddMeal, setShowAddMeal] = useState(false);
   
   const { data: diaryDay, isLoading: dayLoading, createDay } = useDiaryDay(selectedDate);
   const { data: meals, isLoading: mealsLoading } = useMeals(diaryDay?.id || null);
   const { data: scores } = useDailyScores(7);
+
+  // Open meal dialog if query param is set
+  useEffect(() => {
+    if (searchParams.get('openMeal') === 'true' && diaryDay) {
+      setShowAddMeal(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, diaryDay, setSearchParams]);
   
   const todayScore = scores?.find(s => s.day_date === selectedDate);
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');

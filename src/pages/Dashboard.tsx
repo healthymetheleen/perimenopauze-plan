@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { differenceInMinutes } from 'date-fns';
 import { 
-  ArrowRight, Moon, Sun, Sparkles, FileText, UtensilsCrossed, Plus
+  ArrowRight, Moon, Sun, FileText, UtensilsCrossed, Heart
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -96,11 +96,11 @@ export default function DashboardPage() {
         {/* Quick Action Buttons - 3 columns with descriptions */}
         <div className="grid grid-cols-3 gap-3">
           <button
-            onClick={() => navigate('/cycle')}
+            onClick={() => navigate('/cycle?openCheckin=true')}
             className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-soft transition-all"
           >
             <div className="p-2.5 rounded-full bg-purple-100 dark:bg-purple-900/50">
-              <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <Heart className="h-5 w-5 text-purple-600 dark:text-purple-400" />
             </div>
             <div className="text-center">
               <p className="text-sm font-semibold text-purple-900 dark:text-purple-100">Check-in</p>
@@ -109,7 +109,7 @@ export default function DashboardPage() {
           </button>
 
           <button
-            onClick={() => navigate('/dagboek')}
+            onClick={() => navigate('/dagboek?openMeal=true')}
             className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-soft transition-all"
           >
             <div className="p-2.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50">

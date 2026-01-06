@@ -14,14 +14,25 @@ import {
   useStartSleep,
   useEndSleep,
   useAddManualSleep,
+  useDeleteSleep,
   calculateSleepStats,
   calculateSleepScore,
   generateSleepAdvice,
 } from '@/hooks/useSleep';
 import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
-import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus } from 'lucide-react';
+import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus, Trash2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import {
   Dialog,
   DialogContent,
@@ -53,6 +64,9 @@ export default function SleepPage() {
   const startSleep = useStartSleep();
   const endSleep = useEndSleep();
   const addManualSleep = useAddManualSleep();
+  const deleteSleep = useDeleteSleep();
+  
+  const [deleteSessionId, setDeleteSessionId] = useState<string | null>(null);
 
   const stats = sessions ? calculateSleepStats(sessions) : null;
   const sleepScore = sessions ? calculateSleepScore(sessions) : 0;
@@ -117,6 +131,17 @@ export default function SleepPage() {
         description: error instanceof Error ? error.message : 'Probeer het opnieuw',
         variant: 'destructive' 
       });
+    }
+  };
+
+  const handleDeleteSleep = async () => {
+    if (!deleteSessionId) return;
+    try {
+      await deleteSleep.mutateAsync(deleteSessionId);
+      setDeleteSessionId(null);
+      toast({ title: 'Slaapsessie verwijderd' });
+    } catch {
+      toast({ title: 'Kon sessie niet verwijderen', variant: 'destructive' });
     }
   };
 
@@ -298,7 +323,7 @@ export default function SleepPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-lg">Afgelopen 7 dagen</CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
               <div className="flex items-end justify-between gap-2 h-40">
                 {Array.from({ length: 7 }, (_, i) => {
                   const date = new Date();
@@ -347,6 +372,38 @@ export default function SleepPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Session list with delete option */}
+              <div className="border-t pt-3">
+                <p className="text-xs font-medium text-muted-foreground mb-2">Sessies beheren</p>
+                <div className="space-y-2">
+                  {sessions.slice(0, 5).map((session) => (
+                    <div key={session.id} className="flex items-center justify-between p-2 rounded-lg bg-muted/50">
+                      <div className="text-sm">
+                        <span className="font-medium">
+                          {format(new Date(session.sleep_start), 'd MMM', { locale: nl })}
+                        </span>
+                        <span className="text-muted-foreground ml-2">
+                          {session.duration_minutes ? `${(session.duration_minutes / 60).toFixed(1)}u` : 'Bezig...'}
+                        </span>
+                        {session.quality_score && (
+                          <span className="text-muted-foreground ml-2">
+                            · Score {session.quality_score}
+                          </span>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        onClick={() => setDeleteSessionId(session.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -585,6 +642,24 @@ export default function SleepPage() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => !open && setDeleteSessionId(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Slaapsessie verwijderen?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Weet je zeker dat je deze slaapsessie wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteSleep} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Verwijderen
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
