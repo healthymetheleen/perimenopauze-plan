@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { 
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
-  Loader2, ChevronRight, XCircle, Clock
+  Loader2, ChevronRight, XCircle, Clock, Mail
 } from 'lucide-react';
+import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
 import { differenceInDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -106,7 +107,7 @@ export default function SubscriptionPage() {
       console.error('Cancel error:', error);
       toast({
         title: 'Opzeggen mislukt',
-        description: 'Neem contact op met healthymetheleen@gmail.com',
+        description: 'Neem contact op via het contactformulier.',
         variant: 'destructive',
       });
     } finally {
@@ -369,14 +370,16 @@ export default function SubscriptionPage() {
           <CardContent className="p-4">
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="text-sm text-muted-foreground">
-                <p className="font-medium mb-1">Vragen over je abonnement?</p>
-                <p>
-                  Neem contact op via{' '}
-                  <a href="mailto:healthymetheleen@gmail.com" className="text-primary hover:underline">
-                    healthymetheleen@gmail.com
-                  </a>
-                </p>
+              <div className="text-sm text-muted-foreground flex-1">
+                <p className="font-medium mb-2">Vragen over je abonnement?</p>
+                <ContactFormDialog 
+                  trigger={
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <Mail className="h-4 w-4" />
+                      Neem contact op
+                    </Button>
+                  }
+                />
               </div>
             </div>
           </CardContent>

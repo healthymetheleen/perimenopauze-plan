@@ -12,8 +12,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
   Clock, Globe, Shield, Download, Trash2, Sparkles,
-  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale, Settings2, BarChart3
+  Info, Lock, Database, FileText, User, Crown, CreditCard, LogOut, Camera, Ruler, Scale, Settings2, BarChart3, Mail, Lightbulb
 } from 'lucide-react';
+import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
+import { FeedbackFormDialog } from '@/components/contact/FeedbackFormDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useConsent, CONSENT_VERSION } from '@/hooks/useConsent';
 import { useAuth } from '@/lib/auth';
@@ -538,6 +540,37 @@ export default function SettingsPage() {
                   </Link>
                 </Button>
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Contact & Feedback */}
+        <Card className="glass rounded-2xl">
+          <CardHeader>
+            <CardTitle className="text-lg flex items-center gap-2">
+              <Mail className="h-5 w-5 text-primary" />
+              Contact & Feedback
+            </CardTitle>
+            <CardDescription>Neem contact op of deel je ideeën</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <ContactFormDialog 
+                trigger={
+                  <Button variant="outline" className="flex-1 gap-2">
+                    <Mail className="h-4 w-4" />
+                    Stel een vraag
+                  </Button>
+                }
+              />
+              <FeedbackFormDialog 
+                trigger={
+                  <Button variant="outline" className="flex-1 gap-2">
+                    <Lightbulb className="h-4 w-4" />
+                    Verbeteridee delen
+                  </Button>
+                }
+              />
             </div>
           </CardContent>
         </Card>

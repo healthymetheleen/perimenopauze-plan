@@ -1,9 +1,11 @@
 import { Link } from 'react-router-dom';
-import { Check, Sparkles } from 'lucide-react';
+import { Check, Sparkles, Mail, Lightbulb } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth } from '@/lib/auth';
 import { useEntitlements } from '@/hooks/useEntitlements';
+import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
+import { FeedbackFormDialog } from '@/components/contact/FeedbackFormDialog';
 
 interface PlanFeature {
   text: string;
@@ -43,7 +45,7 @@ const plans: Plan[] = [
     period: 'per maand',
     description: 'Speciaal voor vrouwen in de perimenopauze.',
     features: [
-      { text: 'Onbeperkte AI-maaltijdanalyses', included: true },
+      { text: 'AI-maaltijdanalyses*', included: true },
       { text: 'Dagelijkse AI-inzichten & reflecties', included: true },
       { text: 'Maandelijkse totaalanalyse', included: true },
       { text: 'Bewegingsoefeningen op maat', included: true },
@@ -152,13 +154,28 @@ export default function PricingPage() {
           })}
         </div>
 
-        <div className="mt-12 text-center">
-          <p className="text-sm text-muted-foreground">
-            Vragen? Neem contact op via{' '}
-            <a href="mailto:healthymetheleen@gmail.com" className="text-primary hover:underline">
-              healthymetheleen@gmail.com
-            </a>
-          </p>
+        {/* AI limit disclaimer */}
+        <p className="text-xs text-muted-foreground text-center mb-6">
+          * Er geldt een fair-use limiet op AI-analyses om misbruik te voorkomen.
+        </p>
+
+        <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <ContactFormDialog 
+            trigger={
+              <Button variant="outline" className="gap-2">
+                <Mail className="h-4 w-4" />
+                Vragen? Neem contact op
+              </Button>
+            }
+          />
+          <FeedbackFormDialog 
+            trigger={
+              <Button variant="ghost" className="gap-2 text-muted-foreground">
+                <Lightbulb className="h-4 w-4" />
+                Suggesties of feedback
+              </Button>
+            }
+          />
         </div>
       </div>
     </div>
