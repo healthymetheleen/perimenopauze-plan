@@ -14,9 +14,219 @@
     "hero_trust_badges": "✓ 7-day free trial   ✓ No credit card required   ✓ GDPR compliant",
     "hero_image_alt": "Perimenopause Plan app interface with cycle day indicator, symptom diary, sleep tracking and nutrition module for women in menopause transition"
   },
+  "what_is": {
+    "title": "What is perimenopause?",
+    "paragraph_1": "<strong>Perimenopause</strong> is the transitional period leading up to menopause. This phase can begin in women <strong>around their 30s</strong>, but typically starts between <strong>ages 40 and 45</strong>. Perimenopause can last 4 to 10 years.",
+    "paragraph_2": "During perimenopause, your hormone levels begin to fluctuate. Especially <strong>estrogen</strong> and <strong>progesterone</strong> fluctuate significantly, leading to various physical and mental changes.",
+    "paragraph_3": "These hormonal fluctuations can lead to irregular periods, hot flashes, sleep problems, mood swings, weight gain, and concentration issues. The good news: with the right insights, you can better understand and manage many of these symptoms.",
+    "chart_title": "Hormone levels during perimenopause",
+    "chart_subtitle": "Hormone fluctuations by age (%)",
+    "estrogen": "Estrogen",
+    "progesterone": "Progesterone",
+    "chart_note": "Notice the significant fluctuations - this explains why symptoms can vary"
+  },
+  "symptoms": {
+    "title": "Perimenopause symptoms in numbers",
+    "description": "<strong>80-90% of women</strong> experience symptoms during perimenopause. For some women, the first symptoms start <strong>around their 30s</strong>. These are the most common symptoms:",
+    "hot_flashes": "Hot flashes",
+    "sleep_problems": "Sleep problems",
+    "concentration": "Concentration issues",
+    "mood_swings": "Mood swings",
+    "fatigue": "Fatigue",
+    "weight_gain": "Weight gain",
+    "night_sweats": "Night sweats",
+    "heart_palpitations": "Heart palpitations",
+    "disclaimer": "* Percentages are based on averages from scientific research. Individual experiences may vary significantly."
+  },
+  "cycle_syncing": {
+    "badge": "Cycle Syncing",
+    "title": "Live in harmony with your cycle",
+    "description": "Discover what to expect in the coming days and optimize your <strong>work, exercise, and nutrition</strong> per cycle phase. Our app gives you personalized daily advice.",
+    "legend": {
+      "menstruation": "Menstruation",
+      "expected": "Expected",
+      "fertile": "Fertile",
+      "ovulation": "Ovulation"
+    },
+    "seasons": {
+      "winter": "Winter",
+      "spring": "Spring",
+      "summer": "Summer",
+      "autumn": "Autumn"
+    },
+    "phases": {
+      "menstruation": "Menstruation",
+      "follicular": "Follicular phase",
+      "ovulation": "Ovulation",
+      "luteal": "Luteal phase"
+    },
+    "days": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    },
+    "winter": {
+      "days": "Day 1-5",
+      "expect": "Low energy, need for rest",
+      "work": "Reflection, planning, creative work",
+      "exercise": "Walking, gentle yoga, stretching",
+      "nutrition": "Iron-rich: spinach, beets, legumes"
+    },
+    "spring": {
+      "days": "Day 6-12",
+      "expect": "Rising energy, improved focus",
+      "work": "Starting new projects, brainstorming",
+      "exercise": "Cardio, HIIT, group classes",
+      "nutrition": "High-protein, fresh vegetables, probiotics"
+    },
+    "summer": {
+      "days": "Day 13-16",
+      "expect": "Peak energy, social, confident",
+      "work": "Presentations, negotiations, networking",
+      "exercise": "Intensive training, team sports",
+      "nutrition": "Light meals, antioxidants, fiber"
+    },
+    "autumn": {
+      "days": "Day 17-28",
+      "expect": "Declining energy, PMS symptoms possible",
+      "work": "Completing tasks, detail work, admin",
+      "exercise": "Pilates, swimming, moderate cardio",
+      "nutrition": "Complex carbs, magnesium, B vitamins"
+    },
+    "dashboard_preview": {
+      "date": "Monday January 6 · Follicular phase",
+      "possible": "Possible: Fatigue · Cramps · Low energy",
+      "eating_today": "Eating today",
+      "eating_tip": "💡 Iron-rich: spinach, beets",
+      "movement": "Movement",
+      "movement_tip": "15 min recommended"
+    },
+    "daily_advice": "Daily personalized advice based on your cycle phase"
+  },
+  "features": {
+    "title": "Everything you need for perimenopause",
+    "description": "From period prediction to <strong>AI-powered nutrition analysis</strong>. One app for all your health needs during perimenopause.",
+    "unique_title": "What makes this app unique?",
+    "unique_description": "Unlike standard cycle or health apps, this app is specifically designed for women in perimenopause. Our <strong>AI-powered insights</strong> analyze your unique combination of symptoms, sleep, nutrition, and cycle data to provide personalized recommendations.",
+    "unique_point_1": "<strong>Perimenopause-specific</strong> — not a generic cycle app",
+    "unique_point_2": "<strong>AI-powered insights</strong> — learn to recognize patterns in your data",
+    "unique_point_3": "<strong>Photo analysis of meals</strong> — instant nutrition advice tailored to your phase",
+    "cycle_tracking": {
+      "title": "Cycle Tracking & Period Prediction",
+      "description": "Predict your period online, track your (irregular) cycle, and forecast your next period with our smart calculator."
+    },
+    "symptom_diary": {
+      "title": "Symptom Diary",
+      "description": "Log hot flashes, sleep problems, mood swings, joint pain, and more. Discover which symptoms occur most frequently for you."
+    },
+    "ai_nutrition": {
+      "title": "AI Nutrition Analysis",
+      "description": "Take a photo of your meal and receive instant analysis. Get personalized suggestions tailored to your cycle phase."
+    },
+    "patterns": {
+      "title": "Patterns & Insights",
+      "description": "Discover connections between your sleep, nutrition, movement, and symptoms. See how your body responds to different factors."
+    },
+    "sleep": {
+      "title": "Sleep Tracking",
+      "description": "Monitor your sleep quality and discover how hormonal fluctuations affect your rest during perimenopause."
+    },
+    "recipes": {
+      "title": "Personalized Recipes",
+      "description": "Receive recipe suggestions that match your cycle phase and help with specific symptoms like hot flashes or fatigue."
+    }
+  },
+  "how_it_works": {
+    "title": "How it works",
+    "description": "Get control of your perimenopause in three simple steps",
+    "step_1": {
+      "title": "Create an account",
+      "description": "Start your free 7-day trial. Fill in your profile with your cycle data and health preferences."
+    },
+    "step_2": {
+      "title": "Log daily",
+      "description": "Easily add your meals with photos, log your sleep, symptoms, and movement. It only takes a few minutes a day."
+    },
+    "step_3": {
+      "title": "Receive AI insights",
+      "description": "Get personalized analyses and discover patterns. See how your nutrition and lifestyle affect your symptoms."
+    }
+  },
+  "faq": {
+    "title": "Frequently asked questions",
+    "description": "Everything you want to know about perimenopause and our app",
+    "q1": {
+      "question": "What is perimenopause?",
+      "answer": "Perimenopause is the transitional period to menopause, which typically begins between your 40s and 50s. During this phase, your hormones fluctuate, which can lead to symptoms such as irregular periods, hot flashes, sleep problems, and mood swings. This period can last 4 to 10 years."
+    },
+    "q2": {
+      "question": "What is cycle syncing?",
+      "answer": "Cycle syncing means adjusting your nutrition, exercise, and activities to your cycle phase. Each phase (menstruation, follicular phase, ovulation, and luteal phase) has different hormonal characteristics. By taking this into account, you can perform better, have fewer symptoms, and optimize your energy levels. Our app gives you daily advice based on your cycle phase."
+    },
+    "q3": {
+      "question": "How can I predict my period?",
+      "answer": "With Perimenopause Plan, you can easily predict your period online. Log your cycle data and the app automatically predicts your next period. Our smart calculator accounts for irregular cycles typical during perimenopause, so you still get a reliable prediction."
+    },
+    "q4": {
+      "question": "Who is this app for?",
+      "answer": "This app is specifically designed for women in perimenopause - the transitional period that typically begins between your 40s and 50s. Women who suspect they are entering this phase, or who want to track their cycle and gain more insight into the relationship between their hormones, nutrition, and wellbeing can also benefit from the app."
+    },
+    "q5": {
+      "question": "How does the AI analysis work?",
+      "answer": "Our AI analyzes your entered data - meals, sleep, symptoms, and cycle data - to discover patterns. You receive personalized insights about how your nutrition and lifestyle affect your symptoms. The AI provides suggestions tailored to your specific situation and cycle phase."
+    },
+    "q6": {
+      "question": "Is my data safe?",
+      "answer": "Absolutely. We take privacy very seriously. All data is encrypted and processed according to GDPR guidelines. Your health data is never shared with third parties or used for advertising. You always have full control over your own data and can delete it at any time."
+    },
+    "q7": {
+      "question": "How much does the app cost?",
+      "answer": "You can try the app free for 7 days without a credit card. After that, the Basic subscription costs €7.50 per month, which gives you access to all tracking features. The Premium subscription for €14 per month includes additional AI analyses and personalized coaching."
+    },
+    "q8": {
+      "question": "Can I try the app for free?",
+      "answer": "Yes! You get 7 days of free access to all Premium features. This way you can extensively test whether the app suits you. After the trial period, you decide whether to continue with a paid subscription."
+    },
+    "q9": {
+      "question": "Does the app provide medical advice?",
+      "answer": "No, Perimenopause Plan is a wellness app and does not provide medical advice. The app helps you discover patterns and offers general information, but does not replace a doctor or specialist. For medical complaints, we always recommend contacting a healthcare provider."
+    }
+  },
+  "cta": {
+    "title": "Ready to take control of your perimenopause?",
+    "description": "Start your free 7-day trial today. No credit card required, no obligations."
+  },
+  "social_proof": {
+    "developed_by": "Developed by",
+    "gdpr_title": "GDPR Compliant",
+    "gdpr_description": "Your data is securely stored according to European privacy legislation",
+    "privacy_title": "Privacy-first",
+    "privacy_description": "Your health data is never shared with third parties",
+    "women_title": "By women, for women",
+    "women_description": "Developed with understanding for the unique challenges of perimenopause"
+  },
+  "footer": {
+    "brand_description": "The app that helps you take control of your perimenopause. Track your cycle, predict your period online, and receive AI-powered insights for better health.",
+    "made_with_love": "Made with",
+    "by": "by",
+    "navigation": "Navigation",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "create_account": "Create account",
+    "legal": "Legal",
+    "privacy_policy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "intended_use": "Intended Use",
+    "copyright": "All rights reserved.",
+    "medical_disclaimer": "This app does not provide medical advice. Always consult a doctor for medical complaints."
+  },
   "meta": {
-    "title": "Perimenopause Plan | Track Your Cycle & Get AI Insights",
-    "description": "Predict your period, track your cycle and symptoms during perimenopause. Get AI-powered insights tailored to your hormonal phase. Start free.",
+    "title": "Perimenopause Plan | Predict Your Period & Get AI Insights",
+    "description": "Predict your period online, track your cycle and symptoms during perimenopause. Get AI-powered insights tailored to your hormonal phase. Start free.",
     "og_title": "Perimenopause Plan | Predict Your Period Online",
     "og_description": "Track your cycle, predict your period, and receive AI-powered insights for perimenopause.",
     "twitter_description": "Track your cycle, predict your period, and receive AI-powered insights."

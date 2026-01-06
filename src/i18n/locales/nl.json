@@ -3,22 +3,232 @@
     "start_free_trial": "Start gratis proefperiode",
     "view_pricing": "Bekijk prijzen",
     "login": "Inloggen",
-    "signup": "Aanmelden",
-    "learn_more": "Meer leren"
+    "signup": "Account aanmaken",
+    "learn_more": "Meer informatie"
   },
   "landing": {
     "badge": "AI-gestuurde inzichten",
-    "hero_title": "Neem de regie over",
-    "hero_title_highlight": "de perimenopauze",
-    "hero_description": "Track je cyclus, <strong>bereken je menstruatie online</strong>, en ontvang <strong>AI-gestuurde inzichten</strong> afgestemd op jouw hormonale fase. Ontdek patronen tussen je slaap, voeding en symptomen.",
-    "hero_trust_badges": "✓ 7 dagen gratis proberen   ✓ Geen creditcard nodig   ✓ GDPR compliant",
-    "hero_image_alt": "Perimenopauze Plan app interface met cyclus dag indicator, symptomen dagboek, slaap tracking en voeding module voor vrouwen in de overgang"
+    "hero_title": "Neem de regie over de",
+    "hero_title_highlight": "perimenopauze",
+    "hero_description": "Volg je cyclus, <strong>bereken je menstruatie online</strong> en ontvang <strong>AI-gestuurde inzichten</strong> afgestemd op je hormonale fase. Ontdek patronen tussen je slaap, voeding en symptomen.",
+    "hero_trust_badges": "✓ 7 dagen gratis   ✓ Geen creditcard nodig   ✓ GDPR-compliant",
+    "hero_image_alt": "Perimenopauze Plan app interface met cyclusdag indicator, symptoomdagboek, slaaptracking en voedingsmodule voor vrouwen in de overgang"
+  },
+  "what_is": {
+    "title": "Wat is de perimenopauze?",
+    "paragraph_1": "<strong>De perimenopauze</strong> is de overgangsperiode voorafgaand aan de menopauze. Deze fase kan al beginnen bij vrouwen <strong>rond hun 30e</strong>, maar start gemiddeld tussen het <strong>40e en 45e levensjaar</strong>. De perimenopauze kan 4 tot 10 jaar duren.",
+    "paragraph_2": "Tijdens de perimenopauze beginnen je hormoonspiegels te fluctueren. Vooral <strong>oestrogeen</strong> en <strong>progesteron</strong> schommelen sterk, wat leidt tot allerlei lichamelijke en mentale veranderingen.",
+    "paragraph_3": "Deze hormonale schommelingen kunnen leiden tot onregelmatige menstruatie, opvliegers, slaapproblemen, stemmingswisselingen, gewichtstoename en concentratieproblemen. Het goede nieuws: met de juiste inzichten kun je veel van deze klachten beter begrijpen en aanpakken.",
+    "chart_title": "Hormoonspiegels tijdens de perimenopauze",
+    "chart_subtitle": "Hormoonschommelingen per leeftijd (%)",
+    "estrogen": "Oestrogeen",
+    "progesterone": "Progesteron",
+    "chart_note": "Let op de sterke schommelingen - dit verklaart waarom symptomen kunnen variëren"
+  },
+  "symptoms": {
+    "title": "Klachten tijdens de perimenopauze in cijfers",
+    "description": "<strong>80-90% van de vrouwen</strong> ervaart klachten tijdens de perimenopauze. Bij sommige vrouwen beginnen de eerste symptomen al <strong>rond hun 30e</strong>. Dit zijn de meest voorkomende klachten:",
+    "hot_flashes": "Opvliegers",
+    "sleep_problems": "Slaapproblemen",
+    "concentration": "Concentratieproblemen",
+    "mood_swings": "Stemmingswisselingen",
+    "fatigue": "Vermoeidheid",
+    "weight_gain": "Gewichtstoename",
+    "night_sweats": "Nachtelijk zweten",
+    "heart_palpitations": "Hartkloppingen",
+    "disclaimer": "* Percentages zijn gebaseerd op gemiddelden uit wetenschappelijk onderzoek. Individuele ervaringen kunnen sterk variëren."
+  },
+  "cycle_syncing": {
+    "badge": "Cycle Syncing",
+    "title": "Leef in harmonie met je cyclus",
+    "description": "Ontdek wat je kunt verwachten de komende dagen en optimaliseer je <strong>werk, beweging en voeding</strong> per cyclusfase. Onze app geeft je dagelijks gepersonaliseerd advies.",
+    "legend": {
+      "menstruation": "Menstruatie",
+      "expected": "Verwacht",
+      "fertile": "Vruchtbaar",
+      "ovulation": "Ovulatie"
+    },
+    "seasons": {
+      "winter": "Winter",
+      "spring": "Lente",
+      "summer": "Zomer",
+      "autumn": "Herfst"
+    },
+    "phases": {
+      "menstruation": "Menstruatie",
+      "follicular": "Folliculaire fase",
+      "ovulation": "Ovulatie",
+      "luteal": "Luteale fase"
+    },
+    "days": {
+      "mon": "ma",
+      "tue": "di",
+      "wed": "wo",
+      "thu": "do",
+      "fri": "vr",
+      "sat": "za",
+      "sun": "zo"
+    },
+    "winter": {
+      "days": "Dag 1-5",
+      "expect": "Lage energie, behoefte aan rust",
+      "work": "Reflectie, planning, creatief werk",
+      "exercise": "Wandelen, zachte yoga, stretching",
+      "nutrition": "IJzerrijk: spinazie, rode biet, peulvruchten"
+    },
+    "spring": {
+      "days": "Dag 6-12",
+      "expect": "Stijgende energie, focus verbetert",
+      "work": "Nieuwe projecten starten, brainstormen",
+      "exercise": "Cardio, HIIT, groepslessen",
+      "nutrition": "Eiwitrijk, verse groenten, probiotica"
+    },
+    "summer": {
+      "days": "Dag 13-16",
+      "expect": "Piek energie, sociaal, zelfverzekerd",
+      "work": "Presentaties, onderhandelen, netwerken",
+      "exercise": "Intensieve training, sporten met anderen",
+      "nutrition": "Lichte maaltijden, antioxidanten, vezels"
+    },
+    "autumn": {
+      "days": "Dag 17-28",
+      "expect": "Dalende energie, PMS-symptomen mogelijk",
+      "work": "Afronden, detailwerk, administratie",
+      "exercise": "Pilates, zwemmen, matige cardio",
+      "nutrition": "Complex carbs, magnesium, B-vitamines"
+    },
+    "dashboard_preview": {
+      "date": "maandag 6 januari · Folliculaire fase",
+      "possible": "Mogelijk: Vermoeidheid · Krampen · Lage energie",
+      "eating_today": "Eten vandaag",
+      "eating_tip": "💡 IJzerrijk: spinazie, rode biet",
+      "movement": "Bewegen",
+      "movement_tip": "15 min aanbevolen"
+    },
+    "daily_advice": "Dagelijks gepersonaliseerd advies gebaseerd op jouw cyclusfase"
+  },
+  "features": {
+    "title": "Alles wat je nodig hebt voor de perimenopauze",
+    "description": "Van menstruatie berekenen tot <strong>AI-gestuurde voedingsanalyse</strong>. Eén app voor al je gezondheidsbehoeften tijdens de perimenopauze.",
+    "unique_title": "Wat maakt deze app uniek?",
+    "unique_description": "Anders dan standaard cyclus- of gezondheidsapps, is deze app speciaal ontwikkeld voor vrouwen in de perimenopauze. Onze <strong>AI-gestuurde inzichten</strong> analyseren jouw unieke combinatie van symptomen, slaap, voeding en cyclusdata om gepersonaliseerde aanbevelingen te geven.",
+    "unique_point_1": "<strong>Perimenopauze-specifiek</strong> — geen generieke cyclus-app",
+    "unique_point_2": "<strong>AI-gestuurde inzichten</strong> — leer patronen herkennen in jouw data",
+    "unique_point_3": "<strong>Foto-analyse van maaltijden</strong> — direct voedingsadvies afgestemd op je fase",
+    "cycle_tracking": {
+      "title": "Cyclus Tracking & Menstruatie Berekenen",
+      "description": "Bereken je menstruatie online, volg je (onregelmatige) cyclus en voorspel je volgende menstruatie met onze slimme calculator."
+    },
+    "symptom_diary": {
+      "title": "Symptoom Dagboek",
+      "description": "Log opvliegers, slaapproblemen, stemmingswisselingen, gewrichtsklachten en meer. Ontdek welke symptomen bij jou het meest voorkomen."
+    },
+    "ai_nutrition": {
+      "title": "AI Voedingsanalyse",
+      "description": "Maak een foto van je maaltijd en ontvang direct een analyse. Krijg gepersonaliseerde suggesties afgestemd op je cyclusfase."
+    },
+    "patterns": {
+      "title": "Patronen & Inzichten",
+      "description": "Ontdek verbanden tussen je slaap, voeding, beweging en symptomen. Zie hoe je lichaam reageert op verschillende factoren."
+    },
+    "sleep": {
+      "title": "Slaap Tracking",
+      "description": "Monitor je slaapkwaliteit en ontdek hoe hormoonschommelingen je nachtrust beïnvloeden tijdens de perimenopauze."
+    },
+    "recipes": {
+      "title": "Gepersonaliseerde Recepten",
+      "description": "Ontvang receptsuggesties die passen bij je cyclusfase en helpen bij specifieke symptomen zoals opvliegers of vermoeidheid."
+    }
+  },
+  "how_it_works": {
+    "title": "Zo werkt het",
+    "description": "In drie eenvoudige stappen krijg je grip op je perimenopauze",
+    "step_1": {
+      "title": "Maak een account",
+      "description": "Start je gratis proefperiode van 7 dagen. Vul je profiel in met je cyclusgegevens en gezondheidsvoorkeuren."
+    },
+    "step_2": {
+      "title": "Log dagelijks",
+      "description": "Voeg eenvoudig je maaltijden toe met foto's, log je slaap, symptomen en beweging. Het kost maar een paar minuten per dag."
+    },
+    "step_3": {
+      "title": "Ontvang AI-inzichten",
+      "description": "Krijg gepersonaliseerde analyses en ontdek patronen. Zie hoe je voeding en leefstijl je symptomen beïnvloeden."
+    }
+  },
+  "faq": {
+    "title": "Veelgestelde vragen",
+    "description": "Alles wat je wilt weten over de perimenopauze en onze app",
+    "q1": {
+      "question": "Wat is de perimenopauze?",
+      "answer": "De perimenopauze is de overgangsperiode naar de menopauze, die meestal begint tussen je 40e en 50e levensjaar. Tijdens deze fase fluctueren je hormonen, wat kan leiden tot symptomen zoals onregelmatige menstruatie, opvliegers, slaapproblemen en stemmingswisselingen. Deze periode kan 4 tot 10 jaar duren."
+    },
+    "q2": {
+      "question": "Wat is cycle syncing?",
+      "answer": "Cycle syncing betekent dat je je voeding, beweging en activiteiten afstemt op je cyclusfase. Elke fase (menstruatie, folliculaire fase, ovulatie en luteale fase) heeft andere hormonale kenmerken. Door hiermee rekening te houden kun je beter presteren, minder last hebben van symptomen en je energieniveau optimaliseren. Onze app geeft je dagelijks advies gebaseerd op jouw cyclusfase."
+    },
+    "q3": {
+      "question": "Hoe kan ik mijn menstruatie berekenen?",
+      "answer": "Met Perimenopauze Plan kun je eenvoudig je menstruatie berekenen online. Log je cyclusgegevens en de app voorspelt automatisch je volgende menstruatie. Onze slimme calculator houdt rekening met onregelmatige cycli die typisch zijn tijdens de perimenopauze, zodat je toch een betrouwbare voorspelling krijgt."
+    },
+    "q4": {
+      "question": "Voor wie is deze app bedoeld?",
+      "answer": "Deze app is speciaal ontwikkeld voor vrouwen in de perimenopauze - de overgangsperiode die meestal begint tussen je 40e en 50e. Ook vrouwen die vermoeden dat ze deze fase ingaan, of die hun cyclus willen volgen en meer inzicht willen in de relatie tussen hun hormonen, voeding en welzijn kunnen baat hebben bij de app."
+    },
+    "q5": {
+      "question": "Hoe werkt de AI-analyse?",
+      "answer": "Onze AI analyseert je ingevoerde gegevens - maaltijden, slaap, symptomen en cyclusdata - om patronen te ontdekken. Je ontvangt gepersonaliseerde inzichten over hoe je voeding en leefstijl je symptomen beïnvloeden. De AI geeft suggesties die zijn afgestemd op jouw specifieke situatie en cyclusfase."
+    },
+    "q6": {
+      "question": "Is mijn data veilig?",
+      "answer": "Absoluut. We nemen privacy zeer serieus. Alle data wordt versleuteld opgeslagen en verwerkt volgens de GDPR-richtlijnen. Je gezondheidsgegevens worden nooit gedeeld met derden of gebruikt voor advertenties. Je hebt altijd volledige controle over je eigen data en kunt deze op elk moment verwijderen."
+    },
+    "q7": {
+      "question": "Wat kost de app?",
+      "answer": "Je kunt de app 7 dagen gratis proberen zonder creditcard. Daarna kost het Basis abonnement €7,50 per maand, waarmee je toegang hebt tot alle tracking functies. Het Premium abonnement voor €14 per maand bevat extra AI-analyses en gepersonaliseerde coaching."
+    },
+    "q8": {
+      "question": "Kan ik de app gratis proberen?",
+      "answer": "Ja! Je krijgt 7 dagen gratis toegang tot alle Premium functies. Zo kun je uitgebreid testen of de app bij je past. Na de proefperiode kies je zelf of je doorgaat met een betaald abonnement."
+    },
+    "q9": {
+      "question": "Geeft de app medisch advies?",
+      "answer": "Nee, Perimenopauze Plan is een wellness-app en geeft geen medisch advies. De app helpt je patronen te ontdekken en biedt algemene informatie, maar vervangt geen arts of specialist. Bij medische klachten raden we altijd aan om contact op te nemen met een zorgverlener."
+    }
+  },
+  "cta": {
+    "title": "Klaar om de regie te nemen over je perimenopauze?",
+    "description": "Start vandaag nog met je gratis proefperiode van 7 dagen. Geen creditcard nodig, geen verplichtingen."
+  },
+  "social_proof": {
+    "developed_by": "Ontwikkeld door",
+    "gdpr_title": "GDPR Compliant",
+    "gdpr_description": "Je data wordt veilig opgeslagen volgens Europese privacywetgeving",
+    "privacy_title": "Privacy-first",
+    "privacy_description": "Je gezondheidsgegevens worden nooit gedeeld met derden",
+    "women_title": "Door vrouwen, voor vrouwen",
+    "women_description": "Ontwikkeld met begrip voor de unieke uitdagingen van de perimenopauze"
+  },
+  "footer": {
+    "brand_description": "De app die je helpt grip te krijgen op je perimenopauze. Track je cyclus, bereken je menstruatie online, en ontvang AI-gestuurde inzichten voor een betere gezondheid.",
+    "made_with_love": "Gemaakt met",
+    "by": "door",
+    "navigation": "Navigatie",
+    "pricing": "Prijzen",
+    "login": "Inloggen",
+    "create_account": "Account aanmaken",
+    "legal": "Juridisch",
+    "privacy_policy": "Privacybeleid",
+    "terms": "Algemene voorwaarden",
+    "intended_use": "Beoogd gebruik",
+    "copyright": "Alle rechten voorbehouden.",
+    "medical_disclaimer": "Deze app geeft geen medisch advies. Raadpleeg bij klachten altijd een arts."
   },
   "meta": {
-    "title": "Perimenopauze Plan | Menstruatie Berekenen Online & Cyclus Tracking",
-    "description": "Bereken je menstruatie online, track je cyclus en symptomen tijdens de perimenopauze. Ontvang AI-gestuurde inzichten afgestemd op jouw hormonale fase. Start gratis.",
-    "og_title": "Perimenopauze Plan | Menstruatie Berekenen Online",
-    "og_description": "Track je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten voor de perimenopauze.",
-    "twitter_description": "Track je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten."
+    "title": "Perimenopauze Plan | Bereken Je Menstruatie & Krijg AI-Inzichten",
+    "description": "Bereken je menstruatie online, volg je cyclus en symptomen tijdens de perimenopauze. Ontvang AI-gestuurde inzichten afgestemd op je hormonale fase. Start gratis.",
+    "og_title": "Perimenopauze Plan | Bereken Je Menstruatie Online",
+    "og_description": "Volg je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten voor de perimenopauze.",
+    "twitter_description": "Volg je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten."
   }
 }
