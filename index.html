@@ -42,7 +42,19 @@
   </head>
 
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <!-- Critical inline loading state for faster FCP -->
+      <style>
+        .initial-loader{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;background:linear-gradient(135deg,#fdf2f8 0%,#fce7f3 50%,#f5d0fe 100%);font-family:system-ui,-apple-system,sans-serif}
+        .initial-loader-spinner{width:40px;height:40px;border:3px solid #fbcfe8;border-top-color:#c396ac;border-radius:50%;animation:spin 1s linear infinite}
+        .initial-loader-text{margin-top:16px;color:#9f7aea;font-size:14px}
+        @keyframes spin{to{transform:rotate(360deg)}}
+      </style>
+      <div class="initial-loader">
+        <div class="initial-loader-spinner"></div>
+        <p class="initial-loader-text">Laden...</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
