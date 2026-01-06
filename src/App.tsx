@@ -40,6 +40,7 @@ const SubscriptionPage = lazy(() => import("./pages/Subscription"));
 const NutritionAdminPage = lazy(() => import("./pages/NutritionAdmin"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboard"));
 const ProductsPage = lazy(() => import("./pages/Products"));
+const EducationPage = lazy(() => import("./pages/Education"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -272,6 +273,11 @@ function AppRoutes() {
       <Route path="/producten" element={
         <ProtectedRoute>
           <ProductsPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/educatie" element={
+        <ProtectedRoute>
+          <EducationPage />
         </ProtectedRoute>
       } />
       
