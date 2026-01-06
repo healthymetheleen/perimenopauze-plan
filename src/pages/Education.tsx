@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -8,7 +10,7 @@ import {
 import { 
   Brain, Heart, Flame, Moon, Zap, Droplets, Scale, 
   ThermometerSun, CloudRain, Frown, Activity, Clock,
-  Info, TrendingDown, Calendar, Sparkles, BookOpen
+  Info, TrendingDown, Calendar, Sparkles, BookOpen, ClipboardList
 } from "lucide-react";
 
 // Hormone data over time (age 35-55)
@@ -115,6 +117,8 @@ const statistics = [
 ];
 
 const Education = () => {
+  const navigate = useNavigate();
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
       {/* Hero Section */}
@@ -130,10 +134,20 @@ const Education = () => {
               Alles over de{" "}
               <span className="text-primary">Perimenopauze</span>
             </h1>
-            <p className="text-lg text-muted-foreground mb-8">
+            <p className="text-lg text-muted-foreground mb-6">
               Een natuurlijke levensfase die elke vrouw doormaakt. Begrijpen wat er gebeurt 
               in je lichaam helpt je om deze periode met meer rust en zelfvertrouwen te doorlopen.
             </p>
+            
+            <Button 
+              size="lg" 
+              onClick={() => navigate('/perimenopauze-test')}
+              className="mb-8"
+            >
+              <ClipboardList className="mr-2 h-5 w-5" />
+              Doe de Perimenopauze Zelftest
+            </Button>
+            
             <div className="flex flex-wrap justify-center gap-3">
               {statistics.map((stat, index) => (
                 <Card key={index} className="bg-card/80 backdrop-blur">
