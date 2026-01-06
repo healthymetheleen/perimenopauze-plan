@@ -30,29 +30,10 @@ serve(async (req) => {
 
     console.log(`Generating image for recipe: ${recipeTitle}`);
 
-    // Detailed prompt for consistent, feminine, fresh style
-    // No loose items on table, varied beautiful plates, soft colors
-    const imagePrompt = `Professional food photography, overhead bird's eye view looking straight down at a beautiful ${mealType || 'dish'}: ${recipeTitle}. ${recipeDescription || ''}
+    // Simplified prompt focusing on food photography
+    const imagePrompt = `Professional overhead food photography of ${recipeTitle}. ${mealType || 'dish'}. Light wooden table, natural daylight, ceramic plate, Scandinavian minimal style. No text, no watermarks.`;
 
-CRITICAL STYLE REQUIREMENTS:
-- Shot from directly above (flat lay composition)
-- Light oak wooden dining table as clean background
-- Soft natural daylight from the side, bright and airy
-- The dish served on a beautiful ceramic plate - vary between: pastel colored plates, Portuguese azulejo-style plates, cream white plates, soft terracotta plates
-- Clean minimalist composition - NO loose items scattered on the table (no pepper flakes, no scattered herbs, no crumbs, no loose ingredients)
-- ALLOWED decorations: a folded linen napkin, a small spoon or fork on a napkin, a coaster under a glass, a simple placemat under the plate
-- Optionally include: a nice glass of water or complementary drink placed to the side
-- Fresh, light, feminine, Scandinavian aesthetic
-- Soft muted pastel colors - not oversaturated, not dark
-- Ultra clean and polished look
-
-ABSOLUTELY NO TEXT IN THE IMAGE:
-- NO text of any kind - no titles, no labels, no recipe names, no watermarks, no logos, no letters, no words
-- The image must be purely photographic with zero typography or writing
-- Do not include any overlays, captions, or annotations
-
-- Square format 1:1 aspect ratio
-- Ultra high resolution`;
+    console.log("Using prompt:", imagePrompt);
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -92,11 +73,34 @@ ABSOLUTELY NO TEXT IN THE IMAGE:
     }
 
     const data = await response.json();
-    const imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    console.log("Full API response:", JSON.stringify(data, null, 2));
+    
+    // Try multiple paths to find the image
+    let imageData = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    
+    // Alternative: check if image is in content as base64
+    if (!imageData) {
+      const content = data.choices?.[0]?.message?.content;
+      if (content && typeof content === 'string' && content.startsWith('data:image')) {
+        imageData = content;
+      }
+    }
+    
+    // Alternative: check inline_data format
+    if (!imageData && data.choices?.[0]?.message?.parts) {
+      const imagePart = data.choices[0].message.parts.find((p: any) => p.inline_data);
+      if (imagePart?.inline_data?.data) {
+        imageData = `data:${imagePart.inline_data.mime_type || 'image/png'};base64,${imagePart.inline_data.data}`;
+      }
+    }
     
     if (!imageData) {
-      console.error("No image in response:", JSON.stringify(data));
-      throw new Error("Geen afbeelding gegenereerd");
+      console.error("No image found in response. Response structure:", Object.keys(data));
+      console.error("Message structure:", data.choices?.[0]?.message ? Object.keys(data.choices[0].message) : 'no message');
+      return new Response(
+        JSON.stringify({ error: "Afbeelding genereren mislukt, probeer opnieuw" }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     // Upload to Supabase storage if configured
