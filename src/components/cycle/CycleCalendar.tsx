@@ -278,7 +278,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         )}
 
         {/* Toggles */}
-        <div className="flex flex-wrap gap-4 mt-3">
+        <div className="flex flex-wrap gap-4 mt-4">
           <div className="flex items-center gap-2">
             <Switch id="show-seasons" checked={showSeasons} onCheckedChange={setShowSeasons} />
             <Label htmlFor="show-seasons" className="text-sm">Seizoenen</Label>
@@ -296,7 +296,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         </div>
 
         {/* Quick date chips - styled like calendar days */}
-        <div className="flex flex-wrap gap-2 mt-3">
+        <div className="flex flex-wrap gap-2 mt-4">
           {prediction.next_period_start_min && (
             <Badge 
               variant="outline" 
@@ -328,7 +328,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         </div>
 
         {/* Legend (events only) */}
-        <div className="flex flex-wrap gap-3 mt-2 text-xs text-muted-foreground">
+        <div className="flex flex-wrap gap-3 mt-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <span className="inline-block h-2 w-2 rounded-full bg-destructive" /> Menstruatie
           </div>
