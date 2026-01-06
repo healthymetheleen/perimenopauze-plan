@@ -3,6 +3,7 @@ import { LandingHeader } from "@/components/landing/LandingHeader";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { WhatIsPerimenopauseSection } from "@/components/landing/WhatIsPerimenopauseSection";
 import { SymptomsInfographicSection } from "@/components/landing/SymptomsInfographicSection";
+import { CycleSyncingSection } from "@/components/landing/CycleSyncingSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { SocialProofSection } from "@/components/landing/SocialProofSection";
@@ -61,7 +62,7 @@ const Landing = () => {
         />
         <meta
           name="keywords"
-          content="perimenopauze, overgang, cyclus tracking, menstruatie berekenen, menstruatie berekenen online, menstruatie calculator, cyclus berekenen, hormonen, symptomen, opvliegers, voedingsdagboek, slaap tracker, AI inzichten, vrouwengezondheid"
+          content="perimenopauze, cycle syncing, cyclus leven, overgang, cyclus tracking, menstruatie berekenen, menstruatie berekenen online, menstruatie calculator, cyclus berekenen, hormonen, symptomen, opvliegers, voedingsdagboek, slaap tracker, AI inzichten, vrouwengezondheid"
         />
         <link rel="canonical" href="https://www.perimenopauzeplan.nl/" />
         
@@ -106,6 +107,9 @@ const Landing = () => {
           </section>
           <section id="symptoms">
             <SymptomsInfographicSection />
+          </section>
+          <section id="cycle-syncing">
+            <CycleSyncingSection />
           </section>
           <section id="functies">
             <FeaturesSection />
