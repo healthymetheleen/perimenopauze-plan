@@ -125,24 +125,29 @@ serve(async (req) => {
       });
     }
 
-    // Check monthly limit (1 per month)
+    // Check if analysis already exists for this month (check cache, not usage)
     const monthStart = new Date();
     monthStart.setDate(1);
     monthStart.setHours(0, 0, 0, 0);
+    const monthKey = monthStart.toISOString().split('T')[0]; // yyyy-MM-dd
     
-    const { count } = await supabase
-      .from('ai_usage')
-      .select('*', { count: 'exact', head: true })
+    const { data: existingCache } = await supabase
+      .from('ai_insights_cache')
+      .select('insight_data, created_at')
       .eq('owner_id', user.id)
-      .eq('function_name', 'monthly-analysis')
-      .gte('created_at', monthStart.toISOString());
+      .eq('insight_type', 'monthly-analysis')
+      .eq('insight_date', monthKey)
+      .maybeSingle();
 
-    if ((count || 0) >= 1) {
+    // If cached analysis exists, return it instead of generating new one
+    if (existingCache) {
+      console.log('Returning cached monthly analysis');
+      const cachedResult = existingCache.insight_data as Record<string, unknown>;
       return new Response(JSON.stringify({
-        error: 'limit_exceeded',
-        message: 'Je hebt deze maand al een maandanalyse gegenereerd. Probeer het volgende maand opnieuw.'
+        ...cachedResult,
+        generatedAt: existingCache.created_at,
+        fromCache: true,
       }), {
-        status: 429,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -224,12 +229,6 @@ STRESS:
 
 Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en hormoonpatronen.`;
 
-    // Track usage
-    await supabase.from('ai_usage').insert({ 
-      owner_id: user.id, 
-      function_name: 'monthly-analysis' 
-    });
-
     // Use direct OpenAI API for full control and GDPR compliance
     const OPENAI_API_KEY = Deno.env.get('ChatGPT');
     if (!OPENAI_API_KEY) {
@@ -296,7 +295,26 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
     result.disclaimer = "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.";
     result.generatedAt = new Date().toISOString();
 
-    console.log('Monthly analysis generated for subject:', aiSubjectId);
+    // Save to cache AFTER successful generation (this prevents the mismatch issue)
+    await supabase
+      .from('ai_insights_cache')
+      .upsert({
+        owner_id: user.id,
+        insight_type: 'monthly-analysis',
+        insight_date: monthKey,
+        insight_data: result,
+      }, {
+        onConflict: 'owner_id,insight_type,insight_date',
+        ignoreDuplicates: false,
+      });
+
+    // Track usage AFTER successful generation and caching
+    await supabase.from('ai_usage').insert({ 
+      owner_id: user.id, 
+      function_name: 'monthly-analysis' 
+    });
+
+    console.log('Monthly analysis generated and cached for subject:', aiSubjectId);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
