@@ -295,23 +295,34 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
           )}
         </div>
 
-        {/* Quick date chips */}
+        {/* Quick date chips - styled like calendar days */}
         <div className="flex flex-wrap gap-2 mt-3">
           {prediction.next_period_start_min && (
-            <Badge variant="outline" className="font-normal gap-1">
-              <Droplet className="h-3 w-3" />
+            <Badge 
+              variant="outline" 
+              className="font-normal pl-5 relative bg-background/80"
+            >
+              {/* Red menstruation dot */}
+              <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive" />
               {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
             </Badge>
           )}
           {preferences?.show_fertile_days && prediction.fertile_window_start && (
-            <Badge variant="outline" className="font-normal">
+            <Badge 
+              variant="outline" 
+              className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80"
+            >
               Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
             </Badge>
           )}
           {preferences?.show_fertile_days && ovulationDateStr && (
-            <Badge variant="outline" className="font-normal gap-1">
-              <Sparkles className="h-3 w-3" />
+            <Badge 
+              variant="outline" 
+              className="font-normal pr-5 relative bg-background/80"
+            >
               {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
+              {/* Ovulation star */}
+              <span className="absolute -top-0.5 -right-0.5 cycle-ovulation-star text-[10px] font-bold">★</span>
             </Badge>
           )}
         </div>
