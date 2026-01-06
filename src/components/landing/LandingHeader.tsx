@@ -4,19 +4,23 @@ import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@/lib/utils";
-
-const navLinks = [
-  { label: "Wat is de perimenopauze?", href: "#what-is-perimenopause" },
-  { label: "Klachten", href: "#symptoms" },
-  { label: "Cycle Syncing", href: "#cycle-syncing" },
-  { label: "Functies", href: "#functies" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Prijzen", href: "/pricing" },
-];
+import { useTranslation } from "react-i18next";
+import { LanguageSwitcher } from "@/components/i18n/LanguageSwitcher";
 
 export const LandingHeader = () => {
+  const { t, i18n } = useTranslation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>("");
+
+  // Navigation links with translations
+  const navLinks = [
+    { label: i18n.language === 'en' ? "What is perimenopause?" : "Wat is de perimenopauze?", href: "#what-is-perimenopause" },
+    { label: i18n.language === 'en' ? "Symptoms" : "Klachten", href: "#symptoms" },
+    { label: "Cycle Syncing", href: "#cycle-syncing" },
+    { label: i18n.language === 'en' ? "Features" : "Functies", href: "#functies" },
+    { label: "FAQ", href: "#faq" },
+    { label: i18n.language === 'en' ? "Pricing" : "Prijzen", href: "/pricing" },
+  ];
 
   useEffect(() => {
     const sectionIds = navLinks
@@ -32,7 +36,7 @@ export const LandingHeader = () => {
         });
       },
       {
-        rootMargin: "-20% 0px -70% 0px", // Trigger when section is in upper portion of viewport
+        rootMargin: "-20% 0px -70% 0px",
         threshold: 0,
       }
     );
@@ -74,7 +78,7 @@ export const LandingHeader = () => {
               className="w-8 h-8"
             />
             <span className="font-bold text-lg text-foreground hidden sm:inline">
-              Perimenopauze Plan
+              {i18n.language === 'en' ? 'Perimenopause Plan' : 'Perimenopauze Plan'}
             </span>
           </Link>
 
@@ -114,11 +118,12 @@ export const LandingHeader = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-3">
+            <LanguageSwitcher />
             <Button asChild variant="ghost" size="sm">
-              <Link to="/login">Inloggen</Link>
+              <Link to="/login">{t('common.login')}</Link>
             </Button>
             <Button asChild size="sm">
-              <Link to="/login">Start gratis</Link>
+              <Link to="/login">{i18n.language === 'en' ? 'Start free' : 'Start gratis'}</Link>
             </Button>
           </div>
 
@@ -170,14 +175,17 @@ export const LandingHeader = () => {
                 )
               )}
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
+                <div className="py-2">
+                  <LanguageSwitcher />
+                </div>
                 <Button asChild variant="outline" size="sm">
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    Inloggen
+                    {t('common.login')}
                   </Link>
                 </Button>
                 <Button asChild size="sm">
                   <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                    Start gratis
+                    {i18n.language === 'en' ? 'Start free' : 'Start gratis'}
                   </Link>
                 </Button>
               </div>

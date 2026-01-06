@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, Sparkles } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation, Trans } from "react-i18next";
 
 export const HeroSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="relative min-h-[90vh] flex items-center overflow-hidden">
       {/* Background gradient */}
@@ -25,36 +28,37 @@ export const HeroSection = () => {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6">
               <Sparkles className="w-4 h-4" />
-              AI-gestuurde inzichten
+              {t('landing.badge')}
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
-              Neem de regie over{" "}
-              <span className="text-primary">de perimenopauze</span>
+              {t('landing.hero_title')}{" "}
+              <span className="text-primary">{t('landing.hero_title_highlight')}</span>
             </h1>
             
             <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
-              Track je cyclus, <strong>bereken je menstruatie online</strong>, en ontvang{" "}
-              <strong className="text-foreground">AI-gestuurde inzichten</strong> afgestemd op jouw hormonale fase. 
-              Ontdek patronen tussen je slaap, voeding en symptomen.
+              <Trans 
+                i18nKey="landing.hero_description"
+                components={{ strong: <strong className="text-foreground" /> }}
+              />
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
               <Button asChild size="lg" className="text-lg px-8">
                 <Link to="/login">
-                  Start gratis proefperiode
+                  {t('common.start_free_trial')}
                   <ArrowRight className="ml-2 w-5 h-5" />
                 </Link>
               </Button>
               <Button asChild variant="outline" size="lg" className="text-lg px-8">
                 <Link to="/pricing">
-                  Bekijk prijzen
+                  {t('common.view_pricing')}
                 </Link>
               </Button>
             </div>
 
             <p className="mt-6 text-sm text-muted-foreground">
-              ✓ 7 dagen gratis proberen &nbsp; ✓ Geen creditcard nodig &nbsp; ✓ GDPR compliant
+              {t('landing.hero_trust_badges')}
             </p>
           </motion.div>
 
@@ -73,7 +77,7 @@ export const HeroSection = () => {
                 <source srcSet="/app-mockup.webp" type="image/webp" />
                 <img
                   src="/app-mockup.png"
-                  alt="Perimenopauze Plan app interface met cyclus dag indicator, symptomen dagboek, slaap tracking en voeding module voor vrouwen in de overgang"
+                  alt={t('landing.hero_image_alt')}
                   width={380}
                   height={507}
                   loading="eager"
