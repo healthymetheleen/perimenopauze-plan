@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,6 +9,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRecipes, useCyclePhaseRecipes, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
+import { useRecipePreferences } from '@/hooks/useRecipePreferences';
 import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
@@ -24,26 +25,58 @@ const seasonToCyclePhase: Record<string, string> = {
   herfst: 'luteaal',
 };
 
+// Get current calendar season based on month
+function getCurrentCalendarSeason(): string {
+  const month = new Date().getMonth(); // 0-11
+  if (month >= 2 && month <= 4) return 'lente';
+  if (month >= 5 && month <= 7) return 'zomer';
+  if (month >= 8 && month <= 10) return 'herfst';
+  return 'winter';
+}
+
 export default function RecipesPage() {
   const [search, setSearch] = useState('');
   const [mealType, setMealType] = useState<string>('');
-  const [season, setSeason] = useState<string>('');
-  const [cyclePhase, setCyclePhase] = useState<string>('');
   const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
   const [showFilters, setShowFilters] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
 
+  // Persisted preferences
+  const {
+    autoSeasonEnabled,
+    setAutoSeasonEnabled,
+    autoCycleEnabled,
+    setAutoCycleEnabled,
+    savedAllergyTags,
+    toggleAllergyTag,
+  } = useRecipePreferences();
+
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
-  const currentSeason = prediction?.current_season || 'onbekend';
-  const currentCyclePhase = seasonToCyclePhase[currentSeason] || '';
-  const showCycleSuggestions = preferences?.onboarding_completed && currentCyclePhase;
+  
+  // Current season from calendar
+  const currentCalendarSeason = getCurrentCalendarSeason();
+  
+  // Current cycle phase from prediction
+  const currentCycleSeason = prediction?.current_season || 'onbekend';
+  const currentCyclePhase = seasonToCyclePhase[currentCycleSeason] || '';
+  const hasCycleData = preferences?.onboarding_completed && currentCyclePhase;
+
+  // Compute effective filters based on toggles
+  const effectiveSeason = autoSeasonEnabled ? currentCalendarSeason : undefined;
+  const effectiveCyclePhase = (autoCycleEnabled && hasCycleData) ? currentCyclePhase : undefined;
+  
+  // Combine saved allergy tags with selected diet tags
+  const allDietTags = useMemo(() => {
+    const combined = new Set([...savedAllergyTags, ...selectedDietTags]);
+    return Array.from(combined);
+  }, [savedAllergyTags, selectedDietTags]);
 
   const { data: recipes, isLoading } = useRecipes({
     mealType: mealType || undefined,
-    season: season || undefined,
-    cyclePhase: cyclePhase || undefined,
-    dietTags: selectedDietTags.length > 0 ? selectedDietTags : undefined,
+    season: effectiveSeason,
+    cyclePhase: effectiveCyclePhase,
+    dietTags: allDietTags.length > 0 ? allDietTags : undefined,
     search: search || undefined,
   });
 
@@ -59,21 +92,21 @@ export default function RecipesPage() {
     shoppingList,
   } = useShoppingList();
 
-  const hasFilters = mealType || season || cyclePhase || selectedDietTags.length > 0 || search;
+  const hasManualFilters = mealType || selectedDietTags.length > 0 || search;
   const activeFilterCount = [
     mealType ? 1 : 0,
-    season ? 1 : 0,
-    cyclePhase ? 1 : 0,
+    savedAllergyTags.length,
     selectedDietTags.length,
   ].reduce((a, b) => a + b, 0);
 
   const clearFilters = () => {
     setMealType('');
-    setSeason('');
-    setCyclePhase('');
     setSelectedDietTags([]);
     setSearch('');
   };
+
+  // Show suggestions only when no manual filters are active
+  const showCycleSuggestions = hasCycleData && cycleRecipes && cycleRecipes.length > 0 && !hasManualFilters && !showFilters;
 
   return (
     <AppLayout>
@@ -105,12 +138,12 @@ export default function RecipesPage() {
         </div>
 
         {/* Cycle phase suggestions */}
-        {showCycleSuggestions && cycleRecipes && cycleRecipes.length > 0 && !hasFilters && (
+        {showCycleSuggestions && (
           <Card className="rounded-2xl bg-gradient-to-br from-purple-500/5 to-purple-500/10 border-purple-500/20">
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-purple-600" />
-                Aanbevolen voor {seasonLabels[currentSeason].toLowerCase()}
+                Aanbevolen voor {seasonLabels[currentCycleSeason]?.toLowerCase() || currentCyclePhase}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 Recepten die passen bij je huidige cyclusfase ({currentCyclePhase})
@@ -201,12 +234,16 @@ export default function RecipesPage() {
             <Card className="rounded-xl">
               <CardContent className="p-3">
                 <RecipeFilters
+                  autoSeasonEnabled={autoSeasonEnabled}
+                  setAutoSeasonEnabled={setAutoSeasonEnabled}
+                  autoCycleEnabled={autoCycleEnabled}
+                  setAutoCycleEnabled={setAutoCycleEnabled}
+                  currentSeason={currentCalendarSeason}
+                  currentCyclePhase={hasCycleData ? currentCyclePhase : ''}
                   mealType={mealType}
                   setMealType={setMealType}
-                  season={season}
-                  setSeason={setSeason}
-                  cyclePhase={cyclePhase}
-                  setCyclePhase={setCyclePhase}
+                  savedAllergyTags={savedAllergyTags}
+                  toggleAllergyTag={toggleAllergyTag}
                   selectedDietTags={selectedDietTags}
                   setSelectedDietTags={setSelectedDietTags}
                   onClear={clearFilters}
@@ -288,7 +325,7 @@ export default function RecipesPage() {
           <EmptyState
             icon={<ChefHat className="h-12 w-12" />}
             title="Geen recepten gevonden"
-            description={hasFilters ? "Probeer andere filters" : "Er zijn nog geen recepten toegevoegd"}
+            description={hasManualFilters ? "Probeer andere filters" : "Er zijn nog geen recepten toegevoegd"}
           />
         )}
       </div>
