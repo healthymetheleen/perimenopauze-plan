@@ -90,49 +90,67 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="grid gap-4">
-        {/* Quick Action Buttons - 3 columns */}
-        <div className="grid grid-cols-3 gap-2">
-          <Button
-            variant="outline"
-            className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
-            onClick={() => navigate('/cycle')}
-          >
-            <Sparkles className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium">Check-in</span>
-          </Button>
-          <Button
-            variant="outline"
-            className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
-            onClick={() => navigate('/dagboek')}
-          >
-            <UtensilsCrossed className="h-5 w-5 text-primary" />
-            <span className="text-xs font-medium">Maaltijd</span>
-          </Button>
-          {activeSession ? (
-            <Button
-              variant="default"
-              className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-600"
-              onClick={handleWakeUp}
-              disabled={endSleep.isPending}
-            >
-              <Sun className="h-5 w-5" />
-              <span className="text-xs font-medium">Wakker</span>
-            </Button>
-          ) : (
-            <Button
-              variant="outline"
-              className="h-auto py-3 flex flex-col items-center gap-1.5 rounded-xl"
-              onClick={handleStartSleep}
-              disabled={startSleep.isPending}
-            >
-              <Moon className="h-5 w-5 text-primary" />
-              <span className="text-xs font-medium">Slaap</span>
-            </Button>
-          )}
-        </div>
-
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
+
+        {/* Quick Action Buttons - 3 columns with descriptions */}
+        <div className="grid grid-cols-3 gap-3">
+          <button
+            onClick={() => navigate('/cycle')}
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 hover:shadow-soft transition-all"
+          >
+            <div className="p-2.5 rounded-full bg-purple-100 dark:bg-purple-900/50">
+              <Sparkles className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-purple-900 dark:text-purple-100">Check-in</p>
+              <p className="text-[10px] text-purple-600 dark:text-purple-400 leading-tight">Energie & gevoel</p>
+            </div>
+          </button>
+
+          <button
+            onClick={() => navigate('/dagboek')}
+            className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 hover:shadow-soft transition-all"
+          >
+            <div className="p-2.5 rounded-full bg-emerald-100 dark:bg-emerald-900/50">
+              <UtensilsCrossed className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+            </div>
+            <div className="text-center">
+              <p className="text-sm font-semibold text-emerald-900 dark:text-emerald-100">Maaltijd</p>
+              <p className="text-[10px] text-emerald-600 dark:text-emerald-400 leading-tight">Toevoegen</p>
+            </div>
+          </button>
+
+          {activeSession ? (
+            <button
+              onClick={handleWakeUp}
+              disabled={endSleep.isPending}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-amber-100 dark:bg-amber-900/40 border border-amber-300 dark:border-amber-700 hover:shadow-soft transition-all disabled:opacity-50"
+            >
+              <div className="p-2.5 rounded-full bg-amber-200 dark:bg-amber-800/50">
+                <Sun className="h-5 w-5 text-amber-700 dark:text-amber-300" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">Wakker</p>
+                <p className="text-[10px] text-amber-700 dark:text-amber-400 leading-tight">Slaap stoppen</p>
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={handleStartSleep}
+              disabled={startSleep.isPending}
+              className="flex flex-col items-center gap-2 p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/30 border border-indigo-200 dark:border-indigo-800 hover:shadow-soft transition-all disabled:opacity-50"
+            >
+              <div className="p-2.5 rounded-full bg-indigo-100 dark:bg-indigo-900/50">
+                <Moon className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+              </div>
+              <div className="text-center">
+                <p className="text-sm font-semibold text-indigo-900 dark:text-indigo-100">Slaap</p>
+                <p className="text-[10px] text-indigo-600 dark:text-indigo-400 leading-tight">Starten</p>
+              </div>
+            </button>
+          )}
+        </div>
 
         {/* Cycle 7-day widget */}
         <CycleWeekWidget />
