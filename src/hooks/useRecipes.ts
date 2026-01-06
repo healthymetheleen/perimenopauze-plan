@@ -315,3 +315,93 @@ export function useCyclePhaseRecipes(cyclePhase: string) {
     enabled: !!cyclePhase,
   });
 }
+
+// ============ FAVORITES ============
+
+// Fetch user's favorite recipe IDs
+export function useFavoriteIds() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['recipe-favorite-ids', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data, error } = await supabase
+        .from('recipe_favorites')
+        .select('recipe_id')
+        .eq('owner_id', user.id);
+      if (error) throw error;
+      return data.map(f => f.recipe_id);
+    },
+    enabled: !!user,
+  });
+}
+
+// Fetch full favorite recipes
+export function useFavoriteRecipes() {
+  const { user } = useAuth();
+  return useQuery({
+    queryKey: ['favorite-recipes', user?.id],
+    queryFn: async () => {
+      if (!user) return [];
+      const { data: favorites, error: favError } = await supabase
+        .from('recipe_favorites')
+        .select('recipe_id')
+        .eq('owner_id', user.id);
+      if (favError) throw favError;
+      
+      if (favorites.length === 0) return [];
+      
+      const recipeIds = favorites.map(f => f.recipe_id);
+      const { data, error } = await supabase
+        .from('recipes')
+        .select('*')
+        .in('id', recipeIds)
+        .eq('is_published', true);
+      if (error) throw error;
+      return data as unknown as Recipe[];
+    },
+    enabled: !!user,
+  });
+}
+
+// Add recipe to favorites
+export function useAddFavorite() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (recipeId: string) => {
+      if (!user) throw new Error('Niet ingelogd');
+      const { error } = await supabase
+        .from('recipe_favorites')
+        .insert({ owner_id: user.id, recipe_id: recipeId });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipe-favorite-ids'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-recipes'] });
+    },
+  });
+}
+
+// Remove recipe from favorites
+export function useRemoveFavorite() {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  return useMutation({
+    mutationFn: async (recipeId: string) => {
+      if (!user) throw new Error('Niet ingelogd');
+      const { error } = await supabase
+        .from('recipe_favorites')
+        .delete()
+        .eq('owner_id', user.id)
+        .eq('recipe_id', recipeId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recipe-favorite-ids'] });
+      queryClient.invalidateQueries({ queryKey: ['favorite-recipes'] });
+    },
+  });
+}

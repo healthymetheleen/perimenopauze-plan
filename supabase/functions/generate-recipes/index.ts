@@ -29,6 +29,14 @@ serve(async (req) => {
 
     const systemPrompt = `Je bent een orthomoleculair voedingsexpert gespecialiseerd in KPNI (Klinische PsychoNeuroImmunologie) en functional medicine voor vrouwen in de perimenopauze.
 
+BELANGRIJKE TAALREGEL: Genereer ALLES in het Nederlands. Geen Engelse termen.
+- "ijzerrijk" in plaats van "iron-rich"
+- "eiwitrijk" in plaats van "protein-rich"  
+- "vezelrijk" in plaats van "fiber-rich"
+- "anti-inflammatoir" in plaats van "anti-inflammatory"
+- "bloedsuikerstabiel" in plaats van "blood sugar stable"
+Alle titels, beschrijvingen, ingrediënten en instructies moeten volledig in het Nederlands zijn.
+
 VOEDINGSFILOSOFIE (ALTIJD TOEPASSEN):
 - Focus op groenten en eiwitten, koolhydraatarm
 - Pseudogranen (quinoa, boekweit, amarant) in plaats van reguliere granen
