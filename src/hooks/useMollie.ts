@@ -224,7 +224,7 @@ export const SUBSCRIPTION_PLANS = {
     description: 'Volledige toegang tot alle functies',
     trialDays: 7,
     features: [
-      'Onbeperkte maaltijdanalyses met AI',
+      'AI-maaltijdanalyses (30 per dag)',
       'Dagelijkse AI-inzichten & reflecties',
       'Maandelijkse totaalanalyse',
       'Alle bewegingsoefeningen op maat',
