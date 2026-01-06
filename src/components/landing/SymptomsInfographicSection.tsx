@@ -42,22 +42,6 @@ export const SymptomsInfographicSection = () => {
           </p>
         </motion.div>
 
-        {/* Main stat */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-          className="max-w-md mx-auto mb-12"
-        >
-          <div className="bg-gradient-to-br from-primary/10 to-secondary/10 rounded-2xl p-8 text-center border border-primary/20">
-            <div className="text-6xl md:text-7xl font-bold text-primary mb-2">85%</div>
-            <p className="text-muted-foreground">
-              van de vrouwen in de perimenopauze heeft last van één of meer klachten
-            </p>
-          </div>
-        </motion.div>
-
         {/* Symptoms grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
           {symptoms.map((symptom, index) => (
