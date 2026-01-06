@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format, differenceInMinutes } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -45,6 +46,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 
 export default function SleepPage() {
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const [showQualityDialog, setShowQualityDialog] = useState(false);
   const [showManualDialog, setShowManualDialog] = useState(false);
@@ -58,6 +60,7 @@ export default function SleepPage() {
   const [manualWakeTime, setManualWakeTime] = useState('07:00');
   const [manualQuality, setManualQuality] = useState([7]);
 
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const { data: sessions, isLoading } = useSleepSessions(7);
   const { data: activeSession, isLoading: activeLoading } = useActiveSleepSession();
   const { data: prediction } = useLatestPrediction();
@@ -76,9 +79,9 @@ export default function SleepPage() {
   const handleStartSleep = async () => {
     try {
       await startSleep.mutateAsync();
-      toast({ title: 'Welterusten!', description: 'Je slaapsessie is gestart.' });
+      toast({ title: t('sleep.good_night'), description: t('sleep.sleep_started') });
     } catch {
-      toast({ title: 'Kon slaapsessie niet starten', variant: 'destructive' });
+      toast({ title: t('sleep.could_not_start'), variant: 'destructive' });
     }
   };
 
@@ -94,9 +97,9 @@ export default function SleepPage() {
         qualityScore: qualityScore[0],
       });
       setShowQualityDialog(false);
-      toast({ title: 'Goedemorgen! ☀️', description: 'Je slaapsessie is opgeslagen.' });
+      toast({ title: t('sleep.good_morning'), description: t('sleep.sleep_saved') });
     } catch {
-      toast({ title: 'Kon slaapsessie niet afsluiten', variant: 'destructive' });
+      toast({ title: t('sleep.could_not_end'), variant: 'destructive' });
     }
   };
 
@@ -124,11 +127,11 @@ export default function SleepPage() {
       });
       
       setShowManualDialog(false);
-      toast({ title: 'Slaap opgeslagen!' });
+      toast({ title: t('sleep.sleep_saved_short') });
     } catch (error) {
       toast({ 
-        title: 'Kon slaap niet opslaan', 
-        description: error instanceof Error ? error.message : 'Probeer het opnieuw',
+        title: t('sleep.could_not_save'), 
+        description: error instanceof Error ? error.message : t('diary.try_again'),
         variant: 'destructive' 
       });
     }
@@ -139,9 +142,9 @@ export default function SleepPage() {
     try {
       await deleteSleep.mutateAsync(deleteSessionId);
       setDeleteSessionId(null);
-      toast({ title: 'Slaapsessie verwijderd' });
+      toast({ title: t('sleep.session_deleted') });
     } catch {
-      toast({ title: 'Kon sessie niet verwijderen', variant: 'destructive' });
+      toast({ title: t('sleep.could_not_delete'), variant: 'destructive' });
     }
   };
 
@@ -155,7 +158,7 @@ export default function SleepPage() {
   if (isLoading || activeLoading) {
     return (
       <AppLayout>
-        <LoadingState message="Slaapdata laden..." />
+        <LoadingState message={t('sleep.loading')} />
       </AppLayout>
     );
   }
@@ -173,15 +176,15 @@ export default function SleepPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Slaap</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{t('sleep.title')}</h1>
             <p className="text-muted-foreground">
-              Volg je slaappatroon en verbeter je nachtrust
+              {t('sleep.subtitle')}
             </p>
           </div>
           <Button asChild variant="outline" size="sm">
             <Link to="/meditatie">
               <Sparkles className="h-4 w-4 mr-2" />
-              Meditaties
+              {t('sleep.meditations')}
             </Link>
           </Button>
         </div>
@@ -191,10 +194,10 @@ export default function SleepPage() {
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-primary">Slaapscore</p>
+                <p className="text-sm font-medium text-primary">{t('sleep.sleep_score')}</p>
                 <p className="text-4xl font-bold text-foreground">{sleepScore}</p>
                 <p className="text-xs text-muted-foreground mt-1">
-                  Gebaseerd op afgelopen 7 dagen
+                  {t('sleep.based_on_7_days')}
                 </p>
               </div>
               <div className={`p-4 rounded-full ${getScoreColor(sleepScore)}`}>
@@ -211,13 +214,13 @@ export default function SleepPage() {
               <div className="text-center space-y-4">
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary">
                   <Moon className="h-4 w-4 animate-pulse" />
-                  <span className="text-sm font-medium">Je slaapt nu</span>
+                  <span className="text-sm font-medium">{t('sleep.sleeping_now')}</span>
                 </div>
                 <div className="text-3xl font-bold">
-                  {currentSleepHours}u {currentSleepMins}m
+                  {currentSleepHours}{i18n.language === 'nl' ? 'u' : 'h'} {currentSleepMins}m
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Begonnen om {format(new Date(activeSession.sleep_start), 'HH:mm', { locale: nl })}
+                  {t('sleep.started_at', { time: format(new Date(activeSession.sleep_start), 'HH:mm', { locale: dateLocale }) })}
                 </p>
                 <Button
                   size="lg"
@@ -226,13 +229,13 @@ export default function SleepPage() {
                   disabled={endSleep.isPending}
                 >
                   <Sun className="h-5 w-5 mr-2" />
-                  Ik ben wakker
+                  {t('sleep.im_awake')}
                 </Button>
               </div>
             ) : (
               <div className="text-center space-y-4">
                 <p className="text-muted-foreground">
-                  Druk op de knop als je gaat slapen
+                  {t('sleep.press_when_sleep')}
                 </p>
                 <Button
                   size="lg"
@@ -241,7 +244,7 @@ export default function SleepPage() {
                   disabled={startSleep.isPending}
                 >
                   <Moon className="h-5 w-5 mr-2" />
-                  Ik ga slapen
+                  {t('sleep.im_going_to_sleep')}
                 </Button>
                 <Button
                   variant="outline"
@@ -249,7 +252,7 @@ export default function SleepPage() {
                   onClick={() => setShowManualDialog(true)}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Slaap achteraf invoeren
+                  {t('sleep.enter_sleep_later')}
                 </Button>
               </div>
             )}
@@ -266,8 +269,8 @@ export default function SleepPage() {
                     <Clock className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Gem. slaapduur</p>
-                    <p className="font-semibold">{stats.avgDurationHours.toFixed(1)} uur</p>
+                    <p className="text-xs text-muted-foreground">{t('sleep.avg_duration')}</p>
+                    <p className="font-semibold">{stats.avgDurationHours.toFixed(1)} {t('sleep.hours')}</p>
                   </div>
                 </div>
               </CardContent>
@@ -280,7 +283,7 @@ export default function SleepPage() {
                     <TrendingUp className="h-4 w-4 text-primary" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Consistentie</p>
+                    <p className="text-xs text-muted-foreground">{t('sleep.consistency')}</p>
                     <p className="font-semibold">{Math.round(stats.consistency)}%</p>
                   </div>
                 </div>
@@ -294,7 +297,7 @@ export default function SleepPage() {
                     <BedDouble className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Gem. bedtijd</p>
+                    <p className="text-xs text-muted-foreground">{t('sleep.avg_bedtime')}</p>
                     <p className="font-semibold">{stats.avgBedtime || '-'}</p>
                   </div>
                 </div>
@@ -308,7 +311,7 @@ export default function SleepPage() {
                     <AlarmClock className="h-4 w-4 text-foreground" />
                   </div>
                   <div>
-                    <p className="text-xs text-muted-foreground">Gem. wektijd</p>
+                    <p className="text-xs text-muted-foreground">{t('sleep.avg_wake_time')}</p>
                     <p className="font-semibold">{stats.avgWakeTime || '-'}</p>
                   </div>
                 </div>
@@ -321,9 +324,9 @@ export default function SleepPage() {
         {sessions && sessions.length > 0 && (
           <Card className="rounded-2xl">
             <CardHeader className="pb-2">
-              <CardTitle className="text-lg">Slaapsessies</CardTitle>
+              <CardTitle className="text-lg">{t('sleep.sleep_sessions')}</CardTitle>
               <CardDescription>
-                Visueel overzicht van je slaaptijden
+                {t('sleep.visual_overview')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -338,8 +341,8 @@ export default function SleepPage() {
         {/* AI Sleep Insight */}
         {stats && stats.totalSessions > 0 && (
           <SleepInsightCard
-            avgDuration={`${stats.avgDurationHours.toFixed(1)} uur`}
-            avgQuality={stats.avgQuality ? `${stats.avgQuality.toFixed(1)}/10` : 'onbekend'}
+            avgDuration={`${stats.avgDurationHours.toFixed(1)} ${t('sleep.hours')}`}
+            avgQuality={stats.avgQuality ? `${stats.avgQuality.toFixed(1)}/10` : t('sleep.unknown')}
             consistency={`${Math.round(stats.consistency)}%`}
             interruptions={nightInterruptions || undefined}
             cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
@@ -351,10 +354,10 @@ export default function SleepPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-lg flex items-center gap-2">
               <Lightbulb className="h-5 w-5 text-primary" />
-              Slaaptips
+              {t('sleep.sleep_tips')}
             </CardTitle>
             <CardDescription>
-              Persoonlijke adviezen op basis van je slaappatroon
+              {t('sleep.tips_based_on')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -370,8 +373,8 @@ export default function SleepPage() {
             ) : (
               <EmptyState
                 icon={<Moon className="h-8 w-8" />}
-                title="Begin met tracken"
-                description="Log je slaap om persoonlijke adviezen te krijgen"
+                title={t('sleep.start_tracking')}
+                description={t('sleep.start_tracking_desc')}
               />
             )}
           </CardContent>
@@ -380,39 +383,39 @@ export default function SleepPage() {
         {/* General Sleep Hygiene */}
         <Card className="rounded-2xl bg-muted/30">
           <CardHeader className="pb-3">
-            <CardTitle className="text-base">Algemene slaaphygiëne</CardTitle>
+            <CardTitle className="text-base">{t('sleep.general_hygiene')}</CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="space-y-2 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Houd een vast slaapritme aan, ook in het weekend</span>
+                <span>{t('sleep.hygiene_1')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Vermijd schermen 1 uur voor het slapen (blauw licht remt melatonine)</span>
+                <span>{t('sleep.hygiene_2')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Zorg voor een koele slaapkamer (16-18°C)</span>
+                <span>{t('sleep.hygiene_3')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Vermijd cafeïne na 14:00 en alcohol dicht voor het slapen</span>
+                <span>{t('sleep.hygiene_4')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Maak je slaapkamer zo donker mogelijk</span>
+                <span>{t('sleep.hygiene_5')}</span>
               </li>
               <li className="flex items-start gap-2">
                 <span>•</span>
-                <span>Beweeg regelmatig, maar niet vlak voor het slapen</span>
+                <span>{t('sleep.hygiene_6')}</span>
               </li>
             </ul>
             <Button asChild variant="outline" className="w-full mt-4">
               <Link to="/meditatie">
                 <Sparkles className="h-4 w-4 mr-2" />
-                Bekijk slaapmeditaties
+                {t('sleep.view_meditations')}
               </Link>
             </Button>
           </CardContent>
@@ -423,39 +426,39 @@ export default function SleepPage() {
       <Dialog open={showQualityDialog} onOpenChange={setShowQualityDialog}>
         <DialogContent className="sm:max-w-md max-w-[95vw]">
           <DialogHeader>
-            <DialogTitle>Hoe heb je geslapen?</DialogTitle>
+            <DialogTitle>{t('sleep.how_did_you_sleep')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-6 py-4">
             {/* Wake feeling */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Hoe voelde je je bij het wakker worden?</Label>
+              <Label className="text-sm font-medium">{t('sleep.wake_feeling')}</Label>
               <RadioGroup value={wakeFeeling} onValueChange={setWakeFeeling} className="grid grid-cols-2 gap-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="uitgerust" id="uitgerust" />
-                  <Label htmlFor="uitgerust" className="text-sm">Uitgerust</Label>
+                  <Label htmlFor="uitgerust" className="text-sm">{t('sleep.rested')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="oke" id="oke" />
-                  <Label htmlFor="oke" className="text-sm">Oké</Label>
+                  <Label htmlFor="oke" className="text-sm">{t('sleep.okay')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="onrustig" id="onrustig" />
-                  <Label htmlFor="onrustig" className="text-sm">Onrustig</Label>
+                  <Label htmlFor="onrustig" className="text-sm">{t('sleep.restless')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="uitgeput" id="uitgeput" />
-                  <Label htmlFor="uitgeput" className="text-sm">Uitgeput</Label>
+                  <Label htmlFor="uitgeput" className="text-sm">{t('sleep.exhausted')}</Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Night interruptions */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Nacht onderbroken?</Label>
+              <Label className="text-sm font-medium">{t('sleep.night_interrupted')}</Label>
               <RadioGroup value={nightInterruptions} onValueChange={setNightInterruptions} className="grid grid-cols-3 gap-2">
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="nee" id="nee" />
-                  <Label htmlFor="nee" className="text-sm">Nee</Label>
+                  <Label htmlFor="nee" className="text-sm">{t('sleep.no')}</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="1-2" id="1-2" />
@@ -463,14 +466,14 @@ export default function SleepPage() {
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="vaak" id="vaak" />
-                  <Label htmlFor="vaak" className="text-sm">Vaak</Label>
+                  <Label htmlFor="vaak" className="text-sm">{t('sleep.often')}</Label>
                 </div>
               </RadioGroup>
             </div>
 
             {/* Quality score slider */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Algemene slaapkwaliteit</Label>
+              <Label className="text-sm font-medium">{t('sleep.general_quality')}</Label>
               <div className="text-center">
                 <span className="text-4xl font-bold">{qualityScore[0]}</span>
                 <span className="text-muted-foreground">/10</span>
@@ -484,8 +487,8 @@ export default function SleepPage() {
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Slecht</span>
-                <span>Uitstekend</span>
+                <span>{t('common.poor')}</span>
+                <span>{t('common.excellent')}</span>
               </div>
             </div>
 
@@ -494,7 +497,7 @@ export default function SleepPage() {
               onClick={handleConfirmWakeUp}
               disabled={endSleep.isPending}
             >
-              Bevestigen
+              {t('common.confirm')}
             </Button>
           </div>
         </DialogContent>
@@ -504,12 +507,12 @@ export default function SleepPage() {
       <Dialog open={showManualDialog} onOpenChange={setShowManualDialog}>
         <DialogContent className="sm:max-w-md max-w-[95vw]">
           <DialogHeader>
-            <DialogTitle>Slaap achteraf invoeren</DialogTitle>
+            <DialogTitle>{t('sleep.enter_sleep_title')}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             {/* Date */}
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Datum (wakker geworden)</Label>
+              <Label className="text-sm font-medium">{t('sleep.date_woke_up')}</Label>
               <Input
                 type="date"
                 value={manualDate}
@@ -520,7 +523,7 @@ export default function SleepPage() {
             {/* Sleep time */}
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Naar bed gegaan</Label>
+                <Label className="text-sm font-medium">{t('sleep.went_to_bed')}</Label>
                 <Input
                   type="time"
                   value={manualSleepTime}
@@ -528,7 +531,7 @@ export default function SleepPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-sm font-medium">Wakker geworden</Label>
+                <Label className="text-sm font-medium">{t('sleep.woke_up')}</Label>
                 <Input
                   type="time"
                   value={manualWakeTime}
@@ -539,7 +542,7 @@ export default function SleepPage() {
 
             {/* Quality score slider */}
             <div className="space-y-3">
-              <Label className="text-sm font-medium">Slaapkwaliteit</Label>
+              <Label className="text-sm font-medium">{t('sleep.sleep_quality')}</Label>
               <div className="text-center">
                 <span className="text-4xl font-bold">{manualQuality[0]}</span>
                 <span className="text-muted-foreground">/10</span>
@@ -553,8 +556,8 @@ export default function SleepPage() {
                 className="w-full"
               />
               <div className="flex justify-between text-xs text-muted-foreground">
-                <span>Slecht</span>
-                <span>Uitstekend</span>
+                <span>{t('common.poor')}</span>
+                <span>{t('common.excellent')}</span>
               </div>
             </div>
 
@@ -563,7 +566,7 @@ export default function SleepPage() {
               onClick={handleManualSleep}
               disabled={addManualSleep.isPending}
             >
-              Opslaan
+              {t('common.save')}
             </Button>
           </div>
         </DialogContent>
@@ -573,15 +576,15 @@ export default function SleepPage() {
       <AlertDialog open={!!deleteSessionId} onOpenChange={(open) => !open && setDeleteSessionId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Slaapsessie verwijderen?</AlertDialogTitle>
+            <AlertDialogTitle>{t('sleep.delete_session')}</AlertDialogTitle>
             <AlertDialogDescription>
-              Weet je zeker dat je deze slaapsessie wilt verwijderen? Dit kan niet ongedaan worden gemaakt.
+              {t('sleep.delete_session_desc')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
             <AlertDialogAction onClick={handleDeleteSleep} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
-              Verwijderen
+              {t('common.delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
