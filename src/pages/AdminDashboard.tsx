@@ -13,6 +13,7 @@ import {
 import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { PremiumGrantsCard } from '@/components/admin/PremiumGrantsCard';
+import { ProductsAdminCard } from '@/components/admin/ProductsAdminCard';
 
 export default function AdminDashboard() {
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin();
@@ -255,6 +256,9 @@ export default function AdminDashboard() {
 
             {/* Premium Grants */}
             <PremiumGrantsCard />
+
+            {/* Affiliate Products */}
+            <ProductsAdminCard />
 
             {/* Page Views */}
             {stats.page_views && stats.page_views.length > 0 && (

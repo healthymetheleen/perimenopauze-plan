@@ -39,6 +39,7 @@ const MonthlyAnalysisPage = lazy(() => import("./pages/MonthlyAnalysis"));
 const SubscriptionPage = lazy(() => import("./pages/Subscription"));
 const NutritionAdminPage = lazy(() => import("./pages/NutritionAdmin"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboard"));
+const ProductsPage = lazy(() => import("./pages/Products"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -266,6 +267,11 @@ function AppRoutes() {
       <Route path="/admin" element={
         <ProtectedRoute>
           <AdminDashboardPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/producten" element={
+        <ProtectedRoute>
+          <ProductsPage />
         </ProtectedRoute>
       } />
       

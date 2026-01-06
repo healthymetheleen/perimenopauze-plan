@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliate_products: {
+        Row: {
+          affiliate_url: string
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_published: boolean
+          name: string
+          price_indication: string | null
+          sort_order: number | null
+          tags: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          affiliate_url: string
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          name: string
+          price_indication?: string | null
+          sort_order?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          affiliate_url?: string
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_published?: boolean
+          name?: string
+          price_indication?: string | null
+          sort_order?: number | null
+          tags?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_insights_cache: {
         Row: {
           created_at: string
