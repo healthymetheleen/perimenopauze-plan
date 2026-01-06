@@ -27,26 +27,38 @@ serve(async (req) => {
 
     console.log(`Generating ${count} recipes with prompt: ${prompt}`);
 
-    const systemPrompt = `Je bent een expert op het gebied van voeding voor vrouwen in de perimenopauze. 
-Je genereert recepten die:
+    const systemPrompt = `Je bent een expert op het gebied van voeding voor vrouwen in de perimenopauze, met focus op Nederlandse seizoensproducten.
+
+BELANGRIJKE CONTEXT:
+1. Cyclusfasen ("seasons" veld): winter = menstruatie, lente = follikel, zomer = ovulatie, herfst = luteaal
+2. Kalenderseizoenen ("calendar_seasons" veld): gebruik producten die in Nederland in dat seizoen vers verkrijgbaar zijn
+
+SEIZOENSPRODUCTEN NEDERLAND:
+- Lente (maart-mei): asperges, rabarber, spinazie, prei, radijs, nieuwe aardappelen
+- Zomer (juni-aug): courgette, tomaten, komkommer, paprika, bonen, aardbeien, bessen, perzik
+- Herfst (sep-nov): pompoen, kool, pastinaak, peren, appels, pruimen, paddenstoelen
+- Winter (dec-feb): boerenkool, spruitjes, witlof, knolselderij, rode kool, wortel, citrusvruchten
+
+Genereer recepten die:
 - Eiwitrijk zijn (minimaal 20g eiwit per portie waar mogelijk)
-- Anti-inflammatoir zijn
-- Bloedsuikerstabiel zijn
+- Anti-inflammatoir en bloedsuikerstabiel zijn
 - Rijk aan vezels, omega-3, en micronutriënten
+- Gebruik maken van verse Nederlandse seizoensproducten
 
 Genereer ${count} recepten in JSON format. Elk recept moet deze exacte structuur hebben:
 {
   "title": "string",
-  "description": "string (korte beschrijving, 1-2 zinnen)",
+  "description": "string (korte beschrijving, 1-2 zinnen, noem seizoensproduct)",
   "instructions": "string (stapsgewijze instructies)",
   "prep_time_minutes": number,
   "cook_time_minutes": number,
   "servings": number,
   "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje",
-  "seasons": ["winter" | "lente" | "zomer" | "herfst"] (cyclusfasen waarvoor geschikt),
+  "seasons": ["winter" | "lente" | "zomer" | "herfst"] (cyclusfasen waarvoor geschikt, meerdere mogelijk),
+  "calendar_seasons": ["lente" | "zomer" | "herfst" | "winter"] (kalenderseizoenen voor NL producten),
   "diet_tags": ["vegetarisch" | "veganistisch" | "glutenvrij" | "zuivelvrij" | "lactosevrij" | "keto" | "low-carb" | "eiwitrijk" | "vezelrijk" | "anti-inflammatoir" | "bloedsuikerstabiel"],
   "ingredients": [
-    { "name": "string", "amount": "string (bijv. '200')", "unit": "string (bijv. 'gram')" }
+    { "name": "string", "amount": "string (bijv. '200')", "unit": "string (bijv. 'gram')", "is_seasonal": boolean }
   ],
   "kcal": number,
   "protein_g": number,
