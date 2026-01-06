@@ -121,27 +121,62 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
       const bleeding = bleedingLogs?.find((l) => l.log_date === dateStr);
       const isCurrentMonth = isSameMonth(date, currentMonth);
 
-      const isFertile =
-        !!preferences?.show_fertile_days &&
-        !!prediction.fertile_window_start &&
-        !!prediction.fertile_window_end &&
-        isWithinInterval(date, {
-          start: startOfDay(parseISO(prediction.fertile_window_start)),
-          end: startOfDay(parseISO(prediction.fertile_window_end)),
-        });
+      // Calculate if this date falls in a fertile window
+      // For future cycles, calculate based on repeating pattern
+      let isFertile = false;
+      let isOvulation = false;
+      let isPredictedPeriod = false;
 
-      const predictedPeriodEnd =
-        predictedPeriodMax ? addDays(predictedPeriodMax, Math.max(0, periodLength - 1)) : null;
-
-      const isPredictedPeriod =
-        !!predictedPeriodMin &&
-        !!predictedPeriodEnd &&
-        isWithinInterval(date, { start: predictedPeriodMin, end: predictedPeriodEnd });
-
-      const isOvulation = dateStr === ovulationDateStr;
+      if (latestCycleStart) {
+        const daysSinceStart = differenceInDays(startOfDay(date), startOfDay(latestCycleStart));
+        
+        // Only predict future dates (from today onwards) or current/past cycle for context
+        if (daysSinceStart >= 0) {
+          // Calculate which cycle number this falls into (0 = current cycle, 1 = next, etc.)
+          const cycleNumber = Math.floor(daysSinceStart / avgCycleLength);
+          // Calculate day within the cycle
+          const dayInCycle = (daysSinceStart % avgCycleLength) + 1;
+          
+          // Check if this is a predicted period day (first X days of each cycle)
+          // Only show predicted if no actual bleeding logged
+          if (!bleeding && dayInCycle <= periodLength) {
+            // Only show as predicted if this is a future cycle (not the current one where we might have logs)
+            const cycleStartForThisCycle = addDays(latestCycleStart, cycleNumber * avgCycleLength);
+            const isInFutureCycle = cycleNumber > 0 || differenceInDays(date, new Date()) >= 0;
+            
+            // Check if we have logged bleeding for this cycle already
+            const hasLoggedBleedingInCycle = bleedingLogs?.some(log => {
+              const logDate = parseISO(log.log_date);
+              return differenceInDays(logDate, cycleStartForThisCycle) >= 0 && 
+                     differenceInDays(logDate, cycleStartForThisCycle) < avgCycleLength;
+            });
+            
+            // Show predicted period for future cycles OR current cycle if no logged bleeding yet
+            if (isInFutureCycle && !hasLoggedBleedingInCycle) {
+              isPredictedPeriod = true;
+            }
+          }
+          
+          // Calculate fertile window and ovulation for this cycle
+          if (preferences?.show_fertile_days) {
+            const ovulationDay = avgCycleLength - lutealLength;
+            const fertileWindowStart = ovulationDay - 5;
+            const fertileWindowEnd = ovulationDay + 1;
+            
+            if (dayInCycle >= fertileWindowStart && dayInCycle <= fertileWindowEnd) {
+              isFertile = true;
+            }
+            
+            // Ovulation is the middle day (ovulationDay - 1 to ovulationDay + 1)
+            if (dayInCycle >= ovulationDay - 1 && dayInCycle <= ovulationDay + 1) {
+              isOvulation = dayInCycle === ovulationDay;
+            }
+          }
+        }
+      }
 
       const baseSeason = getPredictedSeason(date);
-      const season: SeasonKey = isPredictedPeriod ? 'winter' : baseSeason;
+      const season: SeasonKey = (isPredictedPeriod || bleeding) ? 'winter' : baseSeason;
 
       return {
         date,
@@ -149,16 +184,16 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         isToday: isSameDay(date, today0),
         isCurrentMonth,
         bleeding: bleeding?.intensity,
-        isFertile,
-        isOvulation,
+        isFertile: isFertile && !bleeding, // Don't show fertile on bleeding days
+        isOvulation: isOvulation && !bleeding,
         isPredictedPeriod: isPredictedPeriod && !bleeding,
         predictedSeason: season,
       };
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bleedingLogs, currentMonth, latestCycleStart, avgCycleLength, periodLength, lutealLength, ovulationDateStr, predictedPeriodMax, predictedPeriodMin, prediction.fertile_window_end, prediction.fertile_window_start, preferences?.show_fertile_days]);
+  }, [bleedingLogs, currentMonth, latestCycleStart, avgCycleLength, periodLength, lutealLength, preferences?.show_fertile_days]);
 
-  // Build season segments along the 35-day window
+  // Build season segments along the calendar window
   const seasonSegments = useMemo(() => {
     const segments: { season: SeasonKey; startIdx: number; endIdx: number }[] = [];
     if (calendarDays.length === 0) return segments;
