@@ -2,8 +2,11 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 
 export const CTASection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background */}
@@ -20,23 +23,22 @@ export const CTASection = () => {
           className="max-w-3xl mx-auto text-center"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-            Klaar om de regie te nemen over je perimenopauze?
+            {t('cta.title')}
           </h2>
           <p className="text-lg text-muted-foreground mb-8">
-            Start vandaag nog met je gratis proefperiode van 7 dagen. 
-            Geen creditcard nodig, geen verplichtingen.
+            {t('cta.description')}
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button asChild size="lg" className="text-lg px-8">
               <Link to="/login">
-                Start gratis proefperiode
+                {t('common.start_free_trial')}
                 <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </Button>
             <Button asChild variant="outline" size="lg" className="text-lg px-8">
               <Link to="/pricing">
-                Bekijk de prijzen
+                {t('common.view_pricing')}
               </Link>
             </Button>
           </div>

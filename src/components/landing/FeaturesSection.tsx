@@ -1,40 +1,6 @@
 import { Calendar, BookHeart, Camera, TrendingUp, Moon, Apple, Sparkles, Fingerprint } from "lucide-react";
 import { motion } from "framer-motion";
-
-const features = [
-  {
-    icon: Calendar,
-    title: "Cyclus Tracking & Menstruatie Berekenen",
-    description: "Bereken je menstruatie online, volg je (onregelmatige) cyclus en voorspel je volgende menstruatie met onze slimme calculator.",
-  },
-  {
-    icon: BookHeart,
-    title: "Symptoom Dagboek",
-    description: "Log opvliegers, slaapproblemen, stemmingswisselingen, gewrichtsklachten en meer. Ontdek welke symptomen bij jou het meest voorkomen.",
-  },
-  {
-    icon: Camera,
-    title: "AI Voedingsanalyse",
-    description: "Maak een foto van je maaltijd en ontvang direct een analyse. Krijg gepersonaliseerde suggesties afgestemd op je cyclusfase.",
-    isHighlight: true,
-  },
-  {
-    icon: TrendingUp,
-    title: "Patronen & Inzichten",
-    description: "Ontdek verbanden tussen je slaap, voeding, beweging en symptomen. Zie hoe je lichaam reageert op verschillende factoren.",
-    isHighlight: true,
-  },
-  {
-    icon: Moon,
-    title: "Slaap Tracking",
-    description: "Monitor je slaapkwaliteit en ontdek hoe hormoonschommelingen je nachtrust beïnvloeden tijdens de perimenopauze.",
-  },
-  {
-    icon: Apple,
-    title: "Gepersonaliseerde Recepten",
-    description: "Ontvang receptsuggesties die passen bij je cyclusfase en helpen bij specifieke symptomen zoals opvliegers of vermoeidheid.",
-  },
-];
+import { useTranslation, Trans } from "react-i18next";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -56,16 +22,55 @@ const itemVariants = {
 };
 
 export const FeaturesSection = () => {
+  const { t } = useTranslation();
+
+  const features = [
+    {
+      icon: Calendar,
+      titleKey: "features.cycle_tracking.title",
+      descriptionKey: "features.cycle_tracking.description",
+    },
+    {
+      icon: BookHeart,
+      titleKey: "features.symptom_diary.title",
+      descriptionKey: "features.symptom_diary.description",
+    },
+    {
+      icon: Camera,
+      titleKey: "features.ai_nutrition.title",
+      descriptionKey: "features.ai_nutrition.description",
+      isHighlight: true,
+    },
+    {
+      icon: TrendingUp,
+      titleKey: "features.patterns.title",
+      descriptionKey: "features.patterns.description",
+      isHighlight: true,
+    },
+    {
+      icon: Moon,
+      titleKey: "features.sleep.title",
+      descriptionKey: "features.sleep.description",
+    },
+    {
+      icon: Apple,
+      titleKey: "features.recipes.title",
+      descriptionKey: "features.recipes.description",
+    },
+  ];
+
   return (
     <section className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Alles wat je nodig hebt voor de perimenopauze
+            {t('features.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Van menstruatie berekenen tot <strong className="text-foreground">AI-gestuurde voedingsanalyse</strong>. 
-            Eén app voor al je gezondheidsbehoeften tijdens de perimenopauze.
+            <Trans 
+              i18nKey="features.description"
+              components={{ strong: <strong className="text-foreground" /> }}
+            />
           </p>
         </div>
 
@@ -82,26 +87,41 @@ export const FeaturesSection = () => {
             </div>
             <div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                Wat maakt deze app uniek?
+                {t('features.unique_title')}
               </h3>
               <p className="text-muted-foreground mb-3">
-                Anders dan standaard cyclus- of gezondheidsapps, is deze app speciaal ontwikkeld 
-                voor vrouwen in de perimenopauze. Onze <strong className="text-foreground">AI-gestuurde inzichten</strong> analyseren 
-                jouw unieke combinatie van symptomen, slaap, voeding en cyclusdata om gepersonaliseerde 
-                aanbevelingen te geven.
+                <Trans 
+                  i18nKey="features.unique_description"
+                  components={{ strong: <strong className="text-foreground" /> }}
+                />
               </p>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li className="flex items-center gap-2">
                   <Fingerprint className="w-4 h-4 text-primary" />
-                  <span><strong className="text-foreground">Perimenopauze-specifiek</strong> — geen generieke cyclus-app</span>
+                  <span>
+                    <Trans 
+                      i18nKey="features.unique_point_1"
+                      components={{ strong: <strong className="text-foreground" /> }}
+                    />
+                  </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Sparkles className="w-4 h-4 text-primary" />
-                  <span><strong className="text-foreground">AI-gestuurde inzichten</strong> — leer patronen herkennen in jouw data</span>
+                  <span>
+                    <Trans 
+                      i18nKey="features.unique_point_2"
+                      components={{ strong: <strong className="text-foreground" /> }}
+                    />
+                  </span>
                 </li>
                 <li className="flex items-center gap-2">
                   <Camera className="w-4 h-4 text-primary" />
-                  <span><strong className="text-foreground">Foto-analyse van maaltijden</strong> — direct voedingsadvies afgestemd op je fase</span>
+                  <span>
+                    <Trans 
+                      i18nKey="features.unique_point_3"
+                      components={{ strong: <strong className="text-foreground" /> }}
+                    />
+                  </span>
                 </li>
               </ul>
             </div>
@@ -117,7 +137,7 @@ export const FeaturesSection = () => {
         >
           {features.map((feature) => (
             <motion.div
-              key={feature.title}
+              key={feature.titleKey}
               variants={itemVariants}
               className={`group p-6 rounded-2xl bg-card border hover:shadow-lg transition-all duration-300 ${
                 feature.isHighlight 
@@ -133,7 +153,7 @@ export const FeaturesSection = () => {
                 <feature.icon className="w-6 h-6 text-primary" />
               </div>
               <h3 className="text-xl font-semibold text-foreground mb-2">
-                {feature.title}
+                {t(feature.titleKey)}
                 {feature.isHighlight && (
                   <span className="ml-2 text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                     AI
@@ -141,7 +161,7 @@ export const FeaturesSection = () => {
                 )}
               </h3>
               <p className="text-muted-foreground">
-                {feature.description}
+                {t(feature.descriptionKey)}
               </p>
             </motion.div>
           ))}

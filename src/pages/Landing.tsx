@@ -53,7 +53,7 @@ const organizationSchema = {
 
 const Landing = () => {
   const { t, i18n } = useTranslation();
-  const faqSchema = generateFAQSchema();
+  const faqSchema = generateFAQSchema(t);
   const currentLang = i18n.language || 'nl';
   const isEnglish = currentLang === 'en';
 

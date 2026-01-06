@@ -10,64 +10,17 @@ import {
   Utensils,
   Heart
 } from "lucide-react";
+import { useTranslation, Trans } from "react-i18next";
 
-const phases = [
-  {
-    season: "Winter",
-    phase: "Menstruatie",
-    days: "Dag 1-5",
-    color: "from-blue-100 to-blue-200",
-    borderColor: "border-blue-300",
-    iconBg: "bg-blue-200",
-    icon: Snowflake,
-    expect: "Lage energie, behoefte aan rust",
-    work: "Reflectie, planning, creatief werk",
-    exercise: "Wandelen, zachte yoga, stretching",
-    nutrition: "IJzerrijk: spinazie, rode biet, peulvruchten",
-  },
-  {
-    season: "Lente",
-    phase: "Folliculaire fase",
-    days: "Dag 6-12",
-    color: "from-green-100 to-green-200",
-    borderColor: "border-green-300",
-    iconBg: "bg-green-200",
-    icon: Flower2,
-    expect: "Stijgende energie, focus verbetert",
-    work: "Nieuwe projecten starten, brainstormen",
-    exercise: "Cardio, HIIT, groepslessen",
-    nutrition: "Eiwitrijk, verse groenten, probiotica",
-  },
-  {
-    season: "Zomer",
-    phase: "Ovulatie",
-    days: "Dag 13-16",
-    color: "from-yellow-100 to-yellow-200",
-    borderColor: "border-yellow-300",
-    iconBg: "bg-yellow-200",
-    icon: Sun,
-    expect: "Piek energie, sociaal, zelfverzekerd",
-    work: "Presentaties, onderhandelen, netwerken",
-    exercise: "Intensieve training, sporten met anderen",
-    nutrition: "Lichte maaltijden, antioxidanten, vezels",
-  },
-  {
-    season: "Herfst",
-    phase: "Luteale fase",
-    days: "Dag 17-28",
-    color: "from-orange-100 to-orange-200",
-    borderColor: "border-orange-300",
-    iconBg: "bg-orange-200",
-    icon: Leaf,
-    expect: "Dalende energie, PMS-symptomen mogelijk",
-    work: "Afronden, detailwerk, administratie",
-    exercise: "Pilates, zwemmen, matige cardio",
-    nutrition: "Complex carbs, magnesium, B-vitamines",
-  },
-];
-
-const PhaseCard = memo(({ phase, index }: { phase: typeof phases[0]; index: number }) => {
-  const Icon = phase.icon;
+const PhaseCard = memo(({ seasonKey, icon: Icon, index, color, borderColor, iconBg }: { 
+  seasonKey: string; 
+  icon: React.ElementType; 
+  index: number;
+  color: string;
+  borderColor: string;
+  iconBg: string;
+}) => {
+  const { t } = useTranslation();
   
   return (
     <motion.div
@@ -75,34 +28,36 @@ const PhaseCard = memo(({ phase, index }: { phase: typeof phases[0]; index: numb
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.1 }}
-      className={`rounded-2xl p-5 bg-gradient-to-br ${phase.color} border ${phase.borderColor}`}
+      className={`rounded-2xl p-5 bg-gradient-to-br ${color} border ${borderColor}`}
     >
       <div className="flex items-center gap-3 mb-4">
-        <div className={`w-10 h-10 rounded-full ${phase.iconBg} flex items-center justify-center`}>
+        <div className={`w-10 h-10 rounded-full ${iconBg} flex items-center justify-center`}>
           <Icon className="w-5 h-5 text-foreground/70" />
         </div>
         <div>
-          <h3 className="font-semibold text-foreground">{phase.season}</h3>
-          <p className="text-sm text-muted-foreground">{phase.phase} · {phase.days}</p>
+          <h3 className="font-semibold text-foreground">{t(`cycle_syncing.seasons.${seasonKey}`)}</h3>
+          <p className="text-sm text-muted-foreground">
+            {t(`cycle_syncing.phases.${seasonKey === 'winter' ? 'menstruation' : seasonKey === 'spring' ? 'follicular' : seasonKey === 'summer' ? 'ovulation' : 'luteal'}`)} · {t(`cycle_syncing.${seasonKey}.days`)}
+          </p>
         </div>
       </div>
       
       <div className="space-y-3 text-sm">
         <div className="flex items-start gap-2">
           <Heart className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <span className="text-muted-foreground">{phase.expect}</span>
+          <span className="text-muted-foreground">{t(`cycle_syncing.${seasonKey}.expect`)}</span>
         </div>
         <div className="flex items-start gap-2">
           <Briefcase className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <span className="text-muted-foreground">{phase.work}</span>
+          <span className="text-muted-foreground">{t(`cycle_syncing.${seasonKey}.work`)}</span>
         </div>
         <div className="flex items-start gap-2">
           <Dumbbell className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <span className="text-muted-foreground">{phase.exercise}</span>
+          <span className="text-muted-foreground">{t(`cycle_syncing.${seasonKey}.exercise`)}</span>
         </div>
         <div className="flex items-start gap-2">
           <Utensils className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
-          <span className="text-muted-foreground">{phase.nutrition}</span>
+          <span className="text-muted-foreground">{t(`cycle_syncing.${seasonKey}.nutrition`)}</span>
         </div>
       </div>
     </motion.div>
@@ -111,7 +66,18 @@ const PhaseCard = memo(({ phase, index }: { phase: typeof phases[0]; index: numb
 
 PhaseCard.displayName = "PhaseCard";
 
+const phases = [
+  { seasonKey: "winter", icon: Snowflake, color: "from-blue-100 to-blue-200", borderColor: "border-blue-300", iconBg: "bg-blue-200" },
+  { seasonKey: "spring", icon: Flower2, color: "from-green-100 to-green-200", borderColor: "border-green-300", iconBg: "bg-green-200" },
+  { seasonKey: "summer", icon: Sun, color: "from-yellow-100 to-yellow-200", borderColor: "border-yellow-300", iconBg: "bg-yellow-200" },
+  { seasonKey: "autumn", icon: Leaf, color: "from-orange-100 to-orange-200", borderColor: "border-orange-300", iconBg: "bg-orange-200" },
+];
+
 export const CycleSyncingSection = memo(() => {
+  const { t } = useTranslation();
+  
+  const dayKeys = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'] as const;
+
   return (
     <section className="py-20 bg-gradient-to-b from-background to-muted/30">
       <div className="container mx-auto px-4">
@@ -123,15 +89,16 @@ export const CycleSyncingSection = memo(() => {
           className="text-center mb-12"
         >
           <span className="inline-block px-3 py-1 text-sm font-medium text-primary bg-primary/10 rounded-full mb-4">
-            Cycle Syncing
+            {t('cycle_syncing.badge')}
           </span>
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Leef in harmonie met je cyclus
+            {t('cycle_syncing.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            Ontdek wat je kunt verwachten de komende dagen en optimaliseer je{" "}
-            <strong className="text-foreground">werk, beweging en voeding</strong> per cyclusfase. 
-            Onze app geeft je dagelijks gepersonaliseerd advies.
+            <Trans 
+              i18nKey="cycle_syncing.description"
+              components={{ strong: <strong className="text-foreground" /> }}
+            />
           </p>
         </motion.div>
 
@@ -147,19 +114,19 @@ export const CycleSyncingSection = memo(() => {
           <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-4 text-sm">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-red-400" />
-              <span className="text-muted-foreground">Menstruatie</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.legend.menstruation')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-pink-300" />
-              <span className="text-muted-foreground">Verwacht</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.legend.expected')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded-full border-2 border-green-400 bg-transparent" />
-              <span className="text-muted-foreground">Vruchtbaar</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.legend.fertile')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-yellow-500">★</span>
-              <span className="text-muted-foreground">Ovulatie</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.legend.ovulation')}</span>
             </div>
           </div>
           
@@ -167,28 +134,28 @@ export const CycleSyncingSection = memo(() => {
           <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-6 text-sm">
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded bg-blue-200" />
-              <span className="text-muted-foreground">Winter</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.seasons.winter')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded bg-green-200" />
-              <span className="text-muted-foreground">Lente</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.seasons.spring')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded bg-yellow-200" />
-              <span className="text-muted-foreground">Zomer</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.seasons.summer')}</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="w-3 h-3 rounded bg-orange-200" />
-              <span className="text-muted-foreground">Herfst</span>
+              <span className="text-muted-foreground">{t('cycle_syncing.seasons.autumn')}</span>
             </div>
           </div>
           
           <div className="space-y-2">
             {/* Day headers */}
             <div className="grid grid-cols-7 gap-1 md:gap-2">
-              {["ma", "di", "wo", "do", "vr", "za", "zo"].map((day) => (
+              {dayKeys.map((day) => (
                 <div key={day} className="text-center text-xs text-muted-foreground py-1">
-                  {day}
+                  {t(`cycle_syncing.days.${day}`)}
                 </div>
               ))}
             </div>
@@ -220,7 +187,6 @@ export const CycleSyncingSection = memo(() => {
             <div className="grid grid-cols-7 gap-1 md:gap-2">
               <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">12</div>
               <div className="aspect-square rounded-lg bg-green-100 flex items-center justify-center text-sm font-medium">13</div>
-              {/* Fertile window with green border */}
               <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">14</div>
               <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">15</div>
               <div className="aspect-square rounded-lg bg-green-200 flex items-center justify-center text-sm font-medium ring-2 ring-green-500 ring-offset-1">16</div>
@@ -261,7 +227,15 @@ export const CycleSyncingSection = memo(() => {
         {/* Phase Cards */}
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4 max-w-6xl mx-auto">
           {phases.map((phase, index) => (
-            <PhaseCard key={phase.season} phase={phase} index={index} />
+            <PhaseCard 
+              key={phase.seasonKey} 
+              seasonKey={phase.seasonKey} 
+              icon={phase.icon} 
+              index={index}
+              color={phase.color}
+              borderColor={phase.borderColor}
+              iconBg={phase.iconBg}
+            />
           ))}
         </div>
 
@@ -281,8 +255,8 @@ export const CycleSyncingSection = memo(() => {
                   <Snowflake className="w-5 h-5 text-blue-700" />
                 </div>
                 <div>
-                  <h4 className="font-semibold text-blue-900">Winter</h4>
-                  <p className="text-sm text-blue-800">maandag 6 januari · Folliculaire fase</p>
+                  <h4 className="font-semibold text-blue-900">{t('cycle_syncing.seasons.winter')}</h4>
+                  <p className="text-sm text-blue-800">{t('cycle_syncing.dashboard_preview.date')}</p>
                 </div>
               </div>
             </div>
@@ -291,30 +265,30 @@ export const CycleSyncingSection = memo(() => {
             <div className="bg-gradient-to-b from-blue-50 to-white p-4 space-y-3">
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span className="text-muted-foreground/60">ⓘ</span>
-                Mogelijk: Vermoeidheid · Krampen · Lage energie
+                {t('cycle_syncing.dashboard_preview.possible')}
               </div>
               
               <div className="grid grid-cols-2 gap-3">
                 <div className="bg-white rounded-xl p-3 border border-border">
                   <div className="flex items-center gap-2 mb-2">
                     <Utensils className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm">Eten vandaag</span>
+                    <span className="font-medium text-sm">{t('cycle_syncing.dashboard_preview.eating_today')}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">💡 IJzerrijk: spinazie, rode biet</p>
+                  <p className="text-xs text-muted-foreground">{t('cycle_syncing.dashboard_preview.eating_tip')}</p>
                 </div>
                 <div className="bg-white rounded-xl p-3 border border-border">
                   <div className="flex items-center gap-2 mb-2">
                     <Dumbbell className="w-4 h-4 text-primary" />
-                    <span className="font-medium text-sm">Bewegen</span>
+                    <span className="font-medium text-sm">{t('cycle_syncing.dashboard_preview.movement')}</span>
                   </div>
-                  <p className="text-xs text-muted-foreground">15 min aanbevolen</p>
+                  <p className="text-xs text-muted-foreground">{t('cycle_syncing.dashboard_preview.movement_tip')}</p>
                 </div>
               </div>
             </div>
           </div>
           
           <p className="text-center text-sm text-muted-foreground mt-4">
-            Dagelijks gepersonaliseerd advies gebaseerd op jouw cyclusfase
+            {t('cycle_syncing.daily_advice')}
           </p>
         </motion.div>
       </div>

@@ -9,19 +9,22 @@ import {
   Frown,
   Zap
 } from "lucide-react";
-
-const symptoms = [
-  { icon: Flame, label: "Opvliegers", percentage: 75 },
-  { icon: Moon, label: "Slaapproblemen", percentage: 60 },
-  { icon: Brain, label: "Concentratieproblemen", percentage: 55 },
-  { icon: Frown, label: "Stemmingswisselingen", percentage: 50 },
-  { icon: Zap, label: "Vermoeidheid", percentage: 65 },
-  { icon: Scale, label: "Gewichtstoename", percentage: 45 },
-  { icon: Droplets, label: "Nachtelijk zweten", percentage: 55 },
-  { icon: Heart, label: "Hartkloppingen", percentage: 35 },
-];
+import { useTranslation, Trans } from "react-i18next";
 
 export const SymptomsInfographicSection = () => {
+  const { t } = useTranslation();
+
+  const symptoms = [
+    { icon: Flame, labelKey: "symptoms.hot_flashes", percentage: 75 },
+    { icon: Moon, labelKey: "symptoms.sleep_problems", percentage: 60 },
+    { icon: Brain, labelKey: "symptoms.concentration", percentage: 55 },
+    { icon: Frown, labelKey: "symptoms.mood_swings", percentage: 50 },
+    { icon: Zap, labelKey: "symptoms.fatigue", percentage: 65 },
+    { icon: Scale, labelKey: "symptoms.weight_gain", percentage: 45 },
+    { icon: Droplets, labelKey: "symptoms.night_sweats", percentage: 55 },
+    { icon: Heart, labelKey: "symptoms.heart_palpitations", percentage: 35 },
+  ];
+
   return (
     <section className="py-20">
       <div className="container mx-auto px-4">
@@ -33,12 +36,13 @@ export const SymptomsInfographicSection = () => {
           className="text-center mb-12"
         >
           <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-            Klachten tijdens de perimenopauze in cijfers
+            {t('symptoms.title')}
           </h2>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-            <strong className="text-foreground">80-90% van de vrouwen</strong> ervaart klachten 
-            tijdens de perimenopauze. Bij sommige vrouwen beginnen de eerste symptomen al{" "}
-            <strong className="text-foreground">rond hun 30e</strong>. Dit zijn de meest voorkomende klachten:
+            <Trans 
+              i18nKey="symptoms.description"
+              components={{ strong: <strong className="text-foreground" /> }}
+            />
           </p>
         </motion.div>
 
@@ -46,7 +50,7 @@ export const SymptomsInfographicSection = () => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto">
           {symptoms.map((symptom, index) => (
             <motion.div
-              key={symptom.label}
+              key={symptom.labelKey}
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -60,7 +64,7 @@ export const SymptomsInfographicSection = () => {
                 <div className="text-2xl font-bold text-foreground mb-1">
                   {symptom.percentage}%
                 </div>
-                <p className="text-sm text-muted-foreground">{symptom.label}</p>
+                <p className="text-sm text-muted-foreground">{t(symptom.labelKey)}</p>
               </div>
             </motion.div>
           ))}
@@ -74,8 +78,7 @@ export const SymptomsInfographicSection = () => {
           transition={{ duration: 0.5, delay: 0.3 }}
           className="text-center text-sm text-muted-foreground mt-8 max-w-xl mx-auto"
         >
-          * Percentages zijn gebaseerd op gemiddelden uit wetenschappelijk onderzoek. 
-          Individuele ervaringen kunnen sterk variëren.
+          {t('symptoms.disclaimer')}
         </motion.p>
       </div>
     </section>

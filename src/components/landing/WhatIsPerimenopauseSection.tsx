@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { XAxis, YAxis, ResponsiveContainer, LineChart, Line, ReferenceLine } from "recharts";
+import { useTranslation, Trans } from "react-i18next";
 
 // Hormone data showing fluctuations during perimenopause with more realistic patterns
 const hormoneData = [
@@ -27,6 +28,8 @@ const hormoneData = [
 ];
 
 export const WhatIsPerimenopauseSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section id="what-is-perimenopause" className="py-20 bg-muted/30">
       <div className="container mx-auto px-4">
@@ -39,27 +42,23 @@ export const WhatIsPerimenopauseSection = () => {
             transition={{ duration: 0.5 }}
           >
             <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-6">
-              Wat is de perimenopauze?
+              {t('what_is.title')}
             </h2>
             <div className="space-y-4 text-muted-foreground">
               <p>
-                <strong className="text-foreground">De perimenopauze</strong> is de overgangsperiode 
-                voorafgaand aan de menopauze. Deze fase kan al beginnen bij vrouwen{" "}
-                <strong className="text-foreground">rond hun 30e</strong>, maar start gemiddeld tussen het 
-                <strong className="text-foreground"> 40e en 45e levensjaar</strong>. De perimenopauze kan 
-                4 tot 10 jaar duren.
+                <Trans 
+                  i18nKey="what_is.paragraph_1"
+                  components={{ strong: <strong className="text-foreground" /> }}
+                />
               </p>
               <p>
-                Tijdens de perimenopauze beginnen je hormoonspiegels te fluctueren. 
-                Vooral <strong className="text-foreground">oestrogeen</strong> en{" "}
-                <strong className="text-foreground">progesteron</strong> schommelen sterk, 
-                wat leidt tot allerlei lichamelijke en mentale veranderingen.
+                <Trans 
+                  i18nKey="what_is.paragraph_2"
+                  components={{ strong: <strong className="text-foreground" /> }}
+                />
               </p>
               <p>
-                Deze hormonale schommelingen kunnen leiden tot onregelmatige menstruatie, 
-                opvliegers, slaapproblemen, stemmingswisselingen, gewichtstoename en 
-                concentratieproblemen. Het goede nieuws: met de juiste inzichten kun je 
-                veel van deze klachten beter begrijpen en aanpakken.
+                {t('what_is.paragraph_3')}
               </p>
             </div>
           </motion.div>
@@ -73,10 +72,10 @@ export const WhatIsPerimenopauseSection = () => {
             className="bg-card rounded-2xl p-6 border border-border shadow-lg"
           >
             <h3 className="text-lg font-semibold text-foreground mb-2 text-center">
-              Hormoonspiegels tijdens de perimenopauze
+              {t('what_is.chart_title')}
             </h3>
             <p className="text-sm text-muted-foreground mb-6 text-center">
-              Hormoonschommelingen per leeftijd (%)
+              {t('what_is.chart_subtitle')}
             </p>
             
             <div className="h-64">
@@ -103,7 +102,7 @@ export const WhatIsPerimenopauseSection = () => {
                     stroke="hsl(var(--primary))"
                     strokeWidth={2.5}
                     dot={false}
-                    name="Oestrogeen"
+                    name={t('what_is.estrogen')}
                   />
                   <Line
                     type="monotone"
@@ -111,7 +110,7 @@ export const WhatIsPerimenopauseSection = () => {
                     stroke="hsl(var(--secondary))"
                     strokeWidth={2.5}
                     dot={false}
-                    name="Progesteron"
+                    name={t('what_is.progesterone')}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -120,16 +119,16 @@ export const WhatIsPerimenopauseSection = () => {
             <div className="flex justify-center gap-6 mt-4">
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-primary" />
-                <span className="text-sm text-muted-foreground">Oestrogeen</span>
+                <span className="text-sm text-muted-foreground">{t('what_is.estrogen')}</span>
               </div>
               <div className="flex items-center gap-2">
                 <div className="w-3 h-3 rounded-full bg-secondary" />
-                <span className="text-sm text-muted-foreground">Progesteron</span>
+                <span className="text-sm text-muted-foreground">{t('what_is.progesterone')}</span>
               </div>
             </div>
 
             <p className="text-xs text-muted-foreground text-center mt-4">
-              Let op de sterke schommelingen - dit verklaart waarom symptomen kunnen variëren
+              {t('what_is.chart_note')}
             </p>
           </motion.div>
         </div>
