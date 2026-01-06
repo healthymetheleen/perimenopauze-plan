@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 const navLinks = [
   { label: "Functies", href: "#features" },
@@ -13,13 +14,41 @@ const navLinks = [
 
 export const LandingHeader = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>("");
+
+  useEffect(() => {
+    const sectionIds = navLinks
+      .filter((link) => link.href.startsWith("#"))
+      .map((link) => link.href.slice(1));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setActiveSection(`#${entry.target.id}`);
+          }
+        });
+      },
+      {
+        rootMargin: "-20% 0px -70% 0px", // Trigger when section is in upper portion of viewport
+        threshold: 0,
+      }
+    );
+
+    sectionIds.forEach((id) => {
+      const element = document.getElementById(id);
+      if (element) observer.observe(element);
+    });
+
+    return () => observer.disconnect();
+  }, []);
 
   const handleNavClick = (href: string) => {
     setMobileMenuOpen(false);
     if (href.startsWith("#")) {
       const element = document.querySelector(href);
       if (element) {
-        const headerOffset = 80; // Account for fixed header height
+        const headerOffset = 80;
         const elementPosition = element.getBoundingClientRect().top;
         const offsetPosition = elementPosition + window.scrollY - headerOffset;
         
@@ -36,7 +65,7 @@ export const LandingHeader = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/" className="flex items-center gap-2" onClick={() => setActiveSection("")}>
             <img
               src="/favicon.svg"
               alt="Perimenopauze Plan"
@@ -47,16 +76,27 @@ export const LandingHeader = () => {
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
             {navLinks.map((link) =>
               link.href.startsWith("#") ? (
                 <button
                   key={link.label}
                   onClick={() => handleNavClick(link.href)}
-                  className="text-muted-foreground hover:text-foreground transition-colors text-sm font-medium"
+                  className={cn(
+                    "text-sm font-medium transition-colors relative",
+                    activeSection === link.href
+                      ? "text-primary"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
                 >
                   {link.label}
+                  {activeSection === link.href && (
+                    <motion.div
+                      layoutId="activeSection"
+                      className="absolute -bottom-1 left-0 right-0 h-0.5 bg-primary rounded-full"
+                      transition={{ type: "spring", stiffness: 380, damping: 30 }}
+                    />
+                  )}
                 </button>
               ) : (
                 <Link
@@ -107,7 +147,12 @@ export const LandingHeader = () => {
                   <button
                     key={link.label}
                     onClick={() => handleNavClick(link.href)}
-                    className="text-left text-muted-foreground hover:text-foreground transition-colors py-2 text-sm font-medium"
+                    className={cn(
+                      "text-left py-2 text-sm font-medium transition-colors",
+                      activeSection === link.href
+                        ? "text-primary"
+                        : "text-muted-foreground hover:text-foreground"
+                    )}
                   >
                     {link.label}
                   </button>
