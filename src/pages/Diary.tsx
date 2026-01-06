@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { format, subDays, addDays } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { useSearchParams } from 'react-router-dom';
@@ -13,6 +13,7 @@ import { useDiaryDay, useMeals, useDailyScores } from '@/hooks/useDiary';
 import { AddMealDialog } from '@/components/diary/AddMealDialog';
 import { MealCard } from '@/components/diary/MealCard';
 import { WeeklyInsightCard } from '@/components/diary/WeeklyInsightCard';
+import { useToast } from '@/hooks/use-toast';
 
 // Translate score reason codes to Dutch explanations with detailed advice
 const translateScoreReason = (reason: string): { text: string; advice: string } => {
@@ -63,28 +64,43 @@ const translateScoreReason = (reason: string): { text: string; advice: string } 
 
 export default function DiaryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const { toast } = useToast();
   const [selectedDate, setSelectedDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [showAddMeal, setShowAddMeal] = useState(false);
+  const openMealHandledRef = useRef(false);
   
   const { data: diaryDay, isLoading: dayLoading, createDay } = useDiaryDay(selectedDate);
   const { data: meals, isLoading: mealsLoading } = useMeals(diaryDay?.id || null);
   const { data: scores } = useDailyScores(7);
 
-  // Open meal dialog if query param is set
+  // Open meal dialog if query param is set (e.g. Dashboard quick action)
   useEffect(() => {
+    if (searchParams.get('openMeal') !== 'true') return;
+    if (dayLoading) return; // wait until we know whether today's diaryDay exists
+    if (openMealHandledRef.current) return;
+    openMealHandledRef.current = true;
+
     const openMealFromDashboard = async () => {
-      if (searchParams.get('openMeal') === 'true') {
-        // Create day if it doesn't exist
-        if (!diaryDay && !dayLoading) {
+      // Clear param immediately to prevent duplicate inserts/re-renders from re-triggering
+      setSearchParams({}, { replace: true });
+
+      try {
+        if (!diaryDay) {
           await createDay.mutateAsync();
-        } else if (diaryDay) {
-          setShowAddMeal(true);
-          setSearchParams({}, { replace: true });
         }
+        setShowAddMeal(true);
+      } catch (err) {
+        console.error('[Diary] openMeal failed', err);
+        toast({
+          title: 'Kon maaltijdscherm niet openen',
+          description: 'Probeer het opnieuw.',
+          variant: 'destructive',
+        });
       }
     };
-    openMealFromDashboard();
-  }, [searchParams, diaryDay, dayLoading, createDay, setSearchParams]);
+
+    void openMealFromDashboard();
+  }, [searchParams, setSearchParams, dayLoading, diaryDay, createDay, toast]);
   
   const todayScore = scores?.find(s => s.day_date === selectedDate);
   const isToday = selectedDate === format(new Date(), 'yyyy-MM-dd');

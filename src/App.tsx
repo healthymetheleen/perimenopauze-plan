@@ -170,6 +170,12 @@ function AppRoutes() {
           <DiaryPage />
         </ProtectedRoute>
       } />
+      {/* Dutch alias */}
+      <Route path="/dagboek" element={
+        <ProtectedRoute>
+          <DiaryPage />
+        </ProtectedRoute>
+      } />
       <Route path="/trends" element={
         <ProtectedRoute>
           <TrendsPage />
