@@ -41,6 +41,7 @@ const NutritionAdminPage = lazy(() => import("./pages/NutritionAdmin"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboard"));
 const ProductsPage = lazy(() => import("./pages/Products"));
 const EducationPage = lazy(() => import("./pages/Education"));
+const PerimenopauseTestPage = lazy(() => import("./pages/PerimenopauseTest"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -278,6 +279,11 @@ function AppRoutes() {
       <Route path="/educatie" element={
         <ProtectedRoute>
           <EducationPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/perimenopauze-test" element={
+        <ProtectedRoute>
+          <PerimenopauseTestPage />
         </ProtectedRoute>
       } />
       

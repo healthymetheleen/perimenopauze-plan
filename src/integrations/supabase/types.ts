@@ -1046,6 +1046,57 @@ export type Database = {
         }
         Relationships: []
       }
+      perimenopause_tests: {
+        Row: {
+          answers: Json
+          consent_at: string | null
+          consent_given: boolean
+          created_at: string
+          domain_body_score: number
+          domain_cycle_score: number
+          domain_energy_score: number
+          domain_mental_score: number
+          id: string
+          owner_id: string
+          result_category: string
+          retention_until: string | null
+          total_score: number
+          updated_at: string
+        }
+        Insert: {
+          answers?: Json
+          consent_at?: string | null
+          consent_given?: boolean
+          created_at?: string
+          domain_body_score?: number
+          domain_cycle_score?: number
+          domain_energy_score?: number
+          domain_mental_score?: number
+          id?: string
+          owner_id: string
+          result_category: string
+          retention_until?: string | null
+          total_score?: number
+          updated_at?: string
+        }
+        Update: {
+          answers?: Json
+          consent_at?: string | null
+          consent_given?: boolean
+          created_at?: string
+          domain_body_score?: number
+          domain_cycle_score?: number
+          domain_energy_score?: number
+          domain_mental_score?: number
+          id?: string
+          owner_id?: string
+          result_category?: string
+          retention_until?: string | null
+          total_score?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       premium_grants: {
         Row: {
           created_at: string
