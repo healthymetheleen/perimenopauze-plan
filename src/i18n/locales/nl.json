@@ -1,0 +1,24 @@
+{
+  "common": {
+    "start_free_trial": "Start gratis proefperiode",
+    "view_pricing": "Bekijk prijzen",
+    "login": "Inloggen",
+    "signup": "Aanmelden",
+    "learn_more": "Meer leren"
+  },
+  "landing": {
+    "badge": "AI-gestuurde inzichten",
+    "hero_title": "Neem de regie over",
+    "hero_title_highlight": "de perimenopauze",
+    "hero_description": "Track je cyclus, <strong>bereken je menstruatie online</strong>, en ontvang <strong>AI-gestuurde inzichten</strong> afgestemd op jouw hormonale fase. Ontdek patronen tussen je slaap, voeding en symptomen.",
+    "hero_trust_badges": "✓ 7 dagen gratis proberen   ✓ Geen creditcard nodig   ✓ GDPR compliant",
+    "hero_image_alt": "Perimenopauze Plan app interface met cyclus dag indicator, symptomen dagboek, slaap tracking en voeding module voor vrouwen in de overgang"
+  },
+  "meta": {
+    "title": "Perimenopauze Plan | Menstruatie Berekenen Online & Cyclus Tracking",
+    "description": "Bereken je menstruatie online, track je cyclus en symptomen tijdens de perimenopauze. Ontvang AI-gestuurde inzichten afgestemd op jouw hormonale fase. Start gratis.",
+    "og_title": "Perimenopauze Plan | Menstruatie Berekenen Online",
+    "og_description": "Track je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten voor de perimenopauze.",
+    "twitter_description": "Track je cyclus, bereken je menstruatie online en ontvang AI-gestuurde inzichten."
+  }
+}

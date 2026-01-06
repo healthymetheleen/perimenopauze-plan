@@ -1,0 +1,24 @@
+{
+  "common": {
+    "start_free_trial": "Start free trial",
+    "view_pricing": "View pricing",
+    "login": "Log in",
+    "signup": "Sign up",
+    "learn_more": "Learn more"
+  },
+  "landing": {
+    "badge": "AI-powered insights",
+    "hero_title": "Take control of",
+    "hero_title_highlight": "perimenopause",
+    "hero_description": "Track your cycle, <strong>calculate your period online</strong>, and receive <strong>AI-powered insights</strong> tailored to your hormonal phase. Discover patterns between your sleep, nutrition and symptoms.",
+    "hero_trust_badges": "✓ 7-day free trial   ✓ No credit card required   ✓ GDPR compliant",
+    "hero_image_alt": "Perimenopause Plan app interface with cycle day indicator, symptom diary, sleep tracking and nutrition module for women in menopause transition"
+  },
+  "meta": {
+    "title": "Perimenopause Plan | Track Your Cycle & Get AI Insights",
+    "description": "Calculate your period online, track your cycle and symptoms during perimenopause. Get AI-powered insights tailored to your hormonal phase. Start free.",
+    "og_title": "Perimenopause Plan | Calculate Your Period Online",
+    "og_description": "Track your cycle, calculate your period online and receive AI-powered insights for perimenopause.",
+    "twitter_description": "Track your cycle, calculate your period online and receive AI-powered insights."
+  }
+}
