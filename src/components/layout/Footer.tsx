@@ -1,5 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Shield, FileText, Target, Info } from 'lucide-react';
+import { Shield, FileText, Target, Info, MessageCircle } from 'lucide-react';
+import { FeedbackFormDialog } from '@/components/contact/FeedbackFormDialog';
+import { Button } from '@/components/ui/button';
 
 export function Footer() {
   return (
@@ -31,15 +33,23 @@ export function Footer() {
             </Link>
           </nav>
 
-          {/* Disclaimer */}
+          {/* Feedback button */}
+          <FeedbackFormDialog 
+            trigger={
+              <Button variant="ghost" size="sm" className="gap-1.5 text-muted-foreground hover:text-foreground">
+                <MessageCircle className="h-3.5 w-3.5" />
+                Feedback
+              </Button>
+            }
+          />
+        </div>
+
+        {/* Disclaimer */}
+        <div className="mt-4 pt-4 border-t border-border/50 flex flex-col sm:flex-row items-center justify-between gap-2">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Info className="h-3 w-3 flex-shrink-0" />
             <span>Geen medisch advies · Inzicht & zelfobservatie</span>
           </div>
-        </div>
-
-        {/* Copyright */}
-        <div className="mt-4 pt-4 border-t border-border/50 text-center">
           <p className="text-xs text-muted-foreground">
             © {new Date().getFullYear()} Perimenopauze Plan. Alle rechten voorbehouden.
           </p>

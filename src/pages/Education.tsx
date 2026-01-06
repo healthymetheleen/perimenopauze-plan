@@ -52,39 +52,32 @@ const categoryColors: Record<string, string> = {
 // Timeline data
 const timelineData = [
   {
-    phase: "Pre-menopauze",
-    ageRange: "30-40 jaar",
-    duration: "Jarenlang",
-    description: "Stabiele hormoonspiegels met regelmatige cycli. Je lichaam functioneert zoals je gewend bent.",
-    color: "bg-green-100 dark:bg-green-900/30 border-green-300 dark:border-green-700",
-  },
-  {
     phase: "Vroege Perimenopauze",
-    ageRange: "40-45 jaar",
+    ageRange: "35-45 jaar",
     duration: "2-4 jaar",
-    description: "Eerste schommelingen beginnen. Cycli kunnen korter of langer worden, eerste subtiele symptomen.",
-    color: "bg-yellow-100 dark:bg-yellow-900/30 border-yellow-300 dark:border-yellow-700",
+    description: "Eerste schommelingen kunnen beginnen. Cycli worden soms korter of langer, eerste subtiele symptomen kunnen optreden.",
+    color: "bg-rose-50 dark:bg-rose-900/20 border-rose-200 dark:border-rose-800",
   },
   {
     phase: "Late Perimenopauze",
     ageRange: "45-51 jaar",
     duration: "2-4 jaar",
-    description: "Sterke hormoonschommelingen, onregelmatige cycli, duidelijke symptomen zoals opvliegers.",
-    color: "bg-orange-100 dark:bg-orange-900/30 border-orange-300 dark:border-orange-700",
+    description: "Sterke hormoonschommelingen, onregelmatige cycli, duidelijke symptomen zoals opvliegers en slaapproblemen.",
+    color: "bg-pink-50 dark:bg-pink-900/20 border-pink-200 dark:border-pink-800",
   },
   {
     phase: "Menopauze",
-    ageRange: "~51 jaar",
+    ageRange: "45-55 jaar",
     duration: "1 dag",
-    description: "Het moment dat je 12 maanden geen menstruatie hebt gehad. Gemiddelde leeftijd is 51 jaar.",
-    color: "bg-rose-100 dark:bg-rose-900/30 border-rose-300 dark:border-rose-700",
+    description: "Het moment dat je 12 maanden geen menstruatie hebt gehad. De leeftijd varieert per vrouw.",
+    color: "bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800",
   },
   {
     phase: "Post-menopauze",
-    ageRange: "51+ jaar",
+    ageRange: "Na menopauze",
     duration: "Rest van je leven",
-    description: "Hormonen stabiliseren op een lager niveau. Veel symptomen verminderen, maar nieuwe aandachtspunten.",
-    color: "bg-purple-100 dark:bg-purple-900/30 border-purple-300 dark:border-purple-700",
+    description: "Hormonen stabiliseren op een lager niveau. Veel symptomen verminderen, maar nieuwe aandachtspunten ontstaan.",
+    color: "bg-violet-50 dark:bg-violet-900/20 border-violet-200 dark:border-violet-800",
   },
 ];
 
@@ -110,10 +103,9 @@ const symptoms = {
 };
 
 const statistics = [
-  { label: "Gemiddelde startleeftijd perimenopauze", value: "45 jaar", subtext: "Range: 40-48 jaar" },
   { label: "Gemiddelde duur perimenopauze", value: "4-8 jaar", subtext: "Kan variëren van 2-10 jaar" },
-  { label: "Gemiddelde leeftijd menopauze", value: "51 jaar", subtext: "Range: 45-55 jaar" },
   { label: "Vrouwen met symptomen", value: "85%", subtext: "De meeste ervaren klachten" },
+  { label: "Leeftijdsrange menopauze", value: "45-55 jaar", subtext: "Varieert per vrouw" },
 ];
 
 const Education = () => {
@@ -246,8 +238,8 @@ const Education = () => {
                         <stop offset="95%" stopColor="hsl(var(--primary))" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorProgesteron" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.3}/>
-                        <stop offset="95%" stopColor="hsl(var(--accent))" stopOpacity={0}/>
+                        <stop offset="5%" stopColor="hsl(280, 70%, 50%)" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="hsl(280, 70%, 50%)" stopOpacity={0}/>
                       </linearGradient>
                       <linearGradient id="colorFSH" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--secondary))" stopOpacity={0.3}/>
@@ -299,7 +291,7 @@ const Education = () => {
                       type="monotone" 
                       dataKey="progesteron" 
                       name="Progesteron"
-                      stroke="hsl(var(--accent))" 
+                      stroke="hsl(280, 70%, 50%)" 
                       fillOpacity={1} 
                       fill="url(#colorProgesteron)"
                       strokeWidth={2}
@@ -324,8 +316,8 @@ const Education = () => {
                     tijdens de perimenopauze. Dit veroorzaakt veel van de bekende symptomen.
                   </p>
                 </div>
-                <div className="bg-accent/10 rounded-lg p-4">
-                  <h4 className="font-semibold text-accent-foreground mb-2">Progesteron</h4>
+                <div className="bg-purple-100 dark:bg-purple-900/30 rounded-lg p-4">
+                  <h4 className="font-semibold text-purple-700 dark:text-purple-300 mb-2">Progesteron</h4>
                   <p className="text-sm text-muted-foreground">
                     Het "kalmerende" hormoon. Daalt als eerste en sneller dan oestrogeen. 
                     Dit kan leiden tot angst, slaapproblemen en onregelmatige cycli.
@@ -355,7 +347,7 @@ const Education = () => {
             <CardContent>
               <div className="relative">
                 {/* Timeline line */}
-                <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-green-400 via-orange-400 to-purple-400" />
+                <div className="absolute left-4 md:left-1/2 top-0 bottom-0 w-0.5 bg-gradient-to-b from-rose-300 via-pink-300 to-violet-300 dark:from-rose-600 dark:via-pink-600 dark:to-violet-600" />
                 
                 <div className="space-y-8">
                   {timelineData.map((phase, index) => (
@@ -525,7 +517,7 @@ const Education = () => {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg p-5">
-                    <h4 className="font-semibold mb-3">🥚 De eierstokken</h4>
+                    <h4 className="font-semibold mb-3">De eierstokken</h4>
                     <p className="text-sm text-muted-foreground">
                       Je wordt geboren met ongeveer 1-2 miljoen eicellen. Tegen de tijd dat je 
                       de perimenopauze bereikt, zijn er nog maar enkele duizenden over. 
@@ -534,7 +526,7 @@ const Education = () => {
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-accent/10 to-secondary/10 rounded-lg p-5">
-                    <h4 className="font-semibold mb-3">🧠 De hypofyse</h4>
+                    <h4 className="font-semibold mb-3">De hypofyse</h4>
                     <p className="text-sm text-muted-foreground">
                       Je hersenen merken dat er minder hormonen zijn en sturen steeds sterkere 
                       signalen (FSH) naar de eierstokken. Dit "roepen" van de hersenen naar 
@@ -544,7 +536,7 @@ const Education = () => {
                 </div>
                 <div className="space-y-4">
                   <div className="bg-gradient-to-br from-secondary/10 to-primary/10 rounded-lg p-5">
-                    <h4 className="font-semibold mb-3">⚖️ De onbalans</h4>
+                    <h4 className="font-semibold mb-3">De onbalans</h4>
                     <p className="text-sm text-muted-foreground">
                       Oestrogeen en progesteron werken samen als een team. Wanneer progesteron 
                       sneller daalt dan oestrogeen, ontstaat er een relatieve oestrogeen-dominantie. 
@@ -552,7 +544,7 @@ const Education = () => {
                     </p>
                   </div>
                   <div className="bg-gradient-to-br from-primary/10 to-accent/10 rounded-lg p-5">
-                    <h4 className="font-semibold mb-3">🌊 De schommelingen</h4>
+                    <h4 className="font-semibold mb-3">De schommelingen</h4>
                     <p className="text-sm text-muted-foreground">
                       Je hormonen dalen niet in een rechte lijn, maar schommelen wild. 
                       De ene dag kun je je geweldig voelen, de volgende dag ellendig. 
@@ -589,20 +581,9 @@ const Education = () => {
                 Door je symptomen, cycli, slaap en voeding bij te houden, krijg je inzicht 
                 in jouw unieke patronen. Zo kun je beter begrijpen wat voor jou werkt.
               </p>
-              <div className="flex flex-wrap justify-center gap-3">
-                <Badge variant="secondary" className="text-sm py-1.5 px-3">
-                  📊 Trends ontdekken
-                </Badge>
-                <Badge variant="secondary" className="text-sm py-1.5 px-3">
-                  🌙 Slaap verbeteren
-                </Badge>
-                <Badge variant="secondary" className="text-sm py-1.5 px-3">
-                  🍽️ Voeding optimaliseren
-                </Badge>
-                <Badge variant="secondary" className="text-sm py-1.5 px-3">
-                  🏃‍♀️ Beweging afstemmen
-                </Badge>
-              </div>
+              <Button onClick={() => navigate('/dashboard')} size="lg">
+                Naar mijn dashboard
+              </Button>
             </CardContent>
           </Card>
         </section>
