@@ -1,41 +1,57 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { mealTypes, seasons, cyclePhases, dietTags } from '@/hooks/useRecipes';
-import { ChevronDown, Leaf, Moon, AlertCircle, Utensils, X } from 'lucide-react';
+import { ChevronDown, Leaf, Moon, AlertCircle, Utensils, X, Save } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface RecipeFiltersProps {
+  // Quick toggles
+  autoSeasonEnabled: boolean;
+  setAutoSeasonEnabled: (value: boolean) => void;
+  autoCycleEnabled: boolean;
+  setAutoCycleEnabled: (value: boolean) => void;
+  currentSeason: string;
+  currentCyclePhase: string;
+  // Regular filters
   mealType: string;
   setMealType: (value: string) => void;
-  season: string;
-  setSeason: (value: string) => void;
-  cyclePhase: string;
-  setCyclePhase: (value: string) => void;
+  // Saved allergies (persisted)
+  savedAllergyTags: string[];
+  toggleAllergyTag: (tag: string) => void;
+  // Additional diet filters (not persisted)
   selectedDietTags: string[];
   setSelectedDietTags: (value: string[]) => void;
   onClear: () => void;
 }
 
 // Group diet tags into categories
-const allergyTags = ['glutenvrij', 'zuivelvrij', 'lactosevrij', 'eivrij', 'notenvrij', 'sojavrij'];
+const allergyAndLifeTagValues = [
+  'glutenvrij', 'zuivelvrij', 'lactosevrij', 'eivrij', 'notenvrij', 'sojavrij',
+  'zwangerschapsveilig', 'kinderwensvriendelijk'
+];
 const dietPreferenceTags = ['vegetarisch', 'veganistisch', 'pescotarisch', 'keto', 'low-carb'];
 const healthTags = ['eiwitrijk', 'vezelrijk', 'anti-inflammatoir', 'bloedsuikerstabiel', 'ijzerrijk', 'foliumzuurrijk'];
-const lifeStageTags = ['zwangerschapsveilig', 'kinderwensvriendelijk'];
 
 export function RecipeFilters({
+  autoSeasonEnabled,
+  setAutoSeasonEnabled,
+  autoCycleEnabled,
+  setAutoCycleEnabled,
+  currentSeason,
+  currentCyclePhase,
   mealType,
   setMealType,
-  season,
-  setSeason,
-  cyclePhase,
-  setCyclePhase,
+  savedAllergyTags,
+  toggleAllergyTag,
   selectedDietTags,
   setSelectedDietTags,
   onClear,
 }: RecipeFiltersProps) {
-  const [openSections, setOpenSections] = useState<string[]>(['meal']);
+  const [openSections, setOpenSections] = useState<string[]>(['quick']);
 
   const toggleSection = (section: string) => {
     setOpenSections(prev =>
@@ -53,41 +69,70 @@ export function RecipeFilters({
     );
   };
 
-  const hasFilters = mealType || season || cyclePhase || selectedDietTags.length > 0;
-
-  const activeFilterCount = [
-    mealType ? 1 : 0,
-    season ? 1 : 0,
-    cyclePhase ? 1 : 0,
-    selectedDietTags.length,
-  ].reduce((a, b) => a + b, 0);
+  const hasFilters = mealType || savedAllergyTags.length > 0 || selectedDietTags.length > 0;
 
   return (
-    <div className="space-y-2">
-      {/* Quick summary of active filters */}
+    <div className="space-y-3">
+      {/* Quick toggles - always visible */}
+      <div className="p-3 rounded-lg bg-muted/50 space-y-3">
+        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Snelle filters</p>
+        
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Leaf className="h-4 w-4 text-green-600" />
+            <Label htmlFor="auto-season" className="text-sm font-medium cursor-pointer">
+              Seizoensproducten
+            </Label>
+            {autoSeasonEnabled && currentSeason && (
+              <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                {seasons.find(s => s.value === currentSeason)?.label || currentSeason}
+              </Badge>
+            )}
+          </div>
+          <Switch
+            id="auto-season"
+            checked={autoSeasonEnabled}
+            onCheckedChange={setAutoSeasonEnabled}
+          />
+        </div>
+
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Moon className="h-4 w-4 text-purple-600" />
+            <Label htmlFor="auto-cycle" className="text-sm font-medium cursor-pointer">
+              Cyclus syncing
+            </Label>
+            {autoCycleEnabled && currentCyclePhase && (
+              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+                {cyclePhases.find(c => c.value === currentCyclePhase)?.label || currentCyclePhase}
+              </Badge>
+            )}
+          </div>
+          <Switch
+            id="auto-cycle"
+            checked={autoCycleEnabled}
+            onCheckedChange={setAutoCycleEnabled}
+          />
+        </div>
+      </div>
+
+      {/* Active filter summary */}
       {hasFilters && (
         <div className="flex items-center gap-2 flex-wrap">
-          <span className="text-xs text-muted-foreground">Actieve filters:</span>
+          <span className="text-xs text-muted-foreground">Actief:</span>
           {mealType && (
             <Badge variant="secondary" className="gap-1">
               {mealTypes.find(m => m.value === mealType)?.label}
               <X className="h-3 w-3 cursor-pointer" onClick={() => setMealType('')} />
             </Badge>
           )}
-          {season && (
-            <Badge variant="secondary" className="gap-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-              <Leaf className="h-3 w-3" />
-              {seasons.find(s => s.value === season)?.label}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => setSeason('')} />
+          {savedAllergyTags.map(tag => (
+            <Badge key={tag} variant="outline" className="gap-1 border-amber-300 bg-amber-50 dark:bg-amber-950">
+              <Save className="h-2.5 w-2.5" />
+              {dietTags.find(t => t.value === tag)?.label || tag}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => toggleAllergyTag(tag)} />
             </Badge>
-          )}
-          {cyclePhase && (
-            <Badge variant="secondary" className="gap-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-              <Moon className="h-3 w-3" />
-              {cyclePhases.find(c => c.value === cyclePhase)?.label}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => setCyclePhase('')} />
-            </Badge>
-          )}
+          ))}
           {selectedDietTags.map(tag => (
             <Badge key={tag} variant="outline" className="gap-1">
               {dietTags.find(t => t.value === tag)?.label || tag}
@@ -95,7 +140,7 @@ export function RecipeFilters({
             </Badge>
           ))}
           <Button variant="ghost" size="sm" onClick={onClear} className="h-6 px-2 text-xs">
-            Alles wissen
+            Wissen
           </Button>
         </div>
       )}
@@ -128,85 +173,20 @@ export function RecipeFilters({
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Season section */}
-      <Collapsible open={openSections.includes('season')} onOpenChange={() => toggleSection('season')}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between h-10 px-3">
-            <span className="flex items-center gap-2">
-              <Leaf className="h-4 w-4 text-green-600" />
-              Seizoensproducten
-              {season && <Badge variant="secondary" className="ml-2 text-xs bg-green-100 text-green-800">{seasons.find(s => s.value === season)?.label}</Badge>}
-            </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", openSections.includes('season') && "rotate-180")} />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2 pb-3 px-3">
-          <p className="text-xs text-muted-foreground mb-2">
-            Recepten met ingrediënten die nu in het seizoen zijn in Nederland
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {seasons.map((s) => (
-              <Badge
-                key={s.value}
-                variant={season === s.value ? 'default' : 'outline'}
-                className={cn(
-                  "cursor-pointer hover:bg-green-100 dark:hover:bg-green-900",
-                  season === s.value && "bg-green-600 hover:bg-green-700"
-                )}
-                onClick={() => setSeason(season === s.value ? '' : s.value)}
-              >
-                {s.label}
-              </Badge>
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Cycle phase section */}
-      <Collapsible open={openSections.includes('cycle')} onOpenChange={() => toggleSection('cycle')}>
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full justify-between h-10 px-3">
-            <span className="flex items-center gap-2">
-              <Moon className="h-4 w-4 text-purple-600" />
-              Cyclus syncing
-              {cyclePhase && <Badge variant="secondary" className="ml-2 text-xs bg-purple-100 text-purple-800">{cyclePhases.find(c => c.value === cyclePhase)?.label}</Badge>}
-            </span>
-            <ChevronDown className={cn("h-4 w-4 transition-transform", openSections.includes('cycle') && "rotate-180")} />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="pt-2 pb-3 px-3">
-          <p className="text-xs text-muted-foreground mb-2">
-            Recepten afgestemd op je cyclusfase
-          </p>
-          <div className="flex flex-wrap gap-2">
-            {cyclePhases.map((phase) => (
-              <Badge
-                key={phase.value}
-                variant={cyclePhase === phase.value ? 'default' : 'outline'}
-                className={cn(
-                  "cursor-pointer hover:bg-purple-100 dark:hover:bg-purple-900 flex-col items-start py-2",
-                  cyclePhase === phase.value && "bg-purple-600 hover:bg-purple-700"
-                )}
-                onClick={() => setCyclePhase(cyclePhase === phase.value ? '' : phase.value)}
-              >
-                <span>{phase.label}</span>
-                <span className="text-[10px] opacity-70 font-normal">{phase.description}</span>
-              </Badge>
-            ))}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Allergies section */}
+      {/* Allergies & life stage section (persisted) */}
       <Collapsible open={openSections.includes('allergy')} onOpenChange={() => toggleSection('allergy')}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between h-10 px-3">
             <span className="flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-amber-600" />
-              Allergieën & intoleranties
-              {selectedDietTags.filter(t => allergyTags.includes(t)).length > 0 && (
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {selectedDietTags.filter(t => allergyTags.includes(t)).length}
+              Allergieën & levensfase
+              <Badge variant="outline" className="ml-1 text-[10px] border-amber-300 bg-amber-50 dark:bg-amber-950">
+                <Save className="h-2.5 w-2.5 mr-1" />
+                wordt onthouden
+              </Badge>
+              {savedAllergyTags.length > 0 && (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {savedAllergyTags.length}
                 </Badge>
               )}
             </span>
@@ -214,19 +194,23 @@ export function RecipeFilters({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-2 pb-3 px-3">
+          <p className="text-xs text-muted-foreground mb-3">
+            Deze voorkeuren worden onthouden en automatisch toegepast
+          </p>
           <div className="flex flex-wrap gap-2">
-            {allergyTags.map((tag) => {
+            {allergyAndLifeTagValues.map((tag) => {
               const tagInfo = dietTags.find(t => t.value === tag);
               if (!tagInfo) return null;
+              const isSelected = savedAllergyTags.includes(tag);
               return (
                 <Badge
                   key={tag}
-                  variant={selectedDietTags.includes(tag) ? 'default' : 'outline'}
+                  variant={isSelected ? 'default' : 'outline'}
                   className={cn(
-                    "cursor-pointer hover:bg-amber-100 dark:hover:bg-amber-900",
-                    selectedDietTags.includes(tag) && "bg-amber-600 hover:bg-amber-700"
+                    "cursor-pointer",
+                    isSelected && "bg-amber-600 hover:bg-amber-700"
                   )}
-                  onClick={() => toggleDietTag(tag)}
+                  onClick={() => toggleAllergyTag(tag)}
                 >
                   {tagInfo.label}
                 </Badge>
@@ -241,7 +225,7 @@ export function RecipeFilters({
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between h-10 px-3">
             <span className="flex items-center gap-2">
-              🥗 Voedingsvoorkeuren
+              🥗 Voedingsvoorkeur
               {selectedDietTags.filter(t => dietPreferenceTags.includes(t)).length > 0 && (
                 <Badge variant="secondary" className="ml-2 text-xs">
                   {selectedDietTags.filter(t => dietPreferenceTags.includes(t)).length}
@@ -271,15 +255,15 @@ export function RecipeFilters({
         </CollapsibleContent>
       </Collapsible>
 
-      {/* Health & life stage section */}
+      {/* Health tags section */}
       <Collapsible open={openSections.includes('health')} onOpenChange={() => toggleSection('health')}>
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between h-10 px-3">
             <span className="flex items-center gap-2">
-              💪 Gezondheid & levensfase
-              {selectedDietTags.filter(t => [...healthTags, ...lifeStageTags].includes(t)).length > 0 && (
+              💪 Voedingswaarden
+              {selectedDietTags.filter(t => healthTags.includes(t)).length > 0 && (
                 <Badge variant="secondary" className="ml-2 text-xs">
-                  {selectedDietTags.filter(t => [...healthTags, ...lifeStageTags].includes(t)).length}
+                  {selectedDietTags.filter(t => healthTags.includes(t)).length}
                 </Badge>
               )}
             </span>
@@ -287,48 +271,21 @@ export function RecipeFilters({
           </Button>
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-2 pb-3 px-3">
-          <div className="space-y-3">
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Voedingswaarden</p>
-              <div className="flex flex-wrap gap-2">
-                {healthTags.map((tag) => {
-                  const tagInfo = dietTags.find(t => t.value === tag);
-                  if (!tagInfo) return null;
-                  return (
-                    <Badge
-                      key={tag}
-                      variant={selectedDietTags.includes(tag) ? 'default' : 'outline'}
-                      className="cursor-pointer"
-                      onClick={() => toggleDietTag(tag)}
-                    >
-                      {tagInfo.label}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </div>
-            <div>
-              <p className="text-xs text-muted-foreground mb-2">Levensfase</p>
-              <div className="flex flex-wrap gap-2">
-                {lifeStageTags.map((tag) => {
-                  const tagInfo = dietTags.find(t => t.value === tag);
-                  if (!tagInfo) return null;
-                  return (
-                    <Badge
-                      key={tag}
-                      variant={selectedDietTags.includes(tag) ? 'default' : 'outline'}
-                      className={cn(
-                        "cursor-pointer hover:bg-pink-100 dark:hover:bg-pink-900",
-                        selectedDietTags.includes(tag) && "bg-pink-600 hover:bg-pink-700"
-                      )}
-                      onClick={() => toggleDietTag(tag)}
-                    >
-                      {tagInfo.label}
-                    </Badge>
-                  );
-                })}
-              </div>
-            </div>
+          <div className="flex flex-wrap gap-2">
+            {healthTags.map((tag) => {
+              const tagInfo = dietTags.find(t => t.value === tag);
+              if (!tagInfo) return null;
+              return (
+                <Badge
+                  key={tag}
+                  variant={selectedDietTags.includes(tag) ? 'default' : 'outline'}
+                  className="cursor-pointer"
+                  onClick={() => toggleDietTag(tag)}
+                >
+                  {tagInfo.label}
+                </Badge>
+              );
+            })}
           </div>
         </CollapsibleContent>
       </Collapsible>
