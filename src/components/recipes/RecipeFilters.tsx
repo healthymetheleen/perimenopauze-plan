@@ -79,12 +79,12 @@ export function RecipeFilters({
         
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Leaf className="h-4 w-4 text-green-600" />
+            <Leaf className="h-4 w-4 text-primary" />
             <Label htmlFor="auto-season" className="text-sm font-medium cursor-pointer">
               Seizoensproducten
             </Label>
             {autoSeasonEnabled && currentSeason && (
-              <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+              <Badge variant="secondary" className="text-xs">
                 {seasons.find(s => s.value === currentSeason)?.label || currentSeason}
               </Badge>
             )}
@@ -98,12 +98,12 @@ export function RecipeFilters({
 
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Moon className="h-4 w-4 text-purple-600" />
+            <Moon className="h-4 w-4 text-primary" />
             <Label htmlFor="auto-cycle" className="text-sm font-medium cursor-pointer">
               Cyclus syncing
             </Label>
             {autoCycleEnabled && currentCyclePhase && (
-              <Badge variant="secondary" className="text-xs bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
+              <Badge variant="secondary" className="text-xs">
                 {cyclePhases.find(c => c.value === currentCyclePhase)?.label || currentCyclePhase}
               </Badge>
             )}
@@ -127,7 +127,7 @@ export function RecipeFilters({
             </Badge>
           )}
           {savedAllergyTags.map(tag => (
-            <Badge key={tag} variant="outline" className="gap-1 border-amber-300 bg-amber-50 dark:bg-amber-950">
+            <Badge key={tag} variant="outline" className="gap-1 border-primary/30 bg-primary/5">
               <Save className="h-2.5 w-2.5" />
               {dietTags.find(t => t.value === tag)?.label || tag}
               <X className="h-3 w-3 cursor-pointer" onClick={() => toggleAllergyTag(tag)} />
@@ -178,9 +178,9 @@ export function RecipeFilters({
         <CollapsibleTrigger asChild>
           <Button variant="ghost" className="w-full justify-between h-10 px-3">
             <span className="flex items-center gap-2">
-              <AlertCircle className="h-4 w-4 text-amber-600" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
               Allergieën & levensfase
-              <Badge variant="outline" className="ml-1 text-[10px] border-amber-300 bg-amber-50 dark:bg-amber-950">
+              <Badge variant="outline" className="ml-1 text-[10px]">
                 <Save className="h-2.5 w-2.5 mr-1" />
                 wordt onthouden
               </Badge>
@@ -208,7 +208,7 @@ export function RecipeFilters({
                   variant={isSelected ? 'default' : 'outline'}
                   className={cn(
                     "cursor-pointer",
-                    isSelected && "bg-amber-600 hover:bg-amber-700"
+                    isSelected && "bg-primary hover:bg-primary/90"
                   )}
                   onClick={() => toggleAllergyTag(tag)}
                 >
