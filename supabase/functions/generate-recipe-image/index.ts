@@ -45,7 +45,12 @@ CRITICAL STYLE REQUIREMENTS:
 - Fresh, light, feminine, Scandinavian aesthetic
 - Soft muted pastel colors - not oversaturated, not dark
 - Ultra clean and polished look
-- No text, no watermarks, no logos
+
+ABSOLUTELY NO TEXT IN THE IMAGE:
+- NO text of any kind - no titles, no labels, no recipe names, no watermarks, no logos, no letters, no words
+- The image must be purely photographic with zero typography or writing
+- Do not include any overlays, captions, or annotations
+
 - Square format 1:1 aspect ratio
 - Ultra high resolution`;
 
