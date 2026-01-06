@@ -9,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 import { AnimatedSeasonBackground } from '@/components/layout/AnimatedSeasonBackground';
+import { InstallPromptDialog } from '@/components/pwa/InstallPromptDialog';
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ export default function LoginPage() {
   const [resetEmail, setResetEmail] = useState('');
   const [resetLoading, setResetLoading] = useState(false);
   const [resetDialogOpen, setResetDialogOpen] = useState(false);
+  const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -64,19 +66,43 @@ export default function LoginPage() {
         description: error.message,
         variant: 'destructive',
       });
+      setLoading(false);
     } else {
       toast({
         title: 'Account aangemaakt',
         description: 'Je kunt nu inloggen.',
       });
-      navigate('/consent');
+      setLoading(false);
+      
+      // Check if user hasn't skipped install prompt before
+      const hasSkipped = sessionStorage.getItem('pwa-install-skipped');
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
+      
+      if (!hasSkipped && !isStandalone) {
+        // Show install prompt after successful signup
+        setShowInstallPrompt(true);
+      } else {
+        navigate('/consent');
+      }
     }
-    setLoading(false);
+  };
+
+  const handleInstallPromptClose = () => {
+    setShowInstallPrompt(false);
+    navigate('/consent');
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 relative">
       <AnimatedSeasonBackground season="primary" />
+      
+      {/* PWA Install Prompt after registration */}
+      <InstallPromptDialog 
+        open={showInstallPrompt} 
+        onOpenChange={handleInstallPromptClose}
+        onInstalled={() => navigate('/consent')}
+      />
+      
       <Card className="w-full max-w-md rounded-2xl bg-card/80 backdrop-blur-md border-border/50">
         <CardHeader className="text-center space-y-3">
           <CardTitle className="text-2xl">Perimenopauze Plan</CardTitle>
