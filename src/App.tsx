@@ -12,6 +12,7 @@ import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ShoppingListProvider } from "@/hooks/useShoppingList";
 
 // Lazy loaded pages for code splitting
+const LandingPage = lazy(() => import("./pages/Landing"));
 const LoginPage = lazy(() => import("./pages/Login"));
 const ConsentPage = lazy(() => import("./pages/Consent"));
 const ProfileOnboardingPage = lazy(() => import("./pages/ProfileOnboarding"));
@@ -137,7 +138,7 @@ function AppRoutes() {
     <Suspense fallback={<LoadingPage />}>
     <Routes>
       {/* Public routes */}
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      <Route path="/" element={<LandingPage />} />
       <Route path="/install" element={<InstallPage />} />
       <Route path="/pricing" element={<PricingPage />} />
       <Route path="/privacy" element={<PrivacyPolicy />} />

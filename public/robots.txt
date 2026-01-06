@@ -1,3 +1,6 @@
+# Robots.txt for Perimenopauze Plan
+
+# Allow all search engines to index public pages
 User-agent: Googlebot
 Allow: /
 
@@ -10,5 +13,28 @@ Allow: /
 User-agent: facebookexternalhit
 Allow: /
 
+User-agent: LinkedInBot
+Allow: /
+
 User-agent: *
 Allow: /
+
+# Block access to protected app routes (these require authentication anyway)
+Disallow: /dashboard
+Disallow: /diary
+Disallow: /dagboek
+Disallow: /cycle
+Disallow: /slaap
+Disallow: /bewegen
+Disallow: /recepten
+Disallow: /trends
+Disallow: /settings
+Disallow: /account
+Disallow: /consent
+Disallow: /profile-onboarding
+Disallow: /admin
+Disallow: /analyse
+Disallow: /subscription
+
+# Sitemap location
+Sitemap: https://www.perimenopauzeplan.nl/sitemap.xml
