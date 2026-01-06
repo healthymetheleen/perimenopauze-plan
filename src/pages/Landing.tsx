@@ -107,7 +107,7 @@ const Landing = () => {
           <section id="symptoms">
             <SymptomsInfographicSection />
           </section>
-          <section id="features">
+          <section id="functies">
             <FeaturesSection />
           </section>
           <section id="how-it-works">

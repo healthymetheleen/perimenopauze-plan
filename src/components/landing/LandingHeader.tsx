@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 const navLinks = [
   { label: "Wat is perimenopauze?", href: "#what-is-perimenopause" },
   { label: "Klachten", href: "#symptoms" },
-  { label: "Functies", href: "#features" },
+  { label: "Functies", href: "#functies" },
   { label: "FAQ", href: "#faq" },
   { label: "Prijzen", href: "/pricing" },
 ];
