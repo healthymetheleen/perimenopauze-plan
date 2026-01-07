@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
@@ -51,6 +52,7 @@ export function RecipeFilters({
   setSelectedDietTags,
   onClear,
 }: RecipeFiltersProps) {
+  const { t } = useTranslation();
   const [openSections, setOpenSections] = useState<string[]>(['quick']);
 
   const toggleSection = (section: string) => {
@@ -122,7 +124,7 @@ export function RecipeFilters({
           <span className="text-xs text-muted-foreground">Actief:</span>
           {mealType && (
             <Badge variant="secondary" className="gap-1">
-              {mealTypes.find(m => m.value === mealType)?.label}
+              {t(mealTypes.find(m => m.value === mealType)?.labelKey || '')}
               <X className="h-3 w-3 cursor-pointer" onClick={() => setMealType('')} />
             </Badge>
           )}
@@ -152,7 +154,7 @@ export function RecipeFilters({
             <span className="flex items-center gap-2">
               <Utensils className="h-4 w-4" />
               Maaltijdmoment
-              {mealType && <Badge variant="secondary" className="ml-2 text-xs">{mealTypes.find(m => m.value === mealType)?.label}</Badge>}
+              {mealType && <Badge variant="secondary" className="ml-2 text-xs">{t(mealTypes.find(m => m.value === mealType)?.labelKey || '')}</Badge>}
             </span>
             <ChevronDown className={cn("h-4 w-4 transition-transform", openSections.includes('meal') && "rotate-180")} />
           </Button>
@@ -166,7 +168,7 @@ export function RecipeFilters({
                 className="cursor-pointer hover:bg-primary/20"
                 onClick={() => setMealType(mealType === type.value ? '' : type.value)}
               >
-                {type.label}
+                {t(type.labelKey)}
               </Badge>
             ))}
           </div>

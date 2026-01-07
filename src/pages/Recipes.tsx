@@ -247,7 +247,7 @@ export default function RecipesPage() {
                             </span>
                           )}
                           <Badge variant="secondary" className="text-xs">
-                            {mealTypes.find(m => m.value === recipe.meal_type)?.label}
+                            {t(mealTypes.find(m => m.value === recipe.meal_type)?.labelKey || '')}
                           </Badge>
                         </div>
                       </div>
@@ -289,7 +289,7 @@ export default function RecipesPage() {
                 <SelectItem value="all">{t('recipes.all_meals')}</SelectItem>
                 {mealTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
-                    {type.label}
+                    {t(type.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -427,7 +427,7 @@ export default function RecipesPage() {
                         )}
                         <div className="flex flex-wrap items-center gap-2 mt-2">
                           <Badge variant="secondary">
-                            {mealTypes.find(m => m.value === recipe.meal_type)?.label}
+                            {t(mealTypes.find(m => m.value === recipe.meal_type)?.labelKey || '')}
                           </Badge>
                           {recipe.prep_time_minutes && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
