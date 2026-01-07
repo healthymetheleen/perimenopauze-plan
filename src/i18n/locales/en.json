@@ -77,7 +77,11 @@
     "lente": "Spring",
     "zomer": "Summer",
     "herfst": "Autumn",
-    "onbekend": "Unknown"
+    "onbekend": "Unknown",
+    "spring": "Spring",
+    "summer": "Summer",
+    "autumn": "Autumn",
+    "unknown": "Unknown"
   },
   "phases": {
     "menstruation": "Menstruation",
@@ -105,10 +109,6 @@
     "zomer": "Light but nutritious, extra hydration",
     "herfst": "Stable meal times, magnesium-rich",
     "onbekend": "Eat varied and nutritious"
-  },
-  "cycle": {
-    "day": "Day",
-    "fertile": "Fertile"
   },
   "reflection": {
     "title": "Daily reflection",
@@ -262,6 +262,8 @@
     }
   },
   "cycle": {
+    "day": "Day",
+    "fertile": "Fertile",
     "loading": "Loading cycle data...",
     "fertile_notification": "You are in your fertile window",
     "fertile_window_range": "Your fertile window runs from {{start}} to {{end}}.",
@@ -369,13 +371,6 @@
     "session_deleted": "Sleep session deleted",
     "could_not_delete": "Could not delete session",
     "unknown": "unknown"
-  },
-  "seasons": {
-    "winter": "Winter",
-    "spring": "Spring",
-    "summer": "Summer",
-    "autumn": "Autumn",
-    "unknown": "Unknown"
   },
   "season_tips": {
     "winter": {

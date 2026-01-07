@@ -58,7 +58,7 @@ export function TodayAtAGlance() {
   const { data: coaching } = useNutritionCoach();
   const { data: dailyAnalysis } = useDailyAnalysis();
   
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dateLocale = i18n.language?.startsWith('nl') ? nl : enUS;
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayDate = startOfDay(new Date());
   const todayScore = scores?.find(s => s.day_date === today);
