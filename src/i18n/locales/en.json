@@ -106,6 +106,20 @@
     "herfst": "Stable meal times, magnesium-rich",
     "onbekend": "Eat varied and nutritious"
   },
+  "cycle": {
+    "day": "Day",
+    "fertile": "Fertile"
+  },
+  "reflection": {
+    "title": "Daily reflection",
+    "description": "Receive a personal reflection based on your daily patterns.",
+    "generate": "Generate reflection",
+    "refresh": "Refresh insight",
+    "error": "Could not generate insight. Please try again later.",
+    "enable_ai_hint": "Enable AI insights in Settings for personal reflections.",
+    "log_day_hint": "Log your day to receive a personal reflection.",
+    "requests_remaining": "{{count}} AI requests left"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your preferences and privacy",

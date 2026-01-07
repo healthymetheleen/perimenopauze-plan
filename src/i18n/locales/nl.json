@@ -106,6 +106,20 @@
     "herfst": "Stabiele maaltijdtijden, magnesiumrijk",
     "onbekend": "Gevarieerd en voedzaam eten"
   },
+  "cycle": {
+    "day": "Dag",
+    "fertile": "Vruchtbaar"
+  },
+  "reflection": {
+    "title": "Dagelijkse reflectie",
+    "description": "Ontvang een persoonlijke reflectie op basis van je dagpatronen.",
+    "generate": "Genereer reflectie",
+    "refresh": "Vernieuw inzicht",
+    "error": "Kon geen inzicht genereren. Probeer het later opnieuw.",
+    "enable_ai_hint": "Schakel AI-inzichten in bij Instellingen voor persoonlijke reflecties.",
+    "log_day_hint": "Log je dag om een persoonlijke reflectie te ontvangen.",
+    "requests_remaining": "{{count}} AI-verzoeken over"
+  },
   "settings": {
     "title": "Instellingen",
     "subtitle": "Beheer je voorkeuren en privacy",

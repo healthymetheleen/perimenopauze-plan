@@ -7,7 +7,8 @@ import {
   parseISO,
   startOfDay,
 } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,7 +17,6 @@ import {
   useCyclePreferences,
   useCycles,
   useBleedingLogs,
-  seasonLabels,
   getSeasonForDate,
 } from '@/hooks/useCycle';
 import { ArrowRight, Calendar } from 'lucide-react';
@@ -24,6 +24,8 @@ import { ArrowRight, Calendar } from 'lucide-react';
 type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
 export function CycleWeekWidget() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);
@@ -117,10 +119,10 @@ export function CycleWeekWidget() {
                 <Calendar className="h-4 w-4" />
               </div>
               <div>
-                <p className="text-sm font-medium">Cyclus</p>
+                <p className="text-sm font-medium">{t('nav.cycle')}</p>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <span>{seasonLabels[currentSeason]}</span>
-                  {dayInCycle > 0 && <span>· Dag {dayInCycle}</span>}
+                  <span>{t(`seasons.${currentSeason}`)}</span>
+                  {dayInCycle > 0 && <span>· {t('cycle.day')} {dayInCycle}</span>}
                 </div>
               </div>
             </div>
@@ -135,15 +137,15 @@ export function CycleWeekWidget() {
                 className="font-normal pl-5 relative bg-background/80 flex-shrink-0"
               >
                 <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive" />
-                {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
+                {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: dateLocale })}
               </Badge>
             )}
             {preferences?.show_fertile_days && prediction?.fertile_window_start && (
               <Badge 
                 variant="outline" 
-                className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80 flex-shrink-0 whitespace-nowrap"
+                className="font-normal outline outline-2 outline-offset-2 outline-green-500 bg-background/80 flex-shrink-0 whitespace-nowrap"
               >
-                Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
+                {t('today.fertile')} {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: dateLocale })}
               </Badge>
             )}
             {preferences?.show_fertile_days && ovulationDateStr && (
@@ -151,7 +153,7 @@ export function CycleWeekWidget() {
                 variant="outline" 
                 className="font-normal pr-5 relative bg-background/80 flex-shrink-0"
               >
-                {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
+                {format(parseISO(ovulationDateStr), 'd MMM', { locale: dateLocale })}
                 <span className="absolute -top-0.5 -right-0.5 cycle-ovulation-star text-[10px] font-bold">★</span>
               </Badge>
             )}
@@ -184,7 +186,7 @@ export function CycleWeekWidget() {
                 )}
 
                 <span className="text-[10px] text-muted-foreground leading-none">
-                  {format(d.date, 'EE', { locale: nl }).substring(0, 2)}
+                  {format(d.date, 'EE', { locale: dateLocale }).substring(0, 2)}
                 </span>
                 <span className="text-lg font-bold leading-tight">{format(d.date, 'd')}</span>
               </div>

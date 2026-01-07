@@ -1,4 +1,5 @@
 import { Sparkles, RefreshCw, Info } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,6 +27,7 @@ export function DailyReflectionCard({
   movement,
   energy,
 }: DailyReflectionCardProps) {
+  const { t } = useTranslation();
   const { consent } = useConsent();
   const { data: usage } = useAIUsage();
   const [showInsight, setShowInsight] = useState(false);
@@ -51,7 +53,7 @@ export function DailyReflectionCard({
         <CardContent className="pt-6 text-center">
           <Sparkles className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
-            Schakel AI-inzichten in bij Instellingen voor persoonlijke reflecties.
+            {t('reflection.enable_ai_hint')}
           </p>
         </CardContent>
       </Card>
@@ -64,7 +66,7 @@ export function DailyReflectionCard({
         <CardContent className="pt-6 text-center">
           <Sparkles className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
-            Log je dag om een persoonlijke reflectie te ontvangen.
+            {t('reflection.log_day_hint')}
           </p>
         </CardContent>
       </Card>
@@ -78,17 +80,17 @@ export function DailyReflectionCard({
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-primary" />
-              <span className="font-medium">Dagelijkse reflectie</span>
+              <span className="font-medium">{t('reflection.title')}</span>
               <Badge variant="secondary" className="text-xs">Premium</Badge>
             </div>
             {usage && (
               <span className="text-xs text-muted-foreground">
-                {usage.remaining} AI-verzoeken over
+                {t('reflection.requests_remaining', { count: usage.remaining })}
               </span>
             )}
           </div>
           <p className="text-sm text-muted-foreground mb-4">
-            Ontvang een persoonlijke reflectie op basis van je dagpatronen.
+            {t('reflection.description')}
           </p>
           <Button 
             onClick={() => setShowInsight(true)}
@@ -96,7 +98,7 @@ export function DailyReflectionCard({
             variant="outline"
           >
             <Sparkles className="h-4 w-4 mr-2" />
-            Genereer reflectie
+            {t('reflection.generate')}
           </Button>
         </CardContent>
       </Card>
@@ -109,7 +111,7 @@ export function DailyReflectionCard({
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Dagelijkse reflectie
+            {t('reflection.title')}
             <Badge variant="secondary" className="text-xs">AI</Badge>
           </CardTitle>
           <div className="flex items-center gap-2">
@@ -126,7 +128,7 @@ export function DailyReflectionCard({
                     <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>Vernieuw inzicht</TooltipContent>
+                <TooltipContent>{t('reflection.refresh')}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           </div>
@@ -141,7 +143,7 @@ export function DailyReflectionCard({
           </div>
         ) : error ? (
           <div className="text-sm text-muted-foreground">
-            <p>Kon geen inzicht genereren. Probeer het later opnieuw.</p>
+            <p>{t('reflection.error')}</p>
           </div>
         ) : insight ? (
           <>
