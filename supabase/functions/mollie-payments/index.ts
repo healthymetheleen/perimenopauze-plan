@@ -1,5 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import {
+  sendEmail,
+  getSubscriptionWelcomeEmail,
+  getSubscriptionCancelledEmail,
+  getPaymentFailedEmail,
+  getRefundProcessedEmail,
+} from "../_shared/email-templates.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -539,10 +546,25 @@ serve(async (req) => {
 
         console.log(`Payment ${paymentId} status: ${payment.status}, isFirst: ${isFirstPayment}`);
 
+        // Handle failed payments
+        if (payment.status === 'failed' && userId) {
+          console.log(`Payment failed for user ${userId}`);
+          const resendApiKey = Deno.env.get('RESEND_API_KEY');
+          if (resendApiKey && payment.metadata?.email) {
+            const emailData = getPaymentFailedEmail('', payment.amount?.value || '7.50');
+            await sendEmail(payment.metadata.email, emailData.subject, emailData.html, resendApiKey);
+          }
+        }
+
         // Update subscription status if payment is successful
         if (payment.status === 'paid' && userId) {
           const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
           const adminClient = createClient(supabaseUrl, serviceRoleKey);
+          const resendApiKey = Deno.env.get('RESEND_API_KEY');
+
+          // Get user email for notifications
+          const { data: userData } = await adminClient.auth.admin.getUserById(userId);
+          const userEmail = userData?.user?.email;
 
           // If this is a first payment, create recurring subscription
           if (isFirstPayment && customerId) {
@@ -597,6 +619,13 @@ serve(async (req) => {
                 }, {
                   onConflict: 'owner_id'
                 });
+
+              // Send welcome email
+              if (resendApiKey && userEmail) {
+                const emailData = getSubscriptionWelcomeEmail('');
+                await sendEmail(userEmail, emailData.subject, emailData.html, resendApiKey);
+                console.log(`Welcome email sent to ${userEmail}`);
+              }
             } else {
               // Log only status code, not full error response (security)
               console.error('Mollie API error:', { status: subscriptionResponse.status, endpoint: 'create-recurring-subscription-webhook' });
@@ -643,7 +672,7 @@ serve(async (req) => {
         // Get Mollie IDs from database instead of requiring them from client
         const { data: subData } = await supabase
           .from('subscriptions')
-          .select('mollie_customer_id, mollie_subscription_id')
+          .select('mollie_customer_id, mollie_subscription_id, current_period_ends_at')
           .eq('owner_id', user.id)
           .single();
 
@@ -689,7 +718,175 @@ serve(async (req) => {
 
         console.log(`Subscription cancelled for user ${user.id}`);
 
+        // Send cancellation email
+        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+        if (resendApiKey && user.email) {
+          const accessUntil = subData.current_period_ends_at 
+            ? new Date(subData.current_period_ends_at).toLocaleDateString('nl-NL', { day: 'numeric', month: 'long' })
+            : '';
+          const emailData = getSubscriptionCancelledEmail('', accessUntil);
+          await sendEmail(user.email, emailData.subject, emailData.html, resendApiKey);
+          console.log(`Cancellation email sent to ${user.email}`);
+        }
+
         return new Response(JSON.stringify({ success: true }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'request-refund': {
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { reason } = body;
+
+        // Get subscription info
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('mollie_customer_id, mollie_subscription_id, created_at')
+          .eq('owner_id', user.id)
+          .single();
+
+        // Check if within 14-day refund window (EU consumer rights)
+        const createdAt = subData?.created_at ? new Date(subData.created_at) : null;
+        const daysSinceStart = createdAt 
+          ? Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+
+        if (daysSinceStart > 14) {
+          return new Response(JSON.stringify({ 
+            error: 'Refund niet mogelijk. De 14-daagse bedenktijd is verstreken.',
+            eligible: false 
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Send refund request to admin (we process manually for now)
+        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+        if (resendApiKey) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${resendApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Perimenopauze Plan <onboarding@resend.dev>",
+              to: ["healthymetheleen@gmail.com"],
+              subject: "🔄 Refund aanvraag - Perimenopauze Plan",
+              html: `
+                <h2>Refund aanvraag</h2>
+                <p><strong>Gebruiker:</strong> ${user.email}</p>
+                <p><strong>User ID:</strong> ${user.id}</p>
+                <p><strong>Abonnement gestart:</strong> ${createdAt?.toLocaleDateString('nl-NL') || 'Onbekend'}</p>
+                <p><strong>Dagen sinds start:</strong> ${daysSinceStart}</p>
+                <p><strong>Mollie Customer ID:</strong> ${subData?.mollie_customer_id || 'N/A'}</p>
+                <p><strong>Reden:</strong> ${reason || 'Geen reden opgegeven'}</p>
+                <hr>
+                <p>Verwerk de refund in het Mollie dashboard en update de subscription status in Supabase.</p>
+              `,
+            }),
+          });
+        }
+
+        console.log(`Refund request from user ${user.id}`);
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Je refund aanvraag is ontvangen. We nemen binnen 2 werkdagen contact op.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'process-refund': {
+        // Admin-only endpoint to process refunds
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Check if admin
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const adminClient = createClient(supabaseUrl, serviceRoleKey);
+        
+        const { data: roleData } = await adminClient
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .eq('role', 'admin')
+          .single();
+
+        if (!roleData) {
+          return new Response(JSON.stringify({ error: 'Admin access required' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { targetUserId, paymentId, amount } = body;
+
+        if (!targetUserId || !paymentId || !amount) {
+          return new Response(JSON.stringify({ error: 'Missing required fields: targetUserId, paymentId, amount' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Create refund via Mollie
+        const refundResponse = await fetch(`${MOLLIE_API_URL}/payments/${paymentId}/refunds`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            amount: {
+              currency: 'EUR',
+              value: amount.toFixed(2),
+            },
+          }),
+        });
+
+        if (!refundResponse.ok) {
+          console.error('Mollie refund error:', refundResponse.status);
+          return new Response(JSON.stringify({ error: 'Refund kon niet worden verwerkt bij Mollie' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const refund = await refundResponse.json();
+        console.log(`Refund created: ${refund.id}`);
+
+        // Update subscription status
+        await adminClient
+          .from('subscriptions')
+          .update({ status: 'refunded', plan: 'free' })
+          .eq('owner_id', targetUserId);
+
+        // Send refund confirmation email
+        const { data: targetUser } = await adminClient.auth.admin.getUserById(targetUserId);
+        const resendApiKey = Deno.env.get('RESEND_API_KEY');
+        
+        if (resendApiKey && targetUser?.user?.email) {
+          const emailData = getRefundProcessedEmail('', amount.toFixed(2));
+          await sendEmail(targetUser.user.email, emailData.subject, emailData.html, resendApiKey);
+        }
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          refundId: refund.id,
+          status: refund.status 
+        }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
