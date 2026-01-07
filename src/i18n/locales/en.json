@@ -1078,5 +1078,250 @@
     "document_version": "Version 1.0 · Date: January 2026",
     "privacy_policy": "Privacy Policy",
     "terms": "Terms and Conditions"
+  },
+  "lookAhead": {
+    "now": "Now",
+    "next": "Next",
+    "dayOfCycle": "Day {{day}} of your cycle",
+    "inDays": "In {{count}} day",
+    "inDays_plural": "In {{count}} days",
+    "soon": "Soon",
+    "transitionDescription": "Your body is slowly transitioning towards {{season}}. Your energy and needs may change in the coming days.",
+    "transitionIn": "{{season}} starts in {{days}} days",
+    "riskFactorsToday": "Risk factors today",
+    "miniPlanTitle": "Your mini plan for today",
+    "examples": "Examples",
+    "riskLabels": {
+      "sleep": "Sleep",
+      "cravings": "Cravings",
+      "unrest": "Unrest"
+    },
+    "riskLevels": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
+    },
+    "miniPlan": {
+      "proteinBreakfast": "Eat a protein-rich breakfast",
+      "stopCaffeine": "Stop caffeine at 12:00",
+      "simpleDinner": "Make tonight's meal simple and warm"
+    },
+    "confidence": {
+      "title": "Reliability: Average",
+      "description": "Your cycle is somewhat variable, so we're monitoring your symptoms."
+    },
+    "sections": {
+      "whatYouMightNotice": "What you might notice",
+      "focusNext5Days": "Focus for the next 5 days",
+      "actionPlan": "Action Plan",
+      "eating": "Eating",
+      "planning": "Planning"
+    },
+    "templates": {
+      "default": {
+        "quote": "Focus on rhythm and balance in this phase.",
+        "feelings": [
+          "Your energy may be stable, but keep paying attention to signals.",
+          "Listen to your body and give it what it needs."
+        ],
+        "focus": [
+          "Maintain your rhythm with regular meals.",
+          "Ensure adequate sleep and movement."
+        ],
+        "eatingTips": [
+          {
+            "action": "Eat regularly and varied",
+            "examples": ["Vegetables", "Proteins", "Healthy fats"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Plan your week ahead", "details": "Balance between activity and rest" }
+        ]
+      },
+      "winter": {
+        "quote": "Rest and recovery are central in your winter phase.",
+        "feelings": [
+          "Your energy may be a bit lower - that's normal.",
+          "More need for warmth and comfort."
+        ],
+        "focus": [
+          "Prioritize sleep and gentle movement.",
+          "Warm, nutritious meals support your body."
+        ],
+        "eatingTips": [
+          {
+            "action": "Choose warm, nutritious meals",
+            "examples": ["Soup", "Stews", "Warm vegetables"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Plan quiet days", "details": "Fewer social obligations" }
+        ]
+      },
+      "lente": {
+        "quote": "Your energy is building up - enjoy this upward phase!",
+        "feelings": [
+          "More energy and motivation.",
+          "Creativity and focus are increasing."
+        ],
+        "focus": [
+          "This is a good time to start projects.",
+          "Your body responds well to training."
+        ],
+        "eatingTips": [
+          {
+            "action": "Vary with fresh vegetables",
+            "examples": ["Broccoli", "Bell pepper", "Leafy greens"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Start new projects", "details": "Your concentration is at its best now" }
+        ]
+      },
+      "zomer": {
+        "quote": "This is your peak moment - use your energy wisely!",
+        "feelings": [
+          "High energy and confidence.",
+          "More social drive."
+        ],
+        "focus": [
+          "Plan important conversations and presentations.",
+          "Enjoy, but watch out for overcommitment."
+        ],
+        "eatingTips": [
+          {
+            "action": "Stay hydrated",
+            "examples": ["Water", "Herbal tea", "Water-rich vegetables"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Plan your highlights", "details": "Important meetings, sports events" }
+        ]
+      },
+      "herfst": {
+        "quote": "Time for structure and self-care in your autumn phase.",
+        "feelings": [
+          "Energy may fluctuate.",
+          "More need for rhythm and rest."
+        ],
+        "focus": [
+          "Stable blood sugar helps with mood swings.",
+          "Early to bed, fewer stimuli."
+        ],
+        "eatingTips": [
+          {
+            "action": "Eat at fixed times",
+            "examples": ["3 main meals", "Limited snacking"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Structure your week", "details": "Fewer spontaneous plans, more rest" }
+        ]
+      },
+      "herfst-winter": {
+        "quote": "The coming days: less pushing, more protecting.",
+        "feelings": [
+          "More need for rest and comfort food, especially late afternoon.",
+          "Sleep may be lighter and you might wake up more easily.",
+          "You may feel less stress-resistant, small things hit harder."
+        ],
+        "focus": [
+          "Keep blood sugar stable with regular meals and protein at breakfast.",
+          "Protect sleep with earlier dinner and fewer stimuli late in the day."
+        ],
+        "eatingTips": [
+          {
+            "action": "Breakfast with 25 to 35 grams of protein",
+            "examples": ["2-3 eggs with vegetables", "Skyr/quark with berries", "Leftovers with extra protein"]
+          },
+          {
+            "action": "Last real meal at least 3 hours before sleep",
+            "examples": ["Yogurt", "Egg", "Cheese with cucumber"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Plan 2 evenings without appointments", "details": "Goal: earlier to bed, screens off 45 minutes before sleep" },
+          { "action": "Train smart", "details": "2x strength or brisk walking, 1x yoga or gentle flow. No max intensity." }
+        ]
+      },
+      "winter-lente": {
+        "quote": "The coming days: build up slowly, your energy is returning.",
+        "feelings": [
+          "Energy is slowly coming back.",
+          "More desire for plans and movement.",
+          "Fewer cravings, more stability."
+        ],
+        "focus": [
+          "Slowly build up activities, don't go full throttle right away.",
+          "Varied eating supports your energy recovery."
+        ],
+        "eatingTips": [
+          {
+            "action": "More variety in vegetables",
+            "examples": ["Spinach", "Broccoli", "Bell pepper"]
+          },
+          {
+            "action": "Keep protein intake high, especially at breakfast",
+            "examples": ["Eggs", "Yogurt with nuts", "Fish"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Take on 1 bigger task", "details": "Your concentration is better in this phase" },
+          { "action": "Add 1 extra strength training", "details": "Your muscles can handle more now" }
+        ]
+      },
+      "lente-zomer": {
+        "quote": "The coming days: enjoy your peak energy!",
+        "feelings": [
+          "More drive, more desire for action.",
+          "More social energy.",
+          "Risk of overcommitment."
+        ],
+        "focus": [
+          "Use your energy for important tasks and conversations.",
+          "Plan recovery too, otherwise it will backfire later."
+        ],
+        "eatingTips": [
+          {
+            "action": "Protein and fiber remain the foundation",
+            "examples": ["Salad with chicken", "Fish with vegetables", "Beans and legumes"]
+          },
+          {
+            "action": "Carbs around training",
+            "examples": ["Oatmeal", "Rice", "Sweet potato"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Plan more intensive workouts", "details": "HIIT, running, group classes" },
+          { "action": "Max 1-2 busy evenings in a row", "details": "Save some rest too" }
+        ]
+      },
+      "zomer-herfst": {
+        "quote": "The coming days: back to rhythm and protection.",
+        "feelings": [
+          "More need for rhythm.",
+          "More easily overstimulated.",
+          "Appetite increases somewhat."
+        ],
+        "focus": [
+          "Bring structure to your week.",
+          "Earlier evenings and stable meal times."
+        ],
+        "eatingTips": [
+          {
+            "action": "Back to fixed eating moments",
+            "examples": ["3 main meals", "Max 1-2 snacks", "No grazing"]
+          },
+          {
+            "action": "More warm meals",
+            "examples": ["Soup", "Stew", "Curry"]
+          }
+        ],
+        "planningTips": [
+          { "action": "Structure in week", "details": "Plan ahead, less spontaneous" },
+          { "action": "Training steady, fewer peaks", "details": "Walking, yoga, light strength" }
+        ]
+      }
+    }
   }
 }
