@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format, addDays, differenceInDays, parseISO, startOfDay } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { 
   Snowflake, Leaf, Sun, Wind, ChevronRight, ChevronDown, 
   Utensils, Calendar, Sparkles, Target
@@ -8,11 +9,11 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { useLatestPrediction, useCyclePreferences, useCycles, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, useCycles, getSeasonForDate } from '@/hooks/useCycle';
 
 // Types
 type Season = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
-type RiskLevel = 'laag' | 'middel' | 'hoog';
+type RiskLevel = 'low' | 'medium' | 'high';
 
 interface DayForecast {
   date: Date;
@@ -43,7 +44,7 @@ const seasonBadgeColors: Record<Season, string> = {
   onbekend: 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300',
 };
 
-// Season block background colors for Nu/Daarna pills
+// Season block background colors for Now/Next pills
 const seasonBlockColors: Record<Season, string> = {
   winter: 'bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800',
   lente: 'bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800',
@@ -63,255 +64,43 @@ const seasonTextColors: Record<Season, string> = {
 
 // Risk level indicator colors
 const riskColors: Record<RiskLevel, string> = {
-  laag: 'bg-primary/40',
-  middel: 'bg-muted-foreground',
-  hoog: 'bg-foreground',
+  low: 'bg-primary/40',
+  medium: 'bg-muted-foreground',
+  high: 'bg-foreground',
 };
 
-// Fallback template for same-season or unknown transitions
-const defaultTemplate = {
-  quote: 'Focus op ritme en balans in deze fase.',
-  feelings: [
-    'Je energie kan stabiel zijn, maar blijf letten op signalen.',
-    'Luister naar je lichaam en geef het wat het nodig heeft.',
-  ],
-  focus: [
-    'Houd je ritme vast met regelmatige maaltijden.',
-    'Zorg voor voldoende slaap en beweging.',
-  ],
-  eatingTips: [
-    {
-      action: 'Eet regelmatig en gevarieerd',
-      examples: ['Groenten', 'Eiwitten', 'Gezonde vetten'],
-    },
-  ],
-  planningTips: [
-    { action: 'Plan je week vooruit', details: 'Balans tussen activiteit en rust' },
-  ],
-};
-
-// Season-specific templates (when staying in same season)
-const seasonTemplates: Record<string, typeof defaultTemplate> = {
-  winter: {
-    quote: 'Rust en herstel staan centraal in je winterfase.',
-    feelings: [
-      'Je energie kan wat lager zijn - dat is normaal.',
-      'Meer behoefte aan warmte en comfort.',
-    ],
-    focus: [
-      'Prioriteer slaap en zachte beweging.',
-      'Warme, voedzame maaltijden ondersteunen je lichaam.',
-    ],
-    eatingTips: [
-      {
-        action: 'Kies voor warme, voedzame maaltijden',
-        examples: ['Soep', 'Stoofpotjes', 'Warme groenten'],
-      },
-    ],
-    planningTips: [
-      { action: 'Plan rustige dagen', details: 'Minder sociale verplichtingen' },
-    ],
-  },
-  lente: {
-    quote: 'Je energie bouwt op - geniet van deze opwaartse fase!',
-    feelings: [
-      'Meer energie en motivatie.',
-      'Creativiteit en focus nemen toe.',
-    ],
-    focus: [
-      'Dit is een goede tijd om projecten te starten.',
-      'Je lichaam reageert goed op training.',
-    ],
-    eatingTips: [
-      {
-        action: 'Varieer met verse groenten',
-        examples: ['Broccoli', 'Paprika', 'Bladgroenten'],
-      },
-    ],
-    planningTips: [
-      { action: 'Start nieuwe projecten', details: 'Je concentratie is nu op z\'n best' },
-    ],
-  },
-  zomer: {
-    quote: 'Dit is je piekmomen - benut je energie slim!',
-    feelings: [
-      'Hoge energie en zelfvertrouwen.',
-      'Meer sociale drive.',
-    ],
-    focus: [
-      'Plan belangrijke gesprekken en presentaties.',
-      'Geniet, maar waak voor overcommitment.',
-    ],
-    eatingTips: [
-      {
-        action: 'Blijf gehydrateerd',
-        examples: ['Water', 'Kruidenthee', 'Waterrijke groenten'],
-      },
-    ],
-    planningTips: [
-      { action: 'Plan je hoogtepunten', details: 'Belangrijke meetings, sportwedstrijden' },
-    ],
-  },
-  herfst: {
-    quote: 'Tijd voor structuur en zelfzorg in je herfstfase.',
-    feelings: [
-      'Energie kan fluctueren.',
-      'Meer behoefte aan ritme en rust.',
-    ],
-    focus: [
-      'Stabiele bloedsuiker helpt met stemmingswisselingen.',
-      'Vroeg naar bed, minder prikkels.',
-    ],
-    eatingTips: [
-      {
-        action: 'Eet op vaste tijden',
-        examples: ['3 hoofdmaaltijden', 'Beperkt snacken'],
-      },
-    ],
-    planningTips: [
-      { action: 'Structureer je week', details: 'Minder spontane plannen, meer rust' },
-    ],
-  },
-};
-
-// Season transition templates
-const transitionTemplates: Record<string, typeof defaultTemplate> = {
-  'herfst-winter': {
-    quote: 'De komende dagen: minder pushen, meer beschermen.',
-    feelings: [
-      'Meer behoefte aan rust en comfort food, vooral einde middag.',
-      'Slaap kan lichter zijn en je kunt sneller wakker worden.',
-      'Je kunt iets minder stressbestendig voelen, kleine dingen komen harder binnen.',
-    ],
-    focus: [
-      'Bloedsuiker rustiger houden met vaste maaltijden en eiwit bij ontbijt.',
-      'Slaap beschermen met eerder avondeten en minder prikkels laat.',
-    ],
-    eatingTips: [
-      {
-        action: 'Ontbijt met 25 tot 35 gram eiwit',
-        examples: ['2 tot 3 eieren met groenten', 'Skyr/kwark met bessen', 'Restjes avondeten met extra eiwit'],
-      },
-      {
-        action: 'Laatste echte maaltijd uiterlijk 3 uur voor slapen',
-        examples: ['Yoghurt', 'Eitje', 'Kaas met komkommer'],
-      },
-    ],
-    planningTips: [
-      { action: 'Plan 2 avonden zonder afspraken', details: 'Doel: eerder naar bed, scherm uit 45 minuten voor slaap' },
-      { action: 'Training slim', details: '2x kracht of stevig wandelen, 1x yoga of rustige flow. Geen max intensiteit.' },
-    ],
-  },
-  'winter-lente': {
-    quote: 'De komende dagen: rustig opbouwen, je energie komt terug.',
-    feelings: [
-      'Energie komt langzaam terug.',
-      'Meer zin in plannen en bewegen.',
-      'Minder cravings, meer stabiliteit.',
-    ],
-    focus: [
-      'Langzaam opbouwen van activiteiten, niet meteen vol gas.',
-      'Gevarieerd eten ondersteunt je energieherstel.',
-    ],
-    eatingTips: [
-      {
-        action: 'Meer variatie in groenten',
-        examples: ['Spinazie', 'Broccoli', 'Paprika'],
-      },
-      {
-        action: 'Blijf eiwit vasthouden, vooral ontbijt',
-        examples: ['Eieren', 'Yoghurt met noten', 'Vis'],
-      },
-    ],
-    planningTips: [
-      { action: 'Pak 1 grotere taak op', details: 'Je concentratie is beter in deze fase' },
-      { action: 'Voeg 1 extra krachttraining toe', details: 'Je spieren kunnen nu meer aan' },
-    ],
-  },
-  'lente-zomer': {
-    quote: 'De komende dagen: geniet van je piek energie!',
-    feelings: [
-      'Meer drive, meer zin in actie.',
-      'Meer sociale energie.',
-      'Risico op overcommitment.',
-    ],
-    focus: [
-      'Benut je energie voor belangrijke taken en gesprekken.',
-      'Plan ook herstel, anders klapt het later terug.',
-    ],
-    eatingTips: [
-      {
-        action: 'Eiwit en vezels blijven basis',
-        examples: ['Salade met kip', 'Vis met groenten', 'Bonen en peulvruchten'],
-      },
-      {
-        action: 'Carbs rondom training',
-        examples: ['Havermout', 'Rijst', 'Zoete aardappel'],
-      },
-    ],
-    planningTips: [
-      { action: 'Plan intensievere trainingen', details: 'HIIT, hardlopen, groepslessen' },
-      { action: 'Max 1-2 drukke avonden achter elkaar', details: 'Bewaar ook rust' },
-    ],
-  },
-  'zomer-herfst': {
-    quote: 'De komende dagen: terug naar ritme en bescherming.',
-    feelings: [
-      'Meer behoefte aan ritme.',
-      'Sneller overprikkeld.',
-      'Trek neemt wat toe.',
-    ],
-    focus: [
-      'Structuur in je week aanbrengen.',
-      'Vroegere avonden en stabiele maaltijdtijden.',
-    ],
-    eatingTips: [
-      {
-        action: 'Terug naar vaste eetmomenten',
-        examples: ['3 hoofdmaaltijden', 'Max 1-2 snacks', 'Geen grazen'],
-      },
-      {
-        action: 'Meer warme maaltijden',
-        examples: ['Soep', 'Stoofpot', 'Curry'],
-      },
-    ],
-    planningTips: [
-      { action: 'Structuur in week', details: 'Plan vooruit, minder spontaan' },
-      { action: 'Training steady, minder pieken', details: 'Wandelen, yoga, lichte kracht' },
-    ],
-  },
-};
-
-// Helper function to get template safely
-function getTemplate(currentSeason: string, nextSeason: string, transitionKey: string | null): typeof defaultTemplate {
+// Helper function to get template key
+function getTemplateKey(currentSeason: string, nextSeason: string, transitionKey: string | null): string {
   // First try transition template
-  if (transitionKey && transitionTemplates[transitionKey]) {
-    return transitionTemplates[transitionKey];
-  }
-  
-  // Try alternative transition key
-  const altKey = `${currentSeason}-${nextSeason}`;
-  if (transitionTemplates[altKey]) {
-    return transitionTemplates[altKey];
+  if (transitionKey) {
+    const transitionKeys = ['herfst-winter', 'winter-lente', 'lente-zomer', 'zomer-herfst'];
+    if (transitionKeys.includes(transitionKey)) {
+      return transitionKey;
+    }
+    const altKey = `${currentSeason}-${nextSeason}`;
+    if (transitionKeys.includes(altKey)) {
+      return altKey;
+    }
   }
   
   // Use season-specific template for same-season
-  if (seasonTemplates[currentSeason]) {
-    return seasonTemplates[currentSeason];
+  const seasonKeys = ['winter', 'lente', 'zomer', 'herfst'];
+  if (seasonKeys.includes(currentSeason)) {
+    return currentSeason;
   }
   
   // Fallback to default
-  return defaultTemplate;
+  return 'default';
 }
 
 // Calculate risk levels based on season and transition
 function calculateRiskLevels(season: Season, isTransition: boolean): { sleep: RiskLevel; cravings: RiskLevel; unrest: RiskLevel } {
   const baseRisks: Record<Season, { sleep: RiskLevel; cravings: RiskLevel; unrest: RiskLevel }> = {
-    winter: { sleep: 'middel', cravings: 'laag', unrest: 'laag' },
-    lente: { sleep: 'laag', cravings: 'laag', unrest: 'laag' },
-    zomer: { sleep: 'laag', cravings: 'laag', unrest: 'middel' },
-    herfst: { sleep: 'hoog', cravings: 'hoog', unrest: 'hoog' },
-    onbekend: { sleep: 'middel', cravings: 'middel', unrest: 'middel' },
+    winter: { sleep: 'medium', cravings: 'low', unrest: 'low' },
+    lente: { sleep: 'low', cravings: 'low', unrest: 'low' },
+    zomer: { sleep: 'low', cravings: 'low', unrest: 'medium' },
+    herfst: { sleep: 'high', cravings: 'high', unrest: 'high' },
+    onbekend: { sleep: 'medium', cravings: 'medium', unrest: 'medium' },
   };
 
   const risks = baseRisks[season];
@@ -319,9 +108,9 @@ function calculateRiskLevels(season: Season, isTransition: boolean): { sleep: Ri
   // Increase risks during transition days
   if (isTransition) {
     return {
-      sleep: risks.sleep === 'laag' ? 'middel' : 'hoog',
-      cravings: risks.cravings === 'laag' ? 'middel' : 'hoog',
-      unrest: risks.unrest === 'laag' ? 'middel' : 'hoog',
+      sleep: risks.sleep === 'low' ? 'medium' : 'high',
+      cravings: risks.cravings === 'low' ? 'medium' : 'high',
+      unrest: risks.unrest === 'low' ? 'medium' : 'high',
     };
   }
   
@@ -332,13 +121,14 @@ function RiskDots({ level }: { level: RiskLevel }) {
   return (
     <div className="flex gap-0.5">
       <div className={`w-1.5 h-1.5 rounded-full ${riskColors[level]}`} />
-      <div className={`w-1.5 h-1.5 rounded-full ${level === 'middel' || level === 'hoog' ? riskColors[level] : 'bg-muted'}`} />
-      <div className={`w-1.5 h-1.5 rounded-full ${level === 'hoog' ? riskColors[level] : 'bg-muted'}`} />
+      <div className={`w-1.5 h-1.5 rounded-full ${level === 'medium' || level === 'high' ? riskColors[level] : 'bg-muted'}`} />
+      <div className={`w-1.5 h-1.5 rounded-full ${level === 'high' ? riskColors[level] : 'bg-muted'}`} />
     </div>
   );
 }
 
 function DayCard({ day, onClick }: { day: DayForecast; onClick: () => void }) {
+  const { t } = useTranslation();
   const isToday = differenceInDays(day.date, new Date()) === 0;
   
   return (
@@ -354,15 +144,15 @@ function DayCard({ day, onClick }: { day: DayForecast; onClick: () => void }) {
       </Badge>
       <div className="mt-2 space-y-1">
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">Slaap</span>
+          <span className="text-[9px] text-muted-foreground">{t('lookAhead.riskLabels.sleep')}</span>
           <RiskDots level={day.sleep} />
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">Cravings</span>
+          <span className="text-[9px] text-muted-foreground">{t('lookAhead.riskLabels.cravings')}</span>
           <RiskDots level={day.cravings} />
         </div>
         <div className="flex items-center justify-center gap-1">
-          <span className="text-[9px] text-muted-foreground">Onrust</span>
+          <span className="text-[9px] text-muted-foreground">{t('lookAhead.riskLabels.unrest')}</span>
           <RiskDots level={day.unrest} />
         </div>
       </div>
@@ -377,22 +167,25 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
-  const template = transitionKey ? transitionTemplates[transitionKey] : null;
-  const daysUntilTransition = transitionKey ? 2 : null; // Simplified for now
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const daysUntilTransition = transitionKey ? 2 : null;
+  
+  const riskLevelLabel = (level: RiskLevel) => t(`lookAhead.riskLevels.${level}`);
   
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {format(day.date, 'EEEE d MMMM', { locale: nl })}
+            {format(day.date, 'EEEE d MMMM', { locale: dateLocale })}
             <Badge className={seasonBadgeColors[day.season]}>
-              {seasonLabels[day.season]}
+              {t(`seasons.${day.season}`)}
             </Badge>
           </DialogTitle>
           {transitionKey && (
             <p className="text-sm text-muted-foreground">
-              {seasonLabels[nextSeason]} start over {daysUntilTransition} dagen
+              {t('lookAhead.transitionIn', { season: t(`seasons.${nextSeason}`), days: daysUntilTransition })}
             </p>
           )}
         </DialogHeader>
@@ -400,19 +193,19 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
         <div className="space-y-4 pt-2">
           {/* Risk factors */}
           <div className="p-3 rounded-lg bg-muted/30">
-            <p className="text-sm font-medium mb-2">Risicofactoren vandaag</p>
+            <p className="text-sm font-medium mb-2">{t('lookAhead.riskFactorsToday')}</p>
             <div className="grid grid-cols-3 gap-2 text-center text-xs">
               <div>
-                <p className="text-muted-foreground">Slaap</p>
-                <Badge variant="outline" className="mt-1">{day.sleep}</Badge>
+                <p className="text-muted-foreground">{t('lookAhead.riskLabels.sleep')}</p>
+                <Badge variant="outline" className="mt-1">{riskLevelLabel(day.sleep)}</Badge>
               </div>
               <div>
-                <p className="text-muted-foreground">Cravings</p>
-                <Badge variant="outline" className="mt-1">{day.cravings}</Badge>
+                <p className="text-muted-foreground">{t('lookAhead.riskLabels.cravings')}</p>
+                <Badge variant="outline" className="mt-1">{riskLevelLabel(day.cravings)}</Badge>
               </div>
               <div>
-                <p className="text-muted-foreground">Onrust</p>
-                <Badge variant="outline" className="mt-1">{day.unrest}</Badge>
+                <p className="text-muted-foreground">{t('lookAhead.riskLabels.unrest')}</p>
+                <Badge variant="outline" className="mt-1">{riskLevelLabel(day.unrest)}</Badge>
               </div>
             </div>
           </div>
@@ -421,23 +214,23 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
           <div>
             <p className="text-sm font-medium mb-2 flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Jouw mini plan voor vandaag
+              {t('lookAhead.miniPlanTitle')}
             </p>
             <ul className="space-y-1.5 text-sm text-muted-foreground">
               <li className="flex items-start gap-2">
                 <span className="text-primary">•</span>
-                Eet een eiwitrijk ontbijt
+                {t('lookAhead.miniPlan.proteinBreakfast')}
               </li>
-              {day.cravings !== 'laag' && (
+              {day.cravings !== 'low' && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  Stop cafeïne om 12:00
+                  {t('lookAhead.miniPlan.stopCaffeine')}
                 </li>
               )}
-              {day.sleep !== 'laag' && (
+              {day.sleep !== 'low' && (
                 <li className="flex items-start gap-2">
                   <span className="text-primary">•</span>
-                  Maak vanavond je maaltijd simpel en warm
+                  {t('lookAhead.miniPlan.simpleDinner')}
                 </li>
               )}
             </ul>
@@ -445,8 +238,8 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
           
           {/* Confidence */}
           <div className="p-3 rounded-lg bg-muted/20 text-xs text-muted-foreground">
-            <p className="font-medium">Betrouwbaarheid: Gemiddeld</p>
-            <p>Je cyclus is wat wisselend, dus we kijken mee met je klachten.</p>
+            <p className="font-medium">{t('lookAhead.confidence.title')}</p>
+            <p>{t('lookAhead.confidence.description')}</p>
           </div>
         </div>
       </DialogContent>
@@ -455,6 +248,8 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
 }
 
 export function LookAheadWidget() {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);
@@ -500,7 +295,7 @@ export function LookAheadWidget() {
     
     forecast.push({
       date,
-      dayName: format(date, 'EEE', { locale: nl }),
+      dayName: format(date, 'EEE', { locale: dateLocale }),
       season,
       dayInCycle,
       isTransitionDay,
@@ -517,7 +312,6 @@ export function LookAheadWidget() {
   const avgPeriodLength = periodLength;
   const follicularEnd = avgPeriodLength + Math.floor((avgCycleLength - avgPeriodLength - lutealLength) / 2);
   const ovulationEnd = follicularEnd + 2;
-  const lutealStart = ovulationEnd;
   
   // Calculate days until next season based on current day in cycle
   let calculatedNextSeason: Season = currentSeason;
@@ -525,19 +319,15 @@ export function LookAheadWidget() {
   
   if (currentDayInCycle > 0 && currentDayInCycle <= avgCycleLength) {
     if (currentSeason === 'winter') {
-      // Winter ends at periodLength
       calculatedNextSeason = 'lente';
       calculatedDaysUntil = Math.max(0, avgPeriodLength - currentDayInCycle + 1);
     } else if (currentSeason === 'lente') {
-      // Lente ends at follicularEnd
       calculatedNextSeason = 'zomer';
       calculatedDaysUntil = Math.max(0, follicularEnd - currentDayInCycle + 1);
     } else if (currentSeason === 'zomer') {
-      // Zomer ends at ovulationEnd
       calculatedNextSeason = 'herfst';
       calculatedDaysUntil = Math.max(0, ovulationEnd - currentDayInCycle + 1);
     } else if (currentSeason === 'herfst') {
-      // Herfst ends at avgCycleLength (next winter)
       calculatedNextSeason = 'winter';
       calculatedDaysUntil = Math.max(0, avgCycleLength - currentDayInCycle + 1);
     }
@@ -553,11 +343,18 @@ export function LookAheadWidget() {
   const transitionKey = daysUntilTransition !== null && daysUntilTransition <= 5
     ? `${currentSeason}-${nextSeason}`
     : null;
-  const template = getTemplate(currentSeason, nextSeason, transitionKey);
+  const templateKey = getTemplateKey(currentSeason, nextSeason, transitionKey);
   
   const toggleSection = (section: string) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
+
+  // Get translated template content
+  const quote = t(`lookAhead.templates.${templateKey}.quote`);
+  const feelings = t(`lookAhead.templates.${templateKey}.feelings`, { returnObjects: true }) as string[];
+  const focus = t(`lookAhead.templates.${templateKey}.focus`, { returnObjects: true }) as string[];
+  const eatingTips = t(`lookAhead.templates.${templateKey}.eatingTips`, { returnObjects: true }) as { action: string; examples: string[] }[];
+  const planningTips = t(`lookAhead.templates.${templateKey}.planningTips`, { returnObjects: true }) as { action: string; details: string }[];
 
   return (
     <Card className="rounded-2xl overflow-hidden border shadow-soft">
@@ -565,33 +362,33 @@ export function LookAheadWidget() {
         {/* Season Quote Header */}
         <div className="p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 border-b">
           <p className="text-sm font-medium text-center text-foreground">
-            {template.quote}
+            {quote}
           </p>
         </div>
         
         {/* Season Pills */}
         <div className="p-4 grid grid-cols-2 gap-3">
           <div className={`p-3 rounded-xl ${seasonBlockColors[currentSeason]}`}>
-            <p className="text-xs text-muted-foreground mb-1">Nu</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('lookAhead.now')}</p>
             <div className={`flex items-center gap-2 ${seasonTextColors[currentSeason]}`}>
               {seasonIcons[currentSeason]}
-              <span className="font-semibold">{seasonLabels[currentSeason]}</span>
+              <span className="font-semibold">{t(`seasons.${currentSeason}`)}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Dag {currentDayInCycle > 0 ? currentDayInCycle : '?'} van je cyclus
+              {t('lookAhead.dayOfCycle', { day: currentDayInCycle > 0 ? currentDayInCycle : '?' })}
             </p>
           </div>
           
           <div className={`p-3 rounded-xl ${seasonBlockColors[nextSeason]}`}>
-            <p className="text-xs text-muted-foreground mb-1">Daarna</p>
+            <p className="text-xs text-muted-foreground mb-1">{t('lookAhead.next')}</p>
             <div className={`flex items-center gap-2 ${seasonTextColors[nextSeason]}`}>
               {seasonIcons[nextSeason]}
-              <span className="font-semibold">{seasonLabels[nextSeason]}</span>
+              <span className="font-semibold">{t(`seasons.${nextSeason}`)}</span>
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {daysUntilTransition !== null && daysUntilTransition > 0
-                ? `Over ${daysUntilTransition} dag${daysUntilTransition > 1 ? 'en' : ''}`
-                : 'Binnenkort'}
+                ? t('lookAhead.inDays', { count: daysUntilTransition })
+                : t('lookAhead.soon')}
             </p>
           </div>
         </div>
@@ -600,8 +397,7 @@ export function LookAheadWidget() {
         {nextSeason !== currentSeason && (
           <div className="px-4 pb-4">
             <p className="text-sm text-muted-foreground">
-              Je lichaam schakelt langzaam over richting {seasonLabels[nextSeason].toLowerCase()}.
-              De komende dagen kunnen je energie en behoeften veranderen.
+              {t('lookAhead.transitionDescription', { season: t(`seasons.${nextSeason}`).toLowerCase() })}
             </p>
           </div>
         )}
@@ -615,7 +411,7 @@ export function LookAheadWidget() {
           >
             <span className="text-sm font-semibold flex items-center gap-2">
               <Sparkles className="h-4 w-4" />
-              Wat je kunt merken
+              {t('lookAhead.sections.whatYouMightNotice')}
             </span>
             {expandedSection === 'feelings' ? (
               <ChevronDown className="h-4 w-4" />
@@ -625,7 +421,7 @@ export function LookAheadWidget() {
           </button>
           {expandedSection === 'feelings' && (
             <div className="px-4 pb-4 space-y-2">
-              {template.feelings.map((feeling, i) => (
+              {Array.isArray(feelings) && feelings.map((feeling, i) => (
                 <p key={i} className="text-sm text-muted-foreground flex items-start gap-2">
                   <span className="text-primary">•</span>
                   {feeling}
@@ -643,7 +439,7 @@ export function LookAheadWidget() {
           >
             <span className="text-sm font-semibold flex items-center gap-2">
               <Target className="h-4 w-4" />
-              Focus komende 5 dagen
+              {t('lookAhead.sections.focusNext5Days')}
             </span>
             {expandedSection === 'focus' ? (
               <ChevronDown className="h-4 w-4" />
@@ -653,7 +449,7 @@ export function LookAheadWidget() {
           </button>
           {expandedSection === 'focus' && (
             <div className="px-4 pb-4 space-y-2">
-              {template.focus.map((f, i) => (
+              {Array.isArray(focus) && focus.map((f, i) => (
                 <div key={i} className="flex items-start gap-2 p-2 rounded-lg bg-primary/5">
                   <span className="text-primary font-bold">{i + 1}</span>
                   <p className="text-sm">{f}</p>
@@ -663,11 +459,11 @@ export function LookAheadWidget() {
           )}
         </div>
         
-        {/* Plan van aanpak */}
+        {/* Action plan */}
         <div className="border-t p-4">
-          <p className="text-sm font-semibold mb-3">📋 Plan van aanpak</p>
+          <p className="text-sm font-semibold mb-3">📋 {t('lookAhead.sections.actionPlan')}</p>
           
-          {/* Blok A: Eten */}
+          {/* Eating block */}
           <div className="mb-4">
             <button
               onClick={() => toggleSection('eating')}
@@ -675,7 +471,7 @@ export function LookAheadWidget() {
             >
               <span className="text-sm font-medium flex items-center gap-2">
                 <Utensils className="h-4 w-4" />
-                Eten
+                {t('lookAhead.sections.eating')}
               </span>
               {expandedSection === 'eating' ? (
                 <ChevronDown className="h-4 w-4" />
@@ -685,11 +481,11 @@ export function LookAheadWidget() {
             </button>
             {expandedSection === 'eating' && (
               <div className="mt-2 space-y-3 pl-6">
-                {template.eatingTips.map((tip, i) => (
+                {Array.isArray(eatingTips) && eatingTips.map((tip, i) => (
                   <div key={i}>
                     <p className="text-sm font-medium">{tip.action}</p>
                     <p className="text-xs text-muted-foreground">
-                      Voorbeelden: {tip.examples.join(' · ')}
+                      {t('lookAhead.examples')}: {tip.examples.join(' · ')}
                     </p>
                   </div>
                 ))}
@@ -697,7 +493,7 @@ export function LookAheadWidget() {
             )}
           </div>
           
-          {/* Blok B: Planning */}
+          {/* Planning block */}
           <div className="mb-4">
             <button
               onClick={() => toggleSection('planning')}
@@ -705,7 +501,7 @@ export function LookAheadWidget() {
             >
               <span className="text-sm font-medium flex items-center gap-2">
                 <Calendar className="h-4 w-4" />
-                Planning
+                {t('lookAhead.sections.planning')}
               </span>
               {expandedSection === 'planning' ? (
                 <ChevronDown className="h-4 w-4" />
@@ -715,7 +511,7 @@ export function LookAheadWidget() {
             </button>
             {expandedSection === 'planning' && (
               <div className="mt-2 space-y-3 pl-6">
-                {template.planningTips.map((tip, i) => (
+                {Array.isArray(planningTips) && planningTips.map((tip, i) => (
                   <div key={i}>
                     <p className="text-sm font-medium">{tip.action}</p>
                     <p className="text-xs text-muted-foreground">{tip.details}</p>

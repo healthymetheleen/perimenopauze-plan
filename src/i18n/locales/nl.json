@@ -1078,5 +1078,109 @@
     "document_version": "Versie 1.0 · Datum: januari 2026",
     "privacy_policy": "Privacybeleid",
     "terms": "Algemene Voorwaarden"
+  },
+  "lookAhead": {
+    "now": "Nu",
+    "next": "Daarna",
+    "dayOfCycle": "Dag {{day}} van je cyclus",
+    "inDays": "Over {{count}} dag",
+    "inDays_plural": "Over {{count}} dagen",
+    "soon": "Binnenkort",
+    "transitionDescription": "Je lichaam schakelt langzaam over richting {{season}}. De komende dagen kunnen je energie en behoeften veranderen.",
+    "transitionIn": "{{season}} start over {{days}} dagen",
+    "riskFactorsToday": "Risicofactoren vandaag",
+    "miniPlanTitle": "Jouw mini plan voor vandaag",
+    "examples": "Voorbeelden",
+    "riskLabels": {
+      "sleep": "Slaap",
+      "cravings": "Cravings",
+      "unrest": "Onrust"
+    },
+    "riskLevels": {
+      "low": "Laag",
+      "medium": "Middel",
+      "high": "Hoog"
+    },
+    "miniPlan": {
+      "proteinBreakfast": "Eet een eiwitrijk ontbijt",
+      "stopCaffeine": "Stop cafeïne om 12:00",
+      "simpleDinner": "Maak vanavond je maaltijd simpel en warm"
+    },
+    "confidence": {
+      "title": "Betrouwbaarheid: Gemiddeld",
+      "description": "Je cyclus is wat wisselend, dus we kijken mee met je klachten."
+    },
+    "sections": {
+      "whatYouMightNotice": "Wat je kunt merken",
+      "focusNext5Days": "Focus komende 5 dagen",
+      "actionPlan": "Plan van aanpak",
+      "eating": "Eten",
+      "planning": "Planning"
+    },
+    "templates": {
+      "default": {
+        "quote": "Focus op ritme en balans in deze fase.",
+        "feelings": ["Je energie kan stabiel zijn, maar blijf letten op signalen.", "Luister naar je lichaam en geef het wat het nodig heeft."],
+        "focus": ["Houd je ritme vast met regelmatige maaltijden.", "Zorg voor voldoende slaap en beweging."],
+        "eatingTips": [{"action": "Eet regelmatig en gevarieerd", "examples": ["Groenten", "Eiwitten", "Gezonde vetten"]}],
+        "planningTips": [{"action": "Plan je week vooruit", "details": "Balans tussen activiteit en rust"}]
+      },
+      "winter": {
+        "quote": "Rust en herstel staan centraal in je winterfase.",
+        "feelings": ["Je energie kan wat lager zijn - dat is normaal.", "Meer behoefte aan warmte en comfort."],
+        "focus": ["Prioriteer slaap en zachte beweging.", "Warme, voedzame maaltijden ondersteunen je lichaam."],
+        "eatingTips": [{"action": "Kies voor warme, voedzame maaltijden", "examples": ["Soep", "Stoofpotjes", "Warme groenten"]}],
+        "planningTips": [{"action": "Plan rustige dagen", "details": "Minder sociale verplichtingen"}]
+      },
+      "lente": {
+        "quote": "Je energie bouwt op - geniet van deze opwaartse fase!",
+        "feelings": ["Meer energie en motivatie.", "Creativiteit en focus nemen toe."],
+        "focus": ["Dit is een goede tijd om projecten te starten.", "Je lichaam reageert goed op training."],
+        "eatingTips": [{"action": "Varieer met verse groenten", "examples": ["Broccoli", "Paprika", "Bladgroenten"]}],
+        "planningTips": [{"action": "Start nieuwe projecten", "details": "Je concentratie is nu op z'n best"}]
+      },
+      "zomer": {
+        "quote": "Dit is je piekmomen - benut je energie slim!",
+        "feelings": ["Hoge energie en zelfvertrouwen.", "Meer sociale drive."],
+        "focus": ["Plan belangrijke gesprekken en presentaties.", "Geniet, maar waak voor overcommitment."],
+        "eatingTips": [{"action": "Blijf gehydrateerd", "examples": ["Water", "Kruidenthee", "Waterrijke groenten"]}],
+        "planningTips": [{"action": "Plan je hoogtepunten", "details": "Belangrijke meetings, sportwedstrijden"}]
+      },
+      "herfst": {
+        "quote": "Tijd voor structuur en zelfzorg in je herfstfase.",
+        "feelings": ["Energie kan fluctueren.", "Meer behoefte aan ritme en rust."],
+        "focus": ["Stabiele bloedsuiker helpt met stemmingswisselingen.", "Vroeg naar bed, minder prikkels."],
+        "eatingTips": [{"action": "Eet op vaste tijden", "examples": ["3 hoofdmaaltijden", "Beperkt snacken"]}],
+        "planningTips": [{"action": "Structureer je week", "details": "Minder spontane plannen, meer rust"}]
+      },
+      "herfst-winter": {
+        "quote": "De komende dagen: minder pushen, meer beschermen.",
+        "feelings": ["Meer behoefte aan rust en comfort food, vooral einde middag.", "Slaap kan lichter zijn en je kunt sneller wakker worden.", "Je kunt iets minder stressbestendig voelen, kleine dingen komen harder binnen."],
+        "focus": ["Bloedsuiker rustiger houden met vaste maaltijden en eiwit bij ontbijt.", "Slaap beschermen met eerder avondeten en minder prikkels laat."],
+        "eatingTips": [{"action": "Ontbijt met 25 tot 35 gram eiwit", "examples": ["2 tot 3 eieren met groenten", "Skyr/kwark met bessen", "Restjes avondeten met extra eiwit"]}, {"action": "Laatste echte maaltijd uiterlijk 3 uur voor slapen", "examples": ["Yoghurt", "Eitje", "Kaas met komkommer"]}],
+        "planningTips": [{"action": "Plan 2 avonden zonder afspraken", "details": "Doel: eerder naar bed, scherm uit 45 minuten voor slaap"}, {"action": "Training slim", "details": "2x kracht of stevig wandelen, 1x yoga of rustige flow. Geen max intensiteit."}]
+      },
+      "winter-lente": {
+        "quote": "De komende dagen: rustig opbouwen, je energie komt terug.",
+        "feelings": ["Energie komt langzaam terug.", "Meer zin in plannen en bewegen.", "Minder cravings, meer stabiliteit."],
+        "focus": ["Langzaam opbouwen van activiteiten, niet meteen vol gas.", "Gevarieerd eten ondersteunt je energieherstel."],
+        "eatingTips": [{"action": "Meer variatie in groenten", "examples": ["Spinazie", "Broccoli", "Paprika"]}, {"action": "Blijf eiwit vasthouden, vooral ontbijt", "examples": ["Eieren", "Yoghurt met noten", "Vis"]}],
+        "planningTips": [{"action": "Pak 1 grotere taak op", "details": "Je concentratie is beter in deze fase"}, {"action": "Voeg 1 extra krachttraining toe", "details": "Je spieren kunnen nu meer aan"}]
+      },
+      "lente-zomer": {
+        "quote": "De komende dagen: geniet van je piek energie!",
+        "feelings": ["Meer drive, meer zin in actie.", "Meer sociale energie.", "Risico op overcommitment."],
+        "focus": ["Benut je energie voor belangrijke taken en gesprekken.", "Plan ook herstel, anders klapt het later terug."],
+        "eatingTips": [{"action": "Eiwit en vezels blijven basis", "examples": ["Salade met kip", "Vis met groenten", "Bonen en peulvruchten"]}, {"action": "Carbs rondom training", "examples": ["Havermout", "Rijst", "Zoete aardappel"]}],
+        "planningTips": [{"action": "Plan intensievere trainingen", "details": "HIIT, hardlopen, groepslessen"}, {"action": "Max 1-2 drukke avonden achter elkaar", "details": "Bewaar ook rust"}]
+      },
+      "zomer-herfst": {
+        "quote": "De komende dagen: terug naar ritme en bescherming.",
+        "feelings": ["Meer behoefte aan ritme.", "Sneller overprikkeld.", "Trek neemt wat toe."],
+        "focus": ["Structuur in je week aanbrengen.", "Vroegere avonden en stabiele maaltijdtijden."],
+        "eatingTips": [{"action": "Terug naar vaste eetmomenten", "examples": ["3 hoofdmaaltijden", "Max 1-2 snacks", "Geen grazen"]}, {"action": "Meer warme maaltijden", "examples": ["Soep", "Stoofpot", "Curry"]}],
+        "planningTips": [{"action": "Structuur in week", "details": "Plan vooruit, minder spontaan"}, {"action": "Training steady, minder pieken", "details": "Wandelen, yoga, lichte kracht"}]
+      }
+    }
   }
 }
