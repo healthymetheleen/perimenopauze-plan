@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Sparkles, Play, Pause, Clock, Moon, Heart, 
   Wind, Leaf, Sun, Volume2
@@ -131,6 +132,7 @@ const categoryLabels = {
 };
 
 export default function MeditationPage() {
+  const { t } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const [selectedMeditation, setSelectedMeditation] = useState<Meditation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -155,9 +157,9 @@ export default function MeditationPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-semibold text-gradient">Meditatie</h1>
+          <h1 className="text-2xl font-semibold text-gradient">{t('meditation.title')}</h1>
           <p className="text-muted-foreground">
-            Ontspan, focus en verbind met je lichaam
+            {t('meditation.subtitle')}
           </p>
         </div>
 
@@ -171,7 +173,7 @@ export default function MeditationPage() {
                 </div>
                 <div className="flex-1">
                   <Badge variant="secondary" className={`mb-2 text-white ${colors.accent}`}>
-                    Aanbevolen voor {seasonLabels[currentSeason]}
+                    {t('meditation.recommendedFor')} {seasonLabels[currentSeason]}
                   </Badge>
                   <h2 className="font-semibold text-lg">{cycleRecommendation.title}</h2>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -188,7 +190,7 @@ export default function MeditationPage() {
                       onClick={() => setSelectedMeditation(cycleRecommendation)}
                     >
                       <Play className="h-4 w-4 mr-1" />
-                      Start
+                      {t('meditation.start')}
                     </Button>
                   </div>
                 </div>
@@ -202,10 +204,10 @@ export default function MeditationPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Moon className="h-5 w-5 text-indigo-600" />
-              Slaapmeditaties
+              {t('meditation.sleepMeditations')}
             </CardTitle>
             <CardDescription>
-              Veel vrouwen merken dat meditatie helpt bij het inslapen
+              {t('meditation.sleepDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -239,15 +241,15 @@ export default function MeditationPage() {
           <TabsList className="w-full glass">
             <TabsTrigger value="stress" className="flex-1 data-[state=active]:bg-primary/20">
               <Wind className="h-4 w-4 mr-1" />
-              Stress
+              {t('meditation.stress')}
             </TabsTrigger>
             <TabsTrigger value="energy" className="flex-1 data-[state=active]:bg-primary/20">
               <Sun className="h-4 w-4 mr-1" />
-              Energie
+              {t('meditation.energy')}
             </TabsTrigger>
             <TabsTrigger value="cycle" className="flex-1 data-[state=active]:bg-primary/20">
               <Leaf className="h-4 w-4 mr-1" />
-              Cyclus
+              {t('meditation.cycle')}
             </TabsTrigger>
           </TabsList>
 
@@ -314,12 +316,12 @@ export default function MeditationPage() {
                   {isPlaying ? (
                     <>
                       <Pause className="h-5 w-5 mr-2" />
-                      Pauzeer
+                      {t('meditation.pause')}
                     </>
                   ) : (
                     <>
                       <Play className="h-5 w-5 mr-2" />
-                      Start meditatie
+                      {t('meditation.startMeditation')}
                     </>
                   )}
                 </Button>
@@ -328,7 +330,7 @@ export default function MeditationPage() {
               {isPlaying && (
                 <div className="mt-8 flex items-center gap-2 text-muted-foreground">
                   <Volume2 className="h-4 w-4" />
-                  <span className="text-sm">Audio speelt af...</span>
+                  <span className="text-sm">{t('meditation.audioPlaying')}</span>
                 </div>
               )}
             </div>
@@ -342,7 +344,7 @@ export default function MeditationPage() {
                   setIsPlaying(false);
                 }}
               >
-                Sluiten
+                {t('meditation.close')}
               </Button>
             </div>
           </div>

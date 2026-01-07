@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { 
   MessageCircle, Heart, Plus, Search, Filter,
   User, Clock, ChevronRight
@@ -33,6 +34,7 @@ const categoryColors: Record<string, string> = {
 };
 
 export default function CommunityPage() {
+  const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('alle');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPost, setShowNewPost] = useState(false);
@@ -47,6 +49,7 @@ export default function CommunityPage() {
   const createPost = useCreatePost();
   const toggleLike = useToggleLike();
   const { toast } = useToast();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
 
   const filteredPosts = posts?.filter(post => 
     post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -55,17 +58,17 @@ export default function CommunityPage() {
 
   const handleCreatePost = async () => {
     if (!newPost.title.trim() || !newPost.content.trim()) {
-      toast({ title: 'Vul een titel en bericht in', variant: 'destructive' });
+      toast({ title: t('community.fillTitleAndMessage'), variant: 'destructive' });
       return;
     }
 
     try {
       await createPost.mutateAsync(newPost);
-      toast({ title: 'Bericht geplaatst!' });
+      toast({ title: t('community.postCreated') });
       setShowNewPost(false);
       setNewPost({ title: '', content: '', category: 'algemeen', is_anonymous: false });
     } catch (error) {
-      toast({ title: 'Kon bericht niet plaatsen', variant: 'destructive' });
+      toast({ title: t('community.postError'), variant: 'destructive' });
     }
   };
 
@@ -75,7 +78,7 @@ export default function CommunityPage() {
     try {
       await toggleLike.mutateAsync(postId);
     } catch (error) {
-      toast({ title: 'Kon niet liken', variant: 'destructive' });
+      toast({ title: t('community.likeError'), variant: 'destructive' });
     }
   };
 
@@ -85,44 +88,44 @@ export default function CommunityPage() {
         {/* Header */}
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Community</h1>
+            <h1 className="text-2xl font-semibold text-foreground">{t('community.title')}</h1>
             <p className="text-muted-foreground">
-              Stel vragen en deel ervaringen met andere vrouwen
+              {t('community.subtitle')}
             </p>
           </div>
           <Dialog open={showNewPost} onOpenChange={setShowNewPost}>
             <DialogTrigger asChild>
               <Button className="shrink-0">
                 <Plus className="h-4 w-4 mr-2" />
-                Nieuwe vraag
+                {t('community.newQuestion')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle>Nieuwe vraag stellen</DialogTitle>
+                <DialogTitle>{t('community.askNewQuestion')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">Titel</Label>
+                  <Label htmlFor="title">{t('community.titleLabel')}</Label>
                   <Input
                     id="title"
-                    placeholder="Korte samenvatting van je vraag..."
+                    placeholder={t('community.titlePlaceholder')}
                     value={newPost.title}
                     onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="content">Je vraag of bericht</Label>
+                  <Label htmlFor="content">{t('community.contentLabel')}</Label>
                   <Textarea
                     id="content"
-                    placeholder="Beschrijf je vraag of ervaring..."
+                    placeholder={t('community.contentPlaceholder')}
                     rows={5}
                     value={newPost.content}
                     onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Categorie</Label>
+                  <Label>{t('community.category')}</Label>
                   <Select 
                     value={newPost.category} 
                     onValueChange={(value) => setNewPost({ ...newPost, category: value })}
@@ -141,9 +144,9 @@ export default function CommunityPage() {
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div>
-                    <Label>Anoniem plaatsen</Label>
+                    <Label>{t('community.postAnonymously')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      Je naam wordt niet getoond
+                      {t('community.nameNotShown')}
                     </p>
                   </div>
                   <Switch
@@ -153,14 +156,14 @@ export default function CommunityPage() {
                 </div>
                 <div className="flex gap-3 pt-2">
                   <Button variant="outline" className="flex-1" onClick={() => setShowNewPost(false)}>
-                    Annuleren
+                    {t('community.cancel')}
                   </Button>
                   <Button 
                     className="flex-1" 
                     onClick={handleCreatePost}
                     disabled={createPost.isPending}
                   >
-                    Plaatsen
+                    {t('community.post')}
                   </Button>
                 </div>
               </div>
@@ -173,7 +176,7 @@ export default function CommunityPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Zoek in berichten..."
+              placeholder={t('community.searchPlaceholder')}
               className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -182,10 +185,10 @@ export default function CommunityPage() {
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
             <SelectTrigger className="w-full sm:w-48">
               <Filter className="h-4 w-4 mr-2" />
-              <SelectValue placeholder="Filter" />
+              <SelectValue placeholder={t('community.filter')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="alle">Alle categorieën</SelectItem>
+              <SelectItem value="alle">{t('community.allCategories')}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   {cat.label}
@@ -203,12 +206,12 @@ export default function CommunityPage() {
             <CardContent className="py-12">
               <EmptyState
                 icon={<MessageCircle className="h-10 w-10" />}
-                title="Nog geen berichten"
+                title={t('community.noPosts')}
                 description={selectedCategory !== 'alle' 
-                  ? "Er zijn nog geen berichten in deze categorie."
-                  : "Wees de eerste die een vraag stelt!"}
+                  ? t('community.noPostsInCategory')
+                  : t('community.beFirst')}
                 action={{
-                  label: 'Stel een vraag',
+                  label: t('community.askQuestion'),
                   onClick: () => setShowNewPost(true),
                 }}
               />
@@ -237,7 +240,7 @@ export default function CommunityPage() {
                             <Clock className="h-3 w-3" />
                             {formatDistanceToNow(new Date(post.created_at), { 
                               addSuffix: true, 
-                              locale: nl 
+                              locale: dateLocale 
                             })}
                           </span>
                         </div>
@@ -279,7 +282,7 @@ export default function CommunityPage() {
 
         {/* Community guidelines */}
         <p className="text-xs text-muted-foreground text-center">
-          Wees respectvol en ondersteunend. Deze community vervangt geen medisch advies.
+          {t('community.guidelines')}
         </p>
       </div>
     </AppLayout>
