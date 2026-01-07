@@ -895,7 +895,10 @@
       "cycle": "Cyclus",
       "stress": "Stress",
       "tips": "Tips"
-    }
+    },
+    "language": "Taal",
+    "all_languages": "Alle talen",
+    "post_language": "Taal bericht"
   },
   "products": {
     "title": "Aanbevolen Producten",

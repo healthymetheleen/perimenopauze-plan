@@ -316,6 +316,7 @@ export type Database = {
           created_at: string
           id: string
           is_anonymous: boolean
+          language: string
           likes_count: number
           owner_id: string
           title: string
@@ -328,6 +329,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          language?: string
           likes_count?: number
           owner_id: string
           title: string
@@ -340,6 +342,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_anonymous?: boolean
+          language?: string
           likes_count?: number
           owner_id?: string
           title?: string
@@ -1633,6 +1636,7 @@ export type Database = {
           created_at: string | null
           id: string | null
           is_anonymous: boolean | null
+          language: string | null
           likes_count: number | null
           owner_id: string | null
           title: string | null
@@ -1645,6 +1649,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           is_anonymous?: boolean | null
+          language?: string | null
           likes_count?: number | null
           owner_id?: never
           title?: string | null
@@ -1657,6 +1662,7 @@ export type Database = {
           created_at?: string | null
           id?: string | null
           is_anonymous?: boolean | null
+          language?: string | null
           likes_count?: number | null
           owner_id?: never
           title?: string | null

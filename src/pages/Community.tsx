@@ -5,7 +5,7 @@ import { nl, enUS } from 'date-fns/locale';
 import { useTranslation } from 'react-i18next';
 import { 
   MessageCircle, Heart, Plus, Search, Filter,
-  User, Clock, ChevronRight
+  User, Clock, ChevronRight, Globe
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,16 +36,18 @@ const categoryColors: Record<string, string> = {
 export default function CommunityPage() {
   const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('alle');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>('alle');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({
     title: '',
     content: '',
     category: 'algemeen',
+    language: i18n.language === 'nl' ? 'nl' : 'en',
     is_anonymous: false,
   });
 
-  const { data: posts, isLoading } = useCommunityPosts(selectedCategory);
+  const { data: posts, isLoading } = useCommunityPosts(selectedCategory, selectedLanguage);
   const createPost = useCreatePost();
   const toggleLike = useToggleLike();
   const { toast } = useToast();
@@ -58,17 +60,17 @@ export default function CommunityPage() {
 
   const handleCreatePost = async () => {
     if (!newPost.title.trim() || !newPost.content.trim()) {
-      toast({ title: t('community.fillTitleAndMessage'), variant: 'destructive' });
+      toast({ title: t('community.fill_title_content'), variant: 'destructive' });
       return;
     }
 
     try {
       await createPost.mutateAsync(newPost);
-      toast({ title: t('community.postCreated') });
+      toast({ title: t('community.post_success') });
       setShowNewPost(false);
-      setNewPost({ title: '', content: '', category: 'algemeen', is_anonymous: false });
+      setNewPost({ title: '', content: '', category: 'algemeen', language: i18n.language === 'nl' ? 'nl' : 'en', is_anonymous: false });
     } catch (error) {
-      toast({ title: t('community.postError'), variant: 'destructive' });
+      toast({ title: t('community.post_error'), variant: 'destructive' });
     }
   };
 
@@ -78,7 +80,7 @@ export default function CommunityPage() {
     try {
       await toggleLike.mutateAsync(postId);
     } catch (error) {
-      toast({ title: t('community.likeError'), variant: 'destructive' });
+      toast({ title: t('community.like_error'), variant: 'destructive' });
     }
   };
 
@@ -97,56 +99,73 @@ export default function CommunityPage() {
             <DialogTrigger asChild>
               <Button className="shrink-0">
                 <Plus className="h-4 w-4 mr-2" />
-                {t('community.newQuestion')}
+                {t('community.new_question')}
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-lg">
               <DialogHeader>
-                <DialogTitle>{t('community.askNewQuestion')}</DialogTitle>
+                <DialogTitle>{t('community.new_question_title')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="title">{t('community.titleLabel')}</Label>
+                  <Label htmlFor="title">{t('community.post_title')}</Label>
                   <Input
                     id="title"
-                    placeholder={t('community.titlePlaceholder')}
+                    placeholder={t('community.post_title_placeholder')}
                     value={newPost.title}
                     onChange={(e) => setNewPost({ ...newPost, title: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="content">{t('community.contentLabel')}</Label>
+                  <Label htmlFor="content">{t('community.post_content')}</Label>
                   <Textarea
                     id="content"
-                    placeholder={t('community.contentPlaceholder')}
+                    placeholder={t('community.post_content_placeholder')}
                     rows={5}
                     value={newPost.content}
                     onChange={(e) => setNewPost({ ...newPost, content: e.target.value })}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label>{t('community.category')}</Label>
-                  <Select 
-                    value={newPost.category} 
-                    onValueChange={(value) => setNewPost({ ...newPost, category: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {categories.map((cat) => (
-                        <SelectItem key={cat.value} value={cat.value}>
-                          {cat.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="space-y-2">
+                    <Label>{t('community.category')}</Label>
+                    <Select 
+                      value={newPost.category} 
+                      onValueChange={(value) => setNewPost({ ...newPost, category: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {categories.map((cat) => (
+                          <SelectItem key={cat.value} value={cat.value}>
+                            {cat.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label>{t('community.post_language')}</Label>
+                    <Select 
+                      value={newPost.language} 
+                      onValueChange={(value) => setNewPost({ ...newPost, language: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
+                        <SelectItem value="en">🇬🇧 English</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
                   <div>
-                    <Label>{t('community.postAnonymously')}</Label>
+                    <Label>{t('community.post_anonymous')}</Label>
                     <p className="text-sm text-muted-foreground">
-                      {t('community.nameNotShown')}
+                      {t('community.post_anonymous_desc')}
                     </p>
                   </div>
                   <Switch
@@ -176,24 +195,35 @@ export default function CommunityPage() {
           <div className="relative flex-1">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t('community.searchPlaceholder')}
+              placeholder={t('community.search_placeholder')}
               className="pl-10"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
           <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-40">
               <Filter className="h-4 w-4 mr-2" />
               <SelectValue placeholder={t('community.filter')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="alle">{t('community.allCategories')}</SelectItem>
+              <SelectItem value="alle">{t('community.all_categories')}</SelectItem>
               {categories.map((cat) => (
                 <SelectItem key={cat.value} value={cat.value}>
                   {cat.label}
                 </SelectItem>
               ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
+            <SelectTrigger className="w-full sm:w-36">
+              <Globe className="h-4 w-4 mr-2" />
+              <SelectValue placeholder={t('community.language')} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="alle">{t('community.all_languages')}</SelectItem>
+              <SelectItem value="nl">🇳🇱 Nederlands</SelectItem>
+              <SelectItem value="en">🇬🇧 English</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -206,12 +236,12 @@ export default function CommunityPage() {
             <CardContent className="py-12">
               <EmptyState
                 icon={<MessageCircle className="h-10 w-10" />}
-                title={t('community.noPosts')}
-                description={selectedCategory !== 'alle' 
-                  ? t('community.noPostsInCategory')
-                  : t('community.beFirst')}
+                title={t('community.no_posts')}
+                description={selectedCategory !== 'alle' || selectedLanguage !== 'alle'
+                  ? t('community.no_posts_category')
+                  : t('community.no_posts_all')}
                 action={{
-                  label: t('community.askQuestion'),
+                  label: t('community.ask_question'),
                   onClick: () => setShowNewPost(true),
                 }}
               />
@@ -232,6 +262,9 @@ export default function CommunityPage() {
                           >
                             {categories.find(c => c.value === post.category)?.label || post.category}
                           </Badge>
+                          <span className="text-xs">
+                            {post.language === 'nl' ? '🇳🇱' : '🇬🇧'}
+                          </span>
                           <span className="text-xs text-muted-foreground flex items-center gap-1">
                             <User className="h-3 w-3" />
                             {post.author_name}

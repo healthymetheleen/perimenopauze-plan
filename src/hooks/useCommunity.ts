@@ -8,6 +8,7 @@ export interface CommunityPost {
   title: string;
   content: string;
   category: string;
+  language: string;
   is_anonymous: boolean;
   likes_count: number;
   comments_count: number;
@@ -39,11 +40,11 @@ export const categories = [
   { value: 'tips', label: 'Tips & Ervaringen' },
 ];
 
-export function useCommunityPosts(category?: string) {
+export function useCommunityPosts(category?: string, language?: string) {
   const { user } = useAuth();
 
   return useQuery({
-    queryKey: ['community-posts', category],
+    queryKey: ['community-posts', category, language],
     queryFn: async (): Promise<CommunityPost[]> => {
       // Use the secure view that masks owner_id for anonymous posts
       let query = supabase
@@ -53,6 +54,10 @@ export function useCommunityPosts(category?: string) {
 
       if (category && category !== 'alle') {
         query = query.eq('category', category);
+      }
+
+      if (language && language !== 'alle') {
+        query = query.eq('language', language);
       }
 
       const { data: posts, error } = await query;
@@ -182,7 +187,7 @@ export function useCreatePost() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (data: { title: string; content: string; category: string; is_anonymous: boolean }) => {
+    mutationFn: async (data: { title: string; content: string; category: string; language: string; is_anonymous: boolean }) => {
       if (!user) throw new Error('Niet ingelogd');
 
       const { data: post, error } = await supabase
@@ -192,6 +197,7 @@ export function useCreatePost() {
           title: data.title,
           content: data.content,
           category: data.category,
+          language: data.language,
           is_anonymous: data.is_anonymous,
         })
         .select()
