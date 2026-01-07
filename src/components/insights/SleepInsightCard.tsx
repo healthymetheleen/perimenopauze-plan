@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { Moon, Sparkles, Info } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ export function SleepInsightCard({
   interruptions,
   cycleSeason,
 }: SleepInsightCardProps) {
+  const { t } = useTranslation();
   const { consent } = useConsent();
   const hasAIConsent = consent?.accepted_ai_processing === true;
 
@@ -43,7 +45,7 @@ export function SleepInsightCard({
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Moon className="h-5 w-5 text-primary" />
-          Slaap-inzicht
+          {t('sleep_insight.title')}
           <Badge variant="secondary" className="text-xs">
             <Sparkles className="h-3 w-3 mr-1" />
             AI
@@ -58,7 +60,7 @@ export function SleepInsightCard({
           </div>
         ) : error ? (
           <p className="text-sm text-muted-foreground">
-            Slaap-inzicht niet beschikbaar.
+            {t('sleep_insight.not_available')}
           </p>
         ) : insight ? (
           <>

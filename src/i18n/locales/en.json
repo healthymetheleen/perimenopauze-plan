@@ -51,7 +51,31 @@
     "until": "until {{date}}",
     "after_trial": "Then €7.50/month via direct debit",
     "premium_active": "Premium access active",
-    "badge_days": "Trial: {{days}}d"
+    "badge_days": "Trial: {{days}}d",
+    "trial_remaining": "Trial: {{days}} {{dayLabel}} left",
+    "day": "day",
+    "days": "days",
+    "view_premium": "View Premium",
+    "trial_expired": "Your trial has expired",
+    "trial_expired_desc": "Your 7 days free trial is over.",
+    "trial_expired_warning": "You can no longer add new data until you upgrade.",
+    "with_premium": "With Premium you get access to:",
+    "per_month": "/month",
+    "full_access": "Full access immediately after payment",
+    "upgrade_to_premium": "Upgrade to Premium",
+    "safe_payment": "Secure payment via Mollie. Cancel anytime.",
+    "data_warning": "Note: without subscription your data will be deleted after 30 days.",
+    "or_delete": "Or delete your data"
+  },
+  "layout": {
+    "app_name": "Perimenopause Plan",
+    "diary": "Diary",
+    "open_menu": "Open menu",
+    "close_menu": "Close menu"
+  },
+  "sleep_insight": {
+    "title": "Sleep insight",
+    "not_available": "Sleep insight not available."
   },
   "trends": {
     "title": "Trends & Analyses",
@@ -169,10 +193,15 @@
   },
   "phases": {
     "menstruation": "Menstruation",
-    "follicular": "Follicular",
+    "menstruatie": "Menstruation",
+    "follicular": "Follicular phase",
+    "folliculair": "Follicular phase",
     "ovulation": "Ovulation",
-    "luteal": "Luteal",
-    "onbekend": "Unknown"
+    "ovulatie": "Ovulation",
+    "luteal": "Luteal phase",
+    "luteaal": "Luteal phase",
+    "onbekend": "Unknown",
+    "unknown": "Unknown"
   },
   "season_symptoms": {
     "winter": ["Fatigue", "Cramps", "Low energy"],

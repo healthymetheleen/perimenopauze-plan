@@ -14,7 +14,7 @@ import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { CycleWeekWidget } from '@/components/cycle/CycleWeekWidget';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDailyScores } from '@/hooks/useDiary';
-import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences } from '@/hooks/useCycle';
 import { useSleepSessions, useActiveSleepSession, useStartSleep, useEndSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
 import { useToast } from '@/hooks/use-toast';
 import { useCanGenerateMonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
@@ -251,7 +251,7 @@ export default function DashboardPage() {
         <DailyReflectionCard
           mealsCount={todayScore?.meals_count || 0}
           sleepQuality={sleepStats?.avgQuality ? `${sleepStats.avgQuality.toFixed(1)}/10` : undefined}
-          cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
+          cycleSeason={currentSeason !== 'onbekend' ? t(`seasons.${currentSeason === 'lente' ? 'spring' : currentSeason === 'zomer' ? 'summer' : currentSeason === 'herfst' ? 'autumn' : currentSeason}`) : undefined}
         />
 
         {/* Monthly Analysis CTA - only if ready */}

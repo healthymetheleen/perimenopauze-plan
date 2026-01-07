@@ -12,7 +12,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { EmptyState } from '@/components/ui/empty-state';
 import { useRecipes, useCyclePhaseRecipes, useFavoriteIds, useFavoriteRecipes, useAddFavorite, useRemoveFavorite, mealTypes, dietTags, Recipe } from '@/hooks/useRecipes';
 import { useRecipePreferences } from '@/hooks/useRecipePreferences';
-import { useLatestPrediction, useCyclePreferences, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences } from '@/hooks/useCycle';
 import { useShoppingList } from '@/hooks/useShoppingList';
 import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
 import { RecipeFilters } from '@/components/recipes/RecipeFilters';
@@ -202,7 +202,7 @@ export default function RecipesPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                {t('recipes.recommended_for', { season: seasonLabels[currentCycleSeason]?.toLowerCase() || currentCyclePhase })}
+                {t('recipes.recommended_for', { season: t(`seasons.${currentCycleSeason === 'lente' ? 'spring' : currentCycleSeason === 'zomer' ? 'summer' : currentCycleSeason === 'herfst' ? 'autumn' : currentCycleSeason}`)?.toLowerCase() || currentCyclePhase })}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
                 {t('recipes.recommended_desc', { phase: currentCyclePhase })}

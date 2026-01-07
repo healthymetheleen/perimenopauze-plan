@@ -19,7 +19,7 @@ import {
   calculateSleepScore,
   generateSleepAdviceKeys,
 } from '@/hooks/useSleep';
-import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
 import { SleepTimeline } from '@/components/sleep/SleepTimeline';
 import { Moon, Sun, Clock, TrendingUp, Lightbulb, BedDouble, AlarmClock, Sparkles, Plus } from 'lucide-react';
@@ -345,7 +345,7 @@ export default function SleepPage() {
             avgQuality={stats.avgQuality ? `${stats.avgQuality.toFixed(1)}/10` : t('sleep.unknown')}
             consistency={`${Math.round(stats.consistency)}%`}
             interruptions={nightInterruptions || undefined}
-            cycleSeason={currentSeason !== 'onbekend' ? seasonLabels[currentSeason] : undefined}
+            cycleSeason={currentSeason !== 'onbekend' ? t(`seasons.${currentSeason === 'lente' ? 'spring' : currentSeason === 'zomer' ? 'summer' : currentSeason === 'herfst' ? 'autumn' : currentSeason}`) : undefined}
           />
         )}
 
