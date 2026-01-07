@@ -826,11 +826,6 @@
     "og_description": "Track your cycle, predict your period, and receive AI-powered insights for perimenopause.",
     "twitter_description": "Track your cycle, predict your period, and receive AI-powered insights."
   },
-  "trends": {
-    "title": "Trends & Analyses",
-    "subtitle": "Discover patterns and get personal insights",
-    "loading": "Loading data..."
-  },
   "recipes": {
     "title": "Recipes",
     "subtitle": "Healthy recipes tailored to season & cycle",
