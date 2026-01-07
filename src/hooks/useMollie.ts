@@ -165,9 +165,28 @@ export function useCancelSubscription() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ customerId, subscriptionId }: { customerId: string; subscriptionId: string }) => {
-      const { data, error } = await supabase.functions.invoke('mollie-payments/cancel-subscription', {
-        body: { customerId, subscriptionId },
+    mutationFn: async () => {
+      const { data, error } = await supabase.functions.invoke('mollie-payments/cancel-subscription');
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    },
+  });
+}
+
+// Request a refund (within 14-day window)
+export function useRequestRefund() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (reason?: string) => {
+      const { data, error } = await supabase.functions.invoke('mollie-payments/request-refund', {
+        body: { reason },
       });
 
       if (error) throw error;
@@ -177,6 +196,30 @@ export function useCancelSubscription() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+    },
+  });
+}
+
+// Admin: send broadcast email
+export function useAdminBroadcast() {
+  return useMutation({
+    mutationFn: async ({ 
+      subject, 
+      message, 
+      targetAudience 
+    }: { 
+      subject: string; 
+      message: string; 
+      targetAudience: 'all' | 'premium' | 'trial' | 'free';
+    }) => {
+      const { data, error } = await supabase.functions.invoke('admin-broadcast', {
+        body: { subject, message, targetAudience },
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      return data;
     },
   });
 }
