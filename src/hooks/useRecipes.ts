@@ -60,13 +60,13 @@ export type RecipeInsert = {
 export type RecipeUpdate = Partial<RecipeInsert>;
 
 export const mealTypes = [
-  { value: 'ontbijt', label: 'Ontbijt' },
-  { value: 'lunch', label: 'Lunch' },
-  { value: 'diner', label: 'Diner' },
-  { value: 'snack', label: 'Snack' },
-  { value: 'tussendoortje', label: 'Tussendoortje' },
-  { value: 'drankje', label: 'Drankje' },
-  { value: 'smoothie', label: 'Smoothie' },
+  { value: 'ontbijt', labelKey: 'recipes.meal_ontbijt' },
+  { value: 'lunch', labelKey: 'recipes.meal_lunch' },
+  { value: 'diner', labelKey: 'recipes.meal_diner' },
+  { value: 'snack', labelKey: 'recipes.meal_snack' },
+  { value: 'tussendoortje', labelKey: 'recipes.meal_tussendoortje' },
+  { value: 'drankje', labelKey: 'recipes.meal_drankje' },
+  { value: 'smoothie', labelKey: 'recipes.meal_smoothie' },
 ] as const;
 
 // Weather/calendar seasons

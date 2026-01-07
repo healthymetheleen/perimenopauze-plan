@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -13,6 +14,7 @@ import { RecipeFormDialog } from '@/components/recipes/RecipeFormDialog';
 import { RecipeImportDialog } from '@/components/recipes/RecipeImportDialog';
 
 export default function RecipeAdminPage() {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
@@ -114,7 +116,7 @@ export default function RecipeAdminPage() {
                         )}
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {mealTypes.find(m => m.value === recipe.meal_type)?.label}
+                        {t(mealTypes.find(m => m.value === recipe.meal_type)?.labelKey || '')}
                       </p>
                     </div>
                     <div className="flex gap-2">

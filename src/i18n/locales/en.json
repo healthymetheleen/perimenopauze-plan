@@ -893,7 +893,14 @@
     "time_fast": "Fast (<30 min)",
     "time_normal": "Normal (<60 min)",
     "time_extended": "Extended (60+ min)",
-    "persons": "{{count}} pers."
+    "persons": "{{count}} pers.",
+    "meal_ontbijt": "Breakfast",
+    "meal_lunch": "Lunch",
+    "meal_diner": "Dinner",
+    "meal_snack": "Snack",
+    "meal_tussendoortje": "In-between",
+    "meal_drankje": "Drink",
+    "meal_smoothie": "Smoothie"
   },
   "movement": {
     "title": "Movement",

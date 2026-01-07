@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -36,6 +37,7 @@ function scaleIngredient(ingredient: Ingredient, originalServings: number, newSe
 }
 
 export default function RecipeDetailPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const { id } = useParams<{ id: string }>();
   const { data: recipe, isLoading } = useRecipe(id || null);
@@ -169,7 +171,7 @@ export default function RecipeDetailPage() {
           )}
           <div className="flex flex-wrap items-center gap-3 mt-4">
             <Badge>
-              {mealTypes.find(m => m.value === recipe.meal_type)?.label}
+              {t(mealTypes.find(m => m.value === recipe.meal_type)?.labelKey || '')}
             </Badge>
             {totalTime > 0 && (
               <span className="text-sm text-muted-foreground flex items-center gap-1">

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Dialog,
   DialogContent,
@@ -33,6 +34,7 @@ interface RecipeFormDialogProps {
 }
 
 export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDialogProps) {
+  const { t } = useTranslation();
   const { toast } = useToast();
   const { data: existingRecipe } = useRecipe(recipeId || null);
   const createRecipe = useCreateRecipe();
@@ -293,7 +295,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
                     <SelectContent>
                       {mealTypes.map((type) => (
                         <SelectItem key={type.value} value={type.value}>
-                          {type.label}
+                          {t(type.labelKey)}
                         </SelectItem>
                       ))}
                     </SelectContent>
