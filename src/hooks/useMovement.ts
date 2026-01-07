@@ -6,7 +6,7 @@ import { useAuth } from '@/lib/auth';
 export interface YogaExercise {
   id: string;
   nameKey: string; // i18n key for name
-  duration: string;
+  durationKey: string; // i18n key for duration (e.g. "2-5 min", "30 sec per side")
   descriptionKey: string; // i18n key for description  
   benefitsKey: string; // i18n key for benefits array
   imageUrl: string;
@@ -30,7 +30,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'child-pose',
       nameKey: 'exercises.items.child-pose.name',
-      duration: '2-5 min',
+      durationKey: 'exercises.items.child-pose.duration',
       descriptionKey: 'exercises.items.child-pose.description',
       benefitsKey: 'exercises.items.child-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
@@ -39,7 +39,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'supine-twist',
       nameKey: 'exercises.items.supine-twist.name',
-      duration: '2-3 min per kant',
+      durationKey: 'exercises.items.supine-twist.duration',
       descriptionKey: 'exercises.items.supine-twist.description',
       benefitsKey: 'exercises.items.supine-twist.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
@@ -48,7 +48,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'legs-up-wall',
       nameKey: 'exercises.items.legs-up-wall.name',
-      duration: '5-10 min',
+      durationKey: 'exercises.items.legs-up-wall.duration',
       descriptionKey: 'exercises.items.legs-up-wall.description',
       benefitsKey: 'exercises.items.legs-up-wall.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
@@ -57,7 +57,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'cat-cow',
       nameKey: 'exercises.items.cat-cow.name',
-      duration: '2-3 min',
+      durationKey: 'exercises.items.cat-cow.duration',
       descriptionKey: 'exercises.items.cat-cow.description',
       benefitsKey: 'exercises.items.cat-cow.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
@@ -68,7 +68,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'sun-salutation',
       nameKey: 'exercises.items.sun-salutation.name',
-      duration: '5-10 rondes',
+      durationKey: 'exercises.items.sun-salutation.duration',
       descriptionKey: 'exercises.items.sun-salutation.description',
       benefitsKey: 'exercises.items.sun-salutation.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',
@@ -77,7 +77,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'warrior-2',
       nameKey: 'exercises.items.warrior-2.name',
-      duration: '30-60 sec per kant',
+      durationKey: 'exercises.items.warrior-2.duration',
       descriptionKey: 'exercises.items.warrior-2.description',
       benefitsKey: 'exercises.items.warrior-2.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
@@ -86,7 +86,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'triangle-pose',
       nameKey: 'exercises.items.triangle-pose.name',
-      duration: '30-60 sec per kant',
+      durationKey: 'exercises.items.triangle-pose.duration',
       descriptionKey: 'exercises.items.triangle-pose.description',
       benefitsKey: 'exercises.items.triangle-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
@@ -95,7 +95,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'boat-pose',
       nameKey: 'exercises.items.boat-pose.name',
-      duration: '30-60 sec',
+      durationKey: 'exercises.items.boat-pose.duration',
       descriptionKey: 'exercises.items.boat-pose.description',
       benefitsKey: 'exercises.items.boat-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
@@ -106,7 +106,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'crow-pose',
       nameKey: 'exercises.items.crow-pose.name',
-      duration: '15-30 sec',
+      durationKey: 'exercises.items.crow-pose.duration',
       descriptionKey: 'exercises.items.crow-pose.description',
       benefitsKey: 'exercises.items.crow-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
@@ -115,7 +115,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'headstand-prep',
       nameKey: 'exercises.items.headstand-prep.name',
-      duration: '1-3 min',
+      durationKey: 'exercises.items.headstand-prep.duration',
       descriptionKey: 'exercises.items.headstand-prep.description',
       benefitsKey: 'exercises.items.headstand-prep.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
@@ -124,7 +124,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'wheel-pose',
       nameKey: 'exercises.items.wheel-pose.name',
-      duration: '15-30 sec',
+      durationKey: 'exercises.items.wheel-pose.duration',
       descriptionKey: 'exercises.items.wheel-pose.description',
       benefitsKey: 'exercises.items.wheel-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
@@ -133,7 +133,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'dancer-pose',
       nameKey: 'exercises.items.dancer-pose.name',
-      duration: '30 sec per kant',
+      durationKey: 'exercises.items.dancer-pose.duration',
       descriptionKey: 'exercises.items.dancer-pose.description',
       benefitsKey: 'exercises.items.dancer-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
@@ -144,7 +144,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'pigeon-pose',
       nameKey: 'exercises.items.pigeon-pose.name',
-      duration: '2-3 min per kant',
+      durationKey: 'exercises.items.pigeon-pose.duration',
       descriptionKey: 'exercises.items.pigeon-pose.description',
       benefitsKey: 'exercises.items.pigeon-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
@@ -153,7 +153,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'seated-forward-fold',
       nameKey: 'exercises.items.seated-forward-fold.name',
-      duration: '2-5 min',
+      durationKey: 'exercises.items.seated-forward-fold.duration',
       descriptionKey: 'exercises.items.seated-forward-fold.description',
       benefitsKey: 'exercises.items.seated-forward-fold.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
@@ -162,7 +162,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'supported-bridge',
       nameKey: 'exercises.items.supported-bridge.name',
-      duration: '3-5 min',
+      durationKey: 'exercises.items.supported-bridge.duration',
       descriptionKey: 'exercises.items.supported-bridge.description',
       benefitsKey: 'exercises.items.supported-bridge.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
@@ -171,7 +171,7 @@ const yogaExercises: Record<string, YogaExercise[]> = {
     {
       id: 'reclined-butterfly',
       nameKey: 'exercises.items.reclined-butterfly.name',
-      duration: '3-5 min',
+      durationKey: 'exercises.items.reclined-butterfly.duration',
       descriptionKey: 'exercises.items.reclined-butterfly.description',
       benefitsKey: 'exercises.items.reclined-butterfly.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',

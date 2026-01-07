@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   CreditCard, Check, Sparkles, Crown, AlertCircle, 
   Loader2, ChevronRight, XCircle, Clock, Mail
@@ -7,7 +8,7 @@ import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
 import { RefundRequestCard } from '@/components/subscription/RefundRequestCard';
 import { PaymentHistoryCard } from '@/components/subscription/PaymentHistoryCard';
 import { differenceInDays, format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -38,12 +39,14 @@ import { supabase } from '@/integrations/supabase/client';
 type PlanId = keyof typeof SUBSCRIPTION_PLANS;
 
 export default function SubscriptionPage() {
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const { toast } = useToast();
   const { data: subscription, isLoading: loadingSubscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
   const createFirstPayment = useCreateFirstPayment();
 
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const [selectedPlan] = useState<PlanId>('monthly');
   const [isProcessing, setIsProcessing] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
@@ -56,7 +59,7 @@ export default function SubscriptionPage() {
 
   const handleSubscribe = async () => {
     if (!user) {
-      toast({ title: 'Je moet ingelogd zijn', variant: 'destructive' });
+      toast({ title: t('subscription.must_be_logged_in'), variant: 'destructive' });
       return;
     }
 
@@ -69,7 +72,7 @@ export default function SubscriptionPage() {
       // Use first-payment flow to establish mandate for recurring
       const result = await createFirstPayment.mutateAsync({
         amount: plan.price,
-        description: `Perimenopauze Plan App - ${plan.name}`,
+        description: `Perimenopause Plan App - ${plan.name}`,
         redirectUrl: `${baseUrl}/subscription?status=complete`,
         metadata: { plan: plan.id },
       });
@@ -80,8 +83,8 @@ export default function SubscriptionPage() {
     } catch (error) {
       console.error('Payment error:', error);
       toast({
-        title: 'Betaling mislukt',
-        description: error instanceof Error ? error.message : 'Probeer het opnieuw',
+        title: t('subscription.payment_failed'),
+        description: error instanceof Error ? error.message : t('subscription.try_again'),
         variant: 'destructive',
       });
     } finally {
@@ -99,8 +102,8 @@ export default function SubscriptionPage() {
       if (data?.error) throw new Error(data.error);
 
       toast({
-        title: 'Abonnement opgezegd',
-        description: 'Je hebt nog toegang tot het einde van je huidige periode.',
+        title: t('subscription.subscription_cancelled'),
+        description: t('subscription.subscription_cancelled_desc'),
       });
       setShowCancelDialog(false);
       // Refetch subscription data
@@ -108,8 +111,8 @@ export default function SubscriptionPage() {
     } catch (error) {
       console.error('Cancel error:', error);
       toast({
-        title: 'Opzeggen mislukt',
-        description: 'Neem contact op via het contactformulier.',
+        title: t('subscription.cancel_failed'),
+        description: t('subscription.cancel_failed_desc'),
         variant: 'destructive',
       });
     } finally {
@@ -128,10 +131,10 @@ export default function SubscriptionPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <Crown className="h-6 w-6 text-primary" />
-            Abonnement
+            {t('subscription.title')}
           </h1>
           <p className="text-muted-foreground">
-            Beheer je Perimenopauze Plan abonnement
+            {t('subscription.subtitle')}
           </p>
         </div>
 
@@ -139,10 +142,9 @@ export default function SubscriptionPage() {
         {paymentStatus === 'complete' && (
           <Alert className="bg-success/10 border-success">
             <Check className="h-4 w-4 text-success" />
-            <AlertTitle>Betaling verwerkt!</AlertTitle>
+            <AlertTitle>{t('subscription.payment_processed')}</AlertTitle>
             <AlertDescription>
-              Je betaling wordt verwerkt. Dit kan enkele minuten duren.
-              Refresh de pagina om je abonnementsstatus te zien.
+              {t('subscription.payment_processing')}
             </AlertDescription>
           </Alert>
         )}
@@ -152,14 +154,14 @@ export default function SubscriptionPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <CreditCard className="h-5 w-5 text-primary" />
-              Huidige status
+              {t('subscription.current_status')}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {loadingSubscription ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-muted-foreground">Laden...</span>
+                <span className="text-muted-foreground">{t('subscription.loading')}</span>
               </div>
             ) : isPremium ? (
               <div className="space-y-4">
@@ -169,13 +171,13 @@ export default function SubscriptionPage() {
                       <Crown className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="font-semibold">Premium abonnement</p>
+                      <p className="font-semibold">{t('subscription.premium_subscription')}</p>
                       <p className="text-sm text-muted-foreground">
-                        Plan: {subscription?.plan}
+                        {t('subscription.plan')}: {subscription?.plan}
                       </p>
                     </div>
                   </div>
-                  <Badge className="bg-success text-success-foreground">Actief</Badge>
+                  <Badge className="bg-success text-success-foreground">{t('subscription.active')}</Badge>
                 </div>
                 
                 {/* Trial progress if applicable */}
@@ -193,16 +195,19 @@ export default function SubscriptionPage() {
                           <div className="flex items-center gap-2">
                             <Clock className="h-4 w-4 text-primary" />
                             <span className="text-sm font-medium text-primary">
-                              Gratis trial: nog {daysRemaining} {daysRemaining === 1 ? 'dag' : 'dagen'}
+                              {t('subscription.free_trial')}: {t('subscription.days_remaining', { 
+                                days: daysRemaining, 
+                                dayWord: daysRemaining === 1 ? t('trial.day') : t('trial.days') 
+                              })}
                             </span>
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            t/m {format(trialEndDate, 'd MMM', { locale: nl })}
+                            {t('trial.until', { date: format(trialEndDate, 'd MMM', { locale: dateLocale }) })}
                           </span>
                         </div>
                         <Progress value={trialProgress} className="h-2" />
                         <p className="text-xs text-muted-foreground mt-2">
-                          Na de trial wordt €7,50/maand automatisch afgeschreven
+                          {t('subscription.after_trial')}
                         </p>
                       </div>
                     );
@@ -212,26 +217,26 @@ export default function SubscriptionPage() {
 
                 {subscription?.created_at && (
                   <p className="text-sm text-muted-foreground">
-                    Gestart op {format(new Date(subscription.created_at), 'd MMMM yyyy', { locale: nl })}
+                    {t('subscription.started_on', { date: format(new Date(subscription.created_at), 'd MMMM yyyy', { locale: dateLocale }) })}
                   </p>
                 )}
 
                 <Separator />
 
                 <div className="space-y-2">
-                  <p className="text-sm font-medium">Premium voordelen:</p>
+                  <p className="text-sm font-medium">{t('subscription.premium_benefits')}</p>
                   <ul className="text-sm text-muted-foreground space-y-1">
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-success" /> Onbeperkte maaltijdanalyses
+                      <Check className="h-4 w-4 text-success" /> {t('subscription.benefit_1')}
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-success" /> AI-inzichten & reflecties
+                      <Check className="h-4 w-4 text-success" /> {t('subscription.benefit_2')}
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-success" /> Maandelijkse totaalanalyse
+                      <Check className="h-4 w-4 text-success" /> {t('subscription.benefit_3')}
                     </li>
                     <li className="flex items-center gap-2">
-                      <Check className="h-4 w-4 text-success" /> Alle bewegingsoefeningen
+                      <Check className="h-4 w-4 text-success" /> {t('subscription.benefit_4')}
                     </li>
                   </ul>
                 </div>
@@ -253,7 +258,7 @@ export default function SubscriptionPage() {
                   onClick={() => setShowCancelDialog(true)}
                 >
                   <XCircle className="h-4 w-4 mr-2" />
-                  Abonnement opzeggen
+                  {t('subscription.cancel_subscription')}
                 </Button>
               </div>
             ) : (
@@ -266,20 +271,23 @@ export default function SubscriptionPage() {
                         <Clock className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="font-semibold">Proefperiode actief</p>
+                        <p className="font-semibold">{t('subscription.trial_active')}</p>
                         <p className="text-sm text-muted-foreground">
-                          Nog {trialDaysRemaining} {trialDaysRemaining === 1 ? 'dag' : 'dagen'} volledige toegang
+                          {t('subscription.days_remaining', { 
+                            days: trialDaysRemaining, 
+                            dayWord: trialDaysRemaining === 1 ? t('trial.day') : t('trial.days') 
+                          })}
                         </p>
                       </div>
                     </div>
                     <div className="p-3 rounded-lg bg-primary/10 border border-primary/20">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-sm font-medium text-primary">Trial voortgang</span>
-                        <span className="text-xs text-primary">{trialDaysRemaining} van 7 dagen over</span>
+                        <span className="text-sm font-medium text-primary">{t('subscription.trial_progress')}</span>
+                        <span className="text-xs text-primary">{t('subscription.days_of_trial', { remaining: trialDaysRemaining })}</span>
                       </div>
                       <Progress value={((7 - trialDaysRemaining) / 7) * 100} className="h-2" />
                       <p className="text-xs text-muted-foreground mt-2">
-                        Na de proefperiode kun je geen nieuwe gegevens invoeren tot je upgradet.
+                        {t('subscription.after_trial')}
                       </p>
                     </div>
                   </>
@@ -287,13 +295,13 @@ export default function SubscriptionPage() {
                   <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20">
                     <div className="flex items-center gap-2 mb-2">
                       <AlertCircle className="h-4 w-4 text-destructive" />
-                      <span className="text-sm font-medium text-destructive">Proefperiode verlopen</span>
+                      <span className="text-sm font-medium text-destructive">{t('subscription.trial_expired')}</span>
                     </div>
                     <p className="text-xs text-muted-foreground">
-                      Je kunt geen nieuwe gegevens meer invoeren. Upgrade naar Premium om door te gaan.
+                      {t('subscription.trial_expired_desc')}
                     </p>
                     <p className="text-xs text-destructive/70 mt-1">
-                      Let op: zonder abonnement wordt je data na 30 dagen automatisch verwijderd.
+                      {t('subscription.trial_expired_warning')}
                     </p>
                   </div>
                 ) : (
@@ -302,9 +310,9 @@ export default function SubscriptionPage() {
                       <CreditCard className="h-5 w-5 text-muted-foreground" />
                     </div>
                     <div>
-                      <p className="font-semibold">Gratis account</p>
+                      <p className="font-semibold">{t('subscription.free_account')}</p>
                       <p className="text-sm text-muted-foreground">
-                        Upgrade naar Premium voor volledige toegang
+                        {t('subscription.upgrade_for_access')}
                       </p>
                     </div>
                   </div>
@@ -323,15 +331,15 @@ export default function SubscriptionPage() {
                 <div className="mx-auto p-3 rounded-full bg-primary/20 w-fit mb-2">
                   <Crown className="h-6 w-6 text-primary" />
                 </div>
-                <CardTitle className="text-xl">Premium</CardTitle>
+                <CardTitle className="text-xl">{t('subscription.premium_title')}</CardTitle>
                 <CardDescription>
-                  Speciaal voor vrouwen in de perimenopauze
+                  {t('subscription.premium_desc')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="text-center">
                   <p className="text-3xl font-bold text-primary">€{SUBSCRIPTION_PLANS.monthly.price}</p>
-                  <p className="text-muted-foreground text-sm">per maand</p>
+                  <p className="text-muted-foreground text-sm">{t('subscription.per_month')}</p>
                 </div>
                 
                 <Separator />
@@ -357,12 +365,12 @@ export default function SubscriptionPage() {
               {isProcessing ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Verwerken...
+                  {t('subscription.processing')}
                 </>
               ) : (
                 <>
                   <Sparkles className="h-4 w-4 mr-2" />
-                  Start Premium - €{SUBSCRIPTION_PLANS[selectedPlan].price}/maand
+                  {t('subscription.start_premium', { price: SUBSCRIPTION_PLANS[selectedPlan].price })}
                   <ChevronRight className="h-4 w-4 ml-2" />
                 </>
               )}
@@ -370,7 +378,7 @@ export default function SubscriptionPage() {
 
             {/* Payment info */}
             <p className="text-xs text-center text-muted-foreground">
-              Veilig betalen via Mollie. Elk moment opzegbaar.
+              {t('subscription.safe_payment')}
             </p>
           </>
         )}
@@ -381,12 +389,12 @@ export default function SubscriptionPage() {
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-muted-foreground mt-0.5" />
               <div className="text-sm text-muted-foreground flex-1">
-                <p className="font-medium mb-2">Vragen over je abonnement?</p>
+                <p className="font-medium mb-2">{t('subscription.questions_title')}</p>
                 <ContactFormDialog 
                   trigger={
                     <Button variant="outline" size="sm" className="gap-2">
                       <Mail className="h-4 w-4" />
-                      Neem contact op
+                      {t('subscription.contact_us')}
                     </Button>
                   }
                 />
@@ -402,25 +410,25 @@ export default function SubscriptionPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <XCircle className="h-5 w-5 text-destructive" />
-              Abonnement opzeggen?
+              {t('subscription.cancel_dialog_title')}
             </AlertDialogTitle>
             <AlertDialogDescription className="space-y-3">
               <p>
-                Als je je abonnement opzegt, verlies je toegang tot:
+                {t('subscription.cancel_dialog_desc')}
               </p>
               <ul className="list-disc list-inside text-sm space-y-1">
-                <li>Onbeperkte maaltijdanalyses</li>
-                <li>AI-inzichten & reflecties</li>
-                <li>Maandelijkse totaalanalyse</li>
-                <li>Alle bewegingsoefeningen</li>
+                <li>{t('subscription.benefit_1')}</li>
+                <li>{t('subscription.benefit_2')}</li>
+                <li>{t('subscription.benefit_3')}</li>
+                <li>{t('subscription.benefit_4')}</li>
               </ul>
               <p className="text-sm pt-2">
-                Je kunt later altijd weer opnieuw abonneren.
+                {t('subscription.cancel_later')}
               </p>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Annuleren</AlertDialogCancel>
+            <AlertDialogCancel>{t('subscription.cancel_button')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleCancelSubscription}
               disabled={isCancelling}
@@ -429,10 +437,10 @@ export default function SubscriptionPage() {
               {isCancelling ? (
                 <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Opzeggen...
+                  {t('subscription.processing')}
                 </>
               ) : (
-                'Ja, opzeggen'
+                t('subscription.cancel_subscription')
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

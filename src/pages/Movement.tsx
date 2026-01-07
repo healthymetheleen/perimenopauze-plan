@@ -307,7 +307,7 @@ export default function MovementPage() {
                           />
                         </div>
                         <span>{t(exercise.nameKey)}</span>
-                        <span className="text-muted-foreground text-xs ml-auto">{exercise.duration}</span>
+                        <span className="text-muted-foreground text-xs ml-auto">{t(exercise.durationKey)}</span>
                       </div>
                     ))}
                   </div>
@@ -375,7 +375,7 @@ export default function MovementPage() {
                         <div className="flex items-center gap-2 mt-2">
                           <Badge variant="outline" className="text-xs">
                             <Clock className="h-3 w-3 mr-1" />
-                            {exercise.duration}
+                            {t(exercise.durationKey)}
                           </Badge>
                           <Badge variant="outline" className="text-xs capitalize">
                             {exercise.difficulty}
@@ -409,7 +409,7 @@ export default function MovementPage() {
                   <div className="flex gap-2">
                     <Badge variant="outline">
                       <Clock className="h-3 w-3 mr-1" />
-                      {selectedExercise.duration}
+                      {t(selectedExercise.durationKey)}
                     </Badge>
                     <Badge variant="outline" className="capitalize">
                       {t(`exercises.difficulty.${selectedExercise.difficulty}`)}
