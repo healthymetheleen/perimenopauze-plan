@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   addDays,
   addMonths,
@@ -14,14 +15,14 @@ import {
   endOfMonth,
   getDay,
 } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Calendar, Droplet, Sparkles, ChevronLeft, ChevronRight } from 'lucide-react';
-import { BleedingLog, Cycle, CyclePreferences, CyclePrediction, seasonLabels, getSeasonForDate } from '@/hooks/useCycle';
+import { BleedingLog, Cycle, CyclePreferences, CyclePrediction, getSeasonForDate } from '@/hooks/useCycle';
 
 interface CycleCalendarProps {
   prediction: Omit<CyclePrediction, 'id' | 'owner_id' | 'generated_at'> | CyclePrediction;
@@ -34,10 +35,14 @@ interface CycleCalendarProps {
 type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
 export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, onDayClick }: CycleCalendarProps) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [showSeasons, setShowSeasons] = useState(true);
   const [showMenstruation, setShowMenstruation] = useState(true);
   const [showFertile, setShowFertile] = useState(!!preferences?.show_fertile_days);
+  
+  const getSeasonLabel = (season: string) => t(`seasons.${season}`);
 
   useEffect(() => {
     if (typeof preferences?.show_fertile_days === 'boolean') {
@@ -258,14 +263,22 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
     return pieces;
   }, [seasonSegments, calendarDays]);
 
-  const weekDays = ['Ma', 'Di', 'Wo', 'Do', 'Vr', 'Za', 'Zo'];
+  const weekDays = [
+    t('calendar.weekdays.mon'),
+    t('calendar.weekdays.tue'),
+    t('calendar.weekdays.wed'),
+    t('calendar.weekdays.thu'),
+    t('calendar.weekdays.fri'),
+    t('calendar.weekdays.sat'),
+    t('calendar.weekdays.sun'),
+  ];
 
   // Ensure minimum height for mobile rendering
   if (calendarDays.length === 0) {
     return (
       <Card className="rounded-2xl">
         <CardHeader>
-          <CardTitle className="text-lg">Kalender laden...</CardTitle>
+          <CardTitle className="text-lg">{t('calendar.loading')}</CardTitle>
         </CardHeader>
       </Card>
     );
@@ -280,21 +293,21 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             variant="ghost"
             size="icon"
             onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            aria-label="Vorige maand"
+            aria-label={t('calendar.previous_month')}
           >
             <ChevronLeft className="h-5 w-5" />
           </Button>
           <div className="flex items-center gap-2">
             <Calendar className="h-5 w-5" />
             <CardTitle className="text-lg">
-              {format(currentMonth, 'MMMM yyyy', { locale: nl })}
+              {format(currentMonth, 'MMMM yyyy', { locale: dateLocale })}
             </CardTitle>
           </div>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            aria-label="Volgende maand"
+            aria-label={t('calendar.next_month')}
           >
             <ChevronRight className="h-5 w-5" />
           </Button>
@@ -308,7 +321,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             className="w-full mb-2"
             onClick={() => setCurrentMonth(new Date())}
           >
-            Naar vandaag
+            {t('calendar.go_to_today')}
           </Button>
         )}
 
@@ -316,16 +329,16 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         <div className="flex flex-wrap gap-4 mt-4">
           <div className="flex items-center gap-2">
             <Switch id="show-seasons" checked={showSeasons} onCheckedChange={setShowSeasons} />
-            <Label htmlFor="show-seasons" className="text-sm">Seizoenen</Label>
+            <Label htmlFor="show-seasons" className="text-sm">{t('calendar.seasons')}</Label>
           </div>
           <div className="flex items-center gap-2">
             <Switch id="show-menstruation" checked={showMenstruation} onCheckedChange={setShowMenstruation} />
-            <Label htmlFor="show-menstruation" className="text-sm">Menstruatie</Label>
+            <Label htmlFor="show-menstruation" className="text-sm">{t('calendar.menstruation')}</Label>
           </div>
           {preferences?.show_fertile_days && (
             <div className="flex items-center gap-2">
               <Switch id="show-fertile" checked={showFertile} onCheckedChange={setShowFertile} />
-              <Label htmlFor="show-fertile" className="text-sm">Vruchtbaarheid</Label>
+              <Label htmlFor="show-fertile" className="text-sm">{t('calendar.fertility')}</Label>
             </div>
           )}
         </div>
@@ -339,7 +352,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
             >
               {/* Red menstruation dot */}
               <span className="absolute left-1.5 top-1/2 -translate-y-1/2 h-2 w-2 rounded-full bg-destructive" />
-              {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: nl })}
+              {format(parseISO(prediction.next_period_start_min), 'd MMM', { locale: dateLocale })}
             </Badge>
           )}
           {preferences?.show_fertile_days && prediction.fertile_window_start && (
@@ -347,7 +360,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               variant="outline" 
               className="font-normal outline outline-2 outline-offset-1 outline-green-500 bg-background/80"
             >
-              Vruchtbaar {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: nl })}
+              {t('calendar.fertile')} {format(parseISO(prediction.fertile_window_start), 'd MMM', { locale: dateLocale })}
             </Badge>
           )}
           {preferences?.show_fertile_days && ovulationDateStr && (
@@ -355,7 +368,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
               variant="outline" 
               className="font-normal pr-5 relative bg-background/80"
             >
-              {format(parseISO(ovulationDateStr), 'd MMM', { locale: nl })}
+              {format(parseISO(ovulationDateStr), 'd MMM', { locale: dateLocale })}
               {/* Ovulation star */}
               <span className="absolute -top-0.5 -right-0.5 cycle-ovulation-star text-[10px] font-bold">★</span>
             </Badge>
@@ -365,18 +378,18 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
         {/* Legend (events only) */}
         <div className="flex flex-wrap gap-3 mt-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-destructive" /> Menstruatie
+            <span className="inline-block h-2 w-2 rounded-full bg-destructive" /> {t('calendar.menstruation')}
           </div>
           <div className="flex items-center gap-1">
-            <span className="inline-block h-2 w-2 rounded-full bg-destructive/40 ring-1 ring-destructive/30" /> Verwacht
+            <span className="inline-block h-2 w-2 rounded-full bg-destructive/40 ring-1 ring-destructive/30" /> {t('calendar.expected')}
           </div>
           {preferences?.show_fertile_days && (
             <>
               <div className="flex items-center gap-1">
-                <span className="inline-block h-2 w-2 rounded-full border-2 border-[hsl(140_60%_45%)] bg-[hsl(140_60%_45%/0.15)]" /> Vruchtbaar
+                <span className="inline-block h-2 w-2 rounded-full border-2 border-[hsl(140_60%_45%)] bg-[hsl(140_60%_45%/0.15)]" /> {t('calendar.fertile')}
               </div>
               <div className="flex items-center gap-1">
-                <span className="cycle-ovulation-star">★</span> Ovulatie
+                <span className="cycle-ovulation-star">★</span> {t('calendar.ovulation')}
               </div>
             </>
           )}
@@ -411,7 +424,7 @@ export function CycleCalendar({ prediction, preferences, cycles, bleedingLogs, o
                     <span 
                       className={`absolute -top-5 left-1 text-xs font-bold ${seasonTextClass[p.season]} z-20`}
                     >
-                      {seasonLabels[p.season]}
+                      {getSeasonLabel(p.season)}
                     </span>
                   )}
                 </div>

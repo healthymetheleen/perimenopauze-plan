@@ -1351,5 +1351,236 @@
       ],
       "button": "Upgrade naar Premium"
     }
+  },
+  "perimenopause_test": {
+    "title": "Perimenopauze Zelftest",
+    "description": "Ontdek of jouw klachten kunnen passen bij hormonale veranderingen",
+    "login_required": "Login vereist",
+    "login_required_desc": "Je moet ingelogd zijn om de perimenopauze-test te kunnen doen.",
+    "disclaimer": "Deze test is bedoeld om je inzicht te geven in klachten die kunnen passen bij hormonale veranderingen rondom de perimenopauze. Het is <strong>geen medische diagnose</strong> en vervangt geen arts of zorgverlener.",
+    "what_to_expect": "Wat kun je verwachten?",
+    "expect_1": "17 vragen verdeeld over 4 thema's",
+    "expect_2": "Duurt ongeveer 5 minuten",
+    "expect_3": "Persoonlijke score met uitleg per domein",
+    "expect_4": "Je kunt je resultaten later terugkijken of verwijderen",
+    "consent_label": "Ik geef toestemming voor het verwerken van mijn antwoorden voor persoonlijke inzichten binnen de app.",
+    "start_test": "Start de test",
+    "view_history": "Bekijk eerdere resultaten",
+    "domain": "Domein",
+    "domain_of": "{{current}} van {{total}}",
+    "questions": "vragen",
+    "previous": "Vorige",
+    "next": "Volgende",
+    "view_result": "Bekijk resultaat",
+    "saving": "Opslaan...",
+    "your_result": "Jouw Testresultaat",
+    "score_per_domain": "Score per domein",
+    "result_disclaimer": "Deze test geeft geen medische diagnose. Bij aanhoudende of verergerende klachten is het verstandig dit te bespreken met een arts of zorgverlener.",
+    "read_more": "Lees meer over perimenopauze",
+    "take_again": "Doe de test opnieuw",
+    "back_to_home": "Terug naar home",
+    "test_history": "Eerdere Resultaten",
+    "delete_confirm_title": "Testresultaat verwijderen?",
+    "delete_confirm_desc": "Weet je zeker dat je dit resultaat wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+    "total": "Totaal",
+    "result_deleted": "Testresultaat verwijderd",
+    "could_not_delete": "Kon resultaat niet verwijderen",
+    "save_error": "Er ging iets mis bij het opslaan",
+    "answer_never": "Nooit",
+    "answer_sometimes": "Soms",
+    "answer_often": "Regelmatig",
+    "answer_always": "Vaak / bijna altijd",
+    "domains": {
+      "cycle": "Cyclus & Hormonen",
+      "energy": "Energie & Slaap",
+      "mental": "Mentaal & Emotioneel",
+      "body": "Lichaam & Herstel"
+    },
+    "questions_list": {
+      "cycle_1": "Mijn cyclus is onregelmatiger geworden",
+      "cycle_2": "Mijn menstruatie is zwaarder of juist lichter dan vroeger",
+      "cycle_3": "Ik heb vaker PMS-achtige klachten",
+      "cycle_4": "Ik heb opvliegers of warmte-aanvallen",
+      "cycle_5": "Nachtelijk zweten verstoort mijn slaap",
+      "energy_1": "Ik voel me vaak vermoeid ondanks voldoende slaap",
+      "energy_2": "Ik word 's nachts wakker en kan moeilijk doorslapen",
+      "energy_3": "Ik voel me 's ochtends niet uitgerust",
+      "energy_4": "Mijn energie schommelt sterk over de dag",
+      "mental_1": "Ik ervaar meer prikkelbaarheid of stemmingswisselingen",
+      "mental_2": "Ik heb vaker last van brain fog of concentratieproblemen",
+      "mental_3": "Ik voel me sneller overweldigd of gespannen",
+      "mental_4": "Ik herken mezelf emotioneel minder goed",
+      "body_1": "Ik kom makkelijker aan dan vroeger",
+      "body_2": "Herstel na sport of inspanning duurt langer",
+      "body_3": "Ik heb vaker gewrichts- of spierklachten",
+      "body_4": "Mijn huid of haar is zichtbaar veranderd"
+    },
+    "results": {
+      "low": {
+        "title": "Weinig signalen",
+        "description": "Op basis van je antwoorden zijn er momenteel weinig aanwijzingen voor klachten die passen bij de perimenopauze. Blijf je lichaam volgen, zeker als klachten veranderen."
+      },
+      "moderate": {
+        "title": "Milde tot matige signalen",
+        "description": "Je antwoorden laten zien dat je klachten ervaart die kunnen passen bij hormonale veranderingen. Veel vrouwen ervaren dit in de fase vóór de overgang."
+      },
+      "high": {
+        "title": "Duidelijke signalen",
+        "description": "Je klachtenpatroon zou kunnen passen bij de perimenopauze. Dit betekent niet dat er iets 'mis' is, maar wel dat je lichaam anders kan reageren dan je gewend was."
+      }
+    }
+  },
+  "monthly_analysis": {
+    "title": "Maandelijkse Analyse",
+    "subtitle": "Een uitgebreide analyse van al je data met orthomoleculaire inzichten",
+    "what_contains": "Wat bevat deze analyse?",
+    "contains_1": "Patronen in slaap, voeding, stemming en energie",
+    "contains_2": "Hormooncontext per cyclusfase (educatief)",
+    "contains_3": "Orthomoleculaire voedingsinzichten",
+    "contains_4": "Persoonlijke observaties en aandachtspunten",
+    "once_per_month": "Je kunt deze analyse 1x per maand genereren. Alle data wordt anoniem verwerkt.",
+    "ai_consent_required": "AI-toestemming vereist",
+    "ai_consent_desc": "Om deze analyse te kunnen genereren is toestemming voor AI-verwerking nodig. Ga naar Instellingen > Privacy om dit aan te passen.",
+    "ready_for_analysis": "Klaar voor je maandanalyse?",
+    "we_analyze_30_days": "We analyseren je data van de afgelopen 30 dagen",
+    "generate_analysis": "Genereer Analyse",
+    "analyzing": "Analyseren...",
+    "already_generated": "Al gegenereerd deze maand",
+    "next_month_available": "Je kunt volgende maand een nieuwe analyse maken",
+    "summary": "Samenvatting",
+    "observed_patterns": "Geobserveerde Patronen",
+    "hormone_patterns": "Hormoonpatronen",
+    "hormone_patterns_desc": "Educatieve context over hormoonschommelingen",
+    "nutrition_insights": "Voedingsinzichten",
+    "nutrition_insights_desc": "Orthomoleculaire observaties",
+    "sleep_analysis": "Slaapanalyse",
+    "movement_analysis": "Bewegingsanalyse",
+    "attention_points": "Aandachtspunten",
+    "attention_points_desc": "Observaties om over na te denken",
+    "talk_to_provider": "Bespreek met je zorgverlener",
+    "analysis_generated": "Analyse gegenereerd!",
+    "analysis_ready": "Je maandelijkse analyse is klaar.",
+    "could_not_generate": "Kon analyse niet genereren",
+    "domains": {
+      "sleep": "Slaap",
+      "food": "Voeding",
+      "cycle": "Cyclus",
+      "mood": "Stemming",
+      "energy": "Energie"
+    }
+  },
+  "movement": {
+    "title": "Bewegen",
+    "subtitle": "Oefeningen afgestemd op je cyclusfase",
+    "trainingPreferences": "Trainingsvoorkeuren",
+    "daysPerWeek": "Dagen per week",
+    "minutesPerSession": "Minuten per sessie",
+    "excludeDays": "Uitsluit dagen",
+    "excludedDaysNote": "Dagen waarop je niet wilt trainen",
+    "save": "Opslaan",
+    "exercises": "oefeningen",
+    "yourSchedule": "Jouw Schema",
+    "adjustedToPhase": "Aangepast aan fase",
+    "excluded": "Uitgesloten",
+    "restDay": "Rustdag",
+    "perWeek": "per week",
+    "total": "Totaal",
+    "execution": "Uitvoering",
+    "benefits": "Voordelen",
+    "startExercise": "Start oefening",
+    "monday": "Maandag",
+    "tuesday": "Dinsdag",
+    "wednesday": "Woensdag",
+    "thursday": "Donderdag",
+    "friday": "Vrijdag",
+    "saturday": "Zaterdag",
+    "sunday": "Zondag",
+    "intensityLabels": {
+      "low": "Rustig",
+      "moderate": "Gemiddeld",
+      "high": "Intensief"
+    },
+    "phaseWorkouts": {
+      "menstrual": {
+        "name": "Menstruatie",
+        "description": "Rust en herstel staan centraal. Zachte, herstellende oefeningen die je helpen ontspannen."
+      },
+      "follicular": {
+        "name": "Folliculaire fase",
+        "description": "Je energie groeit! Tijd voor dynamische oefeningen die kracht en flexibiliteit opbouwen."
+      },
+      "ovulatory": {
+        "name": "Ovulatie",
+        "description": "Piek van energie en kracht. Uitdagende oefeningen die je grenzen verleggen."
+      },
+      "luteal": {
+        "name": "Luteale fase",
+        "description": "Tijd om te vertragen. Focus op stretching, ademhaling en stressverlichting."
+      }
+    }
+  },
+  "movement_widget": {
+    "title": "Beweging & Focus",
+    "recommended": "Aanbevolen:",
+    "and_more": "en {{count}} andere oefeningen",
+    "feeling": "Gevoel",
+    "family": "Gezin",
+    "work": "Werk",
+    "view_all": "Bekijk alle oefeningen",
+    "advice": {
+      "winter": {
+        "feeling": ["Rust en herstel", "Wees mild voor jezelf", "Accepteer lage energie"],
+        "family": ["Vraag om hulp", "Delegeer taken", "Neem tijd voor jezelf"],
+        "work": ["Routine taken", "Geen grote beslissingen", "Korte werkblokken"]
+      },
+      "lente": {
+        "feeling": ["Energie stijgt", "Nieuwe ideeën", "Optimisme groeit"],
+        "family": ["Start nieuwe projecten", "Plan uitjes", "Sociale activiteiten"],
+        "work": ["Creatieve projecten", "Brainstormen", "Nieuwe initiatieven"]
+      },
+      "zomer": {
+        "feeling": ["Piek energie", "Zelfverzekerd", "Communicatief"],
+        "family": ["Verbinding zoeken", "Belangrijke gesprekken", "Samen activiteiten"],
+        "work": ["Presentaties", "Onderhandelingen", "Netwerken"]
+      },
+      "herfst": {
+        "feeling": ["Reflectie", "Naar binnen keren", "Gevoeliger"],
+        "family": ["Grenzen stellen", "Rust inbouwen", "Me-time"],
+        "work": ["Afronden", "Organiseren", "Evalueren"]
+      }
+    }
+  },
+  "sleep_advice": {
+    "start_tracking": "Begin met het bijhouden van je slaap om persoonlijke adviezen te krijgen.",
+    "avg_within_range": "Goed bezig! Je slaapt gemiddeld {{hours}} uur, dat valt binnen het optimale bereik.",
+    "avg_too_low": "Je slaapt gemiddeld {{hours}} uur. Streef naar 7-9 uur voor optimaal herstel, hormoonbalans en stemming.",
+    "avg_too_high": "Je slaapt gemiddeld {{hours}} uur. Overmatig slapen kan wijzen op onderliggende vermoeidheid of slaapkwaliteitsproblemen.",
+    "consistency_low": "Je slaaptijden variëren sterk. Probeer elke dag op dezelfde tijd naar bed te gaan en op te staan, ook in het weekend.",
+    "consistency_high": "Je hebt een consistent slaapritme. Dit ondersteunt je circadiane ritme en hormoonbalans.",
+    "quality_low": "Je slaapkwaliteit kan beter. Overweeg: geen schermen 1 uur voor bed, koele slaapkamer (16-18°C), donkere kamer.",
+    "bedtime_late": "Je gaat vaak na middernacht slapen. Dit kan je melatonineproductie verstoren. Probeer voor 23:00 in bed te liggen.",
+    "bedtime_early": "Je gaat vrij vroeg slapen. Als je moeite hebt met doorslapen, probeer iets later naar bed te gaan.",
+    "general_tip": "Vermijd cafeïne na 14:00 en alcohol dicht voor het slapen - beide verstoren je slaaparchitectuur."
+  },
+  "calendar": {
+    "loading": "Kalender laden...",
+    "previous_month": "Vorige maand",
+    "next_month": "Volgende maand",
+    "go_to_today": "Naar vandaag",
+    "seasons": "Seizoenen",
+    "menstruation": "Menstruatie",
+    "fertility": "Vruchtbaarheid",
+    "expected": "Verwacht",
+    "fertile": "Vruchtbaar",
+    "ovulation": "Ovulatie",
+    "weekdays": {
+      "mon": "Ma",
+      "tue": "Di",
+      "wed": "Wo",
+      "thu": "Do",
+      "fri": "Vr",
+      "sat": "Za",
+      "sun": "Zo"
+    }
   }
 }

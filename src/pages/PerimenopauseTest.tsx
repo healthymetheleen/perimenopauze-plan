@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ChevronLeft, 
@@ -21,7 +22,7 @@ import {
   type LucideIcon
 } from 'lucide-react';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -44,9 +45,7 @@ import {
 import { useAuth } from '@/lib/auth';
 import { 
   QUESTIONS, 
-  ANSWER_OPTIONS, 
   MAX_SCORES,
-  RESULT_TEXTS,
   useSaveTestResult,
   usePerimenopauseTests,
   useDeleteTestResult,
@@ -55,11 +54,11 @@ import {
 } from '@/hooks/usePerimenopauseTest';
 import { toast } from 'sonner';
 
-const DOMAIN_LABELS: Record<string, { label: string; Icon: LucideIcon }> = {
-  cycle: { label: 'Cyclus & Hormonen', Icon: Moon },
-  energy: { label: 'Energie & Slaap', Icon: Zap },
-  mental: { label: 'Mentaal & Emotioneel', Icon: Brain },
-  body: { label: 'Lichaam & Herstel', Icon: Heart },
+const DOMAIN_ICONS: Record<string, LucideIcon> = {
+  cycle: Moon,
+  energy: Zap,
+  mental: Brain,
+  body: Heart,
 };
 
 const RESULT_ICONS: Record<string, LucideIcon> = {
@@ -71,6 +70,7 @@ const RESULT_ICONS: Record<string, LucideIcon> = {
 type Step = 'intro' | 'questions' | 'result' | 'history';
 
 export default function PerimenopauseTest() {
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const { user } = useAuth();
   const [step, setStep] = useState<Step>('intro');
@@ -78,6 +78,8 @@ export default function PerimenopauseTest() {
   const [currentDomainIndex, setCurrentDomainIndex] = useState(0);
   const [answers, setAnswers] = useState<TestAnswers>({});
   const [savedResult, setSavedResult] = useState<TestResult | null>(null);
+
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
 
   const saveTest = useSaveTestResult();
   const { data: testHistory = [], isLoading: historyLoading } = usePerimenopauseTests();
@@ -92,6 +94,13 @@ export default function PerimenopauseTest() {
   const currentDomainQuestions = QUESTIONS[currentDomain];
   const currentDomainAnswered = currentDomainQuestions.every(q => answers[q.id] !== undefined);
 
+  const answerOptions = [
+    { value: 0, label: t('perimenopause_test.answer_never') },
+    { value: 1, label: t('perimenopause_test.answer_sometimes') },
+    { value: 2, label: t('perimenopause_test.answer_often') },
+    { value: 3, label: t('perimenopause_test.answer_always') },
+  ];
+
   const handleAnswer = (questionId: string, value: number) => {
     setAnswers(prev => ({ ...prev, [questionId]: value }));
   };
@@ -100,7 +109,6 @@ export default function PerimenopauseTest() {
     if (currentDomainIndex < domains.length - 1) {
       setCurrentDomainIndex(prev => prev + 1);
     } else {
-      // Submit
       handleSubmit();
     }
   };
@@ -117,7 +125,7 @@ export default function PerimenopauseTest() {
       setSavedResult(result);
       setStep('result');
     } catch {
-      toast.error('Er ging iets mis bij het opslaan');
+      toast.error(t('perimenopause_test.save_error'));
     }
   };
 
@@ -132,20 +140,26 @@ export default function PerimenopauseTest() {
   const handleDeleteTest = async (testId: string) => {
     try {
       await deleteTest.mutateAsync(testId);
-      toast.success('Testresultaat verwijderd');
+      toast.success(t('perimenopause_test.result_deleted'));
     } catch {
-      toast.error('Kon resultaat niet verwijderen');
+      toast.error(t('perimenopause_test.could_not_delete'));
     }
   };
 
-  const renderScoreBar = (score: number, max: number, label: string, Icon: LucideIcon) => {
+  const getDomainLabel = (domain: string) => t(`perimenopause_test.domains.${domain}`);
+  const getQuestionText = (questionId: string) => t(`perimenopause_test.questions_list.${questionId}`);
+  const getResultTitle = (category: string) => t(`perimenopause_test.results.${category}.title`);
+  const getResultDescription = (category: string) => t(`perimenopause_test.results.${category}.description`);
+
+  const renderScoreBar = (score: number, max: number, domain: string) => {
     const percentage = (score / max) * 100;
+    const Icon = DOMAIN_ICONS[domain];
     return (
       <div className="space-y-2">
         <div className="flex justify-between items-center">
           <span className="text-sm font-medium flex items-center gap-2">
             <Icon className="h-4 w-4 text-primary" />
-            {label}
+            {getDomainLabel(domain)}
           </span>
           <span className="text-sm text-muted-foreground">{score}/{max}</span>
         </div>
@@ -159,14 +173,14 @@ export default function PerimenopauseTest() {
       <div className="container max-w-2xl mx-auto py-8 px-4">
         <Card>
           <CardHeader>
-            <CardTitle>Login vereist</CardTitle>
+            <CardTitle>{t('perimenopause_test.login_required')}</CardTitle>
             <CardDescription>
-              Je moet ingelogd zijn om de perimenopauze-test te kunnen doen.
+              {t('perimenopause_test.login_required_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Button onClick={() => navigate('/login')}>
-              Inloggen
+              {t('common.login')}
             </Button>
           </CardContent>
         </Card>
@@ -190,39 +204,35 @@ export default function PerimenopauseTest() {
                 <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center">
                   <Flower2 className="h-8 w-8 text-primary" />
                 </div>
-                <CardTitle className="text-2xl">Perimenopauze Zelftest</CardTitle>
+                <CardTitle className="text-2xl">{t('perimenopause_test.title')}</CardTitle>
                 <CardDescription className="text-base">
-                  Ontdek of jouw klachten kunnen passen bij hormonale veranderingen
+                  {t('perimenopause_test.description')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 <Alert>
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    Deze test is bedoeld om je inzicht te geven in klachten die kunnen passen 
-                    bij hormonale veranderingen rondom de perimenopauze. Het is <strong>geen 
-                    medische diagnose</strong> en vervangt geen arts of zorgverlener.
-                  </AlertDescription>
+                  <AlertDescription dangerouslySetInnerHTML={{ __html: t('perimenopause_test.disclaimer') }} />
                 </Alert>
 
                 <div className="space-y-4">
-                  <h3 className="font-semibold">Wat kun je verwachten?</h3>
+                  <h3 className="font-semibold">{t('perimenopause_test.what_to_expect')}</h3>
                   <ul className="space-y-2 text-sm text-muted-foreground">
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>17 vragen verdeeld over 4 thema's</span>
+                      <span>{t('perimenopause_test.expect_1')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>Duurt ongeveer 5 minuten</span>
+                      <span>{t('perimenopause_test.expect_2')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>Persoonlijke score met uitleg per domein</span>
+                      <span>{t('perimenopause_test.expect_3')}</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <CheckCircle2 className="h-4 w-4 text-primary mt-0.5 shrink-0" />
-                      <span>Je kunt je resultaten later terugkijken of verwijderen</span>
+                      <span>{t('perimenopause_test.expect_4')}</span>
                     </li>
                   </ul>
                 </div>
@@ -236,8 +246,7 @@ export default function PerimenopauseTest() {
                     onCheckedChange={(checked) => setConsentGiven(checked === true)}
                   />
                   <Label htmlFor="consent" className="text-sm leading-relaxed cursor-pointer">
-                    Ik geef toestemming voor het verwerken van mijn antwoorden voor 
-                    persoonlijke inzichten binnen de app.
+                    {t('perimenopause_test.consent_label')}
                   </Label>
                 </div>
 
@@ -248,7 +257,7 @@ export default function PerimenopauseTest() {
                     disabled={!consentGiven}
                     onClick={() => setStep('questions')}
                   >
-                    Start de test
+                    {t('perimenopause_test.start_test')}
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                   
@@ -258,7 +267,7 @@ export default function PerimenopauseTest() {
                       onClick={() => setStep('history')}
                     >
                       <History className="mr-2 h-4 w-4" />
-                      Bekijk eerdere resultaten ({testHistory.length})
+                      {t('perimenopause_test.view_history')} ({testHistory.length})
                     </Button>
                   )}
                 </div>
@@ -279,20 +288,20 @@ export default function PerimenopauseTest() {
               <CardHeader>
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm text-muted-foreground">
-                    Domein {currentDomainIndex + 1} van {domains.length}
+                    {t('perimenopause_test.domain')} {currentDomainIndex + 1} {t('perimenopause_test.domain_of', { current: currentDomainIndex + 1, total: domains.length }).replace(`${currentDomainIndex + 1} `, '')}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {answeredCount}/{allQuestions.length} vragen
+                    {answeredCount}/{allQuestions.length} {t('perimenopause_test.questions')}
                   </span>
                 </div>
                 <Progress value={progress} className="h-2" />
                 <div className="pt-4">
                   {(() => {
-                    const DomainIcon = DOMAIN_LABELS[currentDomain].Icon;
+                    const DomainIcon = DOMAIN_ICONS[currentDomain];
                     return (
                       <CardTitle className="flex items-center gap-2">
                         <DomainIcon className="h-5 w-5 text-primary" />
-                        {DOMAIN_LABELS[currentDomain].label}
+                        {getDomainLabel(currentDomain)}
                       </CardTitle>
                     );
                   })()}
@@ -302,14 +311,14 @@ export default function PerimenopauseTest() {
                 {currentDomainQuestions.map((question, idx) => (
                   <div key={question.id} className="space-y-3">
                     <p className="font-medium">
-                      {idx + 1}. {question.text}
+                      {idx + 1}. {getQuestionText(question.id)}
                     </p>
                     <RadioGroup
                       value={answers[question.id]?.toString()}
                       onValueChange={(value) => handleAnswer(question.id, parseInt(value))}
                       className="grid grid-cols-2 gap-2"
                     >
-                      {ANSWER_OPTIONS.map((option) => (
+                      {answerOptions.map((option) => (
                         <div key={option.value} className="flex items-center space-x-2">
                           <RadioGroupItem 
                             value={option.value.toString()} 
@@ -336,7 +345,7 @@ export default function PerimenopauseTest() {
                     disabled={currentDomainIndex === 0}
                   >
                     <ChevronLeft className="mr-2 h-4 w-4" />
-                    Vorige
+                    {t('perimenopause_test.previous')}
                   </Button>
                   <Button
                     onClick={handleNext}
@@ -344,12 +353,12 @@ export default function PerimenopauseTest() {
                   >
                     {currentDomainIndex === domains.length - 1 ? (
                       <>
-                        {saveTest.isPending ? 'Opslaan...' : 'Bekijk resultaat'}
+                        {saveTest.isPending ? t('perimenopause_test.saving') : t('perimenopause_test.view_result')}
                         <CheckCircle2 className="ml-2 h-4 w-4" />
                       </>
                     ) : (
                       <>
-                        Volgende
+                        {t('perimenopause_test.next')}
                         <ChevronRight className="ml-2 h-4 w-4" />
                       </>
                     )}
@@ -378,9 +387,9 @@ export default function PerimenopauseTest() {
                     </div>
                   );
                 })()}
-                <CardTitle className="text-2xl">Jouw Testresultaat</CardTitle>
+                <CardTitle className="text-2xl">{t('perimenopause_test.your_result')}</CardTitle>
                 <CardDescription>
-                  {format(new Date(savedResult.created_at), 'd MMMM yyyy', { locale: nl })}
+                  {format(new Date(savedResult.created_at), 'd MMMM yyyy', { locale: dateLocale })}
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -390,40 +399,20 @@ export default function PerimenopauseTest() {
                     {savedResult.total_score} / {MAX_SCORES.total}
                   </div>
                   <h3 className="text-lg font-semibold mb-2">
-                    {RESULT_TEXTS[savedResult.result_category].title}
+                    {getResultTitle(savedResult.result_category)}
                   </h3>
                   <p className="text-muted-foreground text-sm">
-                    {RESULT_TEXTS[savedResult.result_category].description}
+                    {getResultDescription(savedResult.result_category)}
                   </p>
                 </div>
 
                 {/* Domain Scores */}
                 <div className="space-y-4">
-                  <h4 className="font-semibold">Score per domein</h4>
-                  {renderScoreBar(
-                    savedResult.domain_cycle_score, 
-                    MAX_SCORES.cycle, 
-                    DOMAIN_LABELS.cycle.label,
-                    DOMAIN_LABELS.cycle.Icon
-                  )}
-                  {renderScoreBar(
-                    savedResult.domain_energy_score, 
-                    MAX_SCORES.energy, 
-                    DOMAIN_LABELS.energy.label,
-                    DOMAIN_LABELS.energy.Icon
-                  )}
-                  {renderScoreBar(
-                    savedResult.domain_mental_score, 
-                    MAX_SCORES.mental, 
-                    DOMAIN_LABELS.mental.label,
-                    DOMAIN_LABELS.mental.Icon
-                  )}
-                  {renderScoreBar(
-                    savedResult.domain_body_score, 
-                    MAX_SCORES.body, 
-                    DOMAIN_LABELS.body.label,
-                    DOMAIN_LABELS.body.Icon
-                  )}
+                  <h4 className="font-semibold">{t('perimenopause_test.score_per_domain')}</h4>
+                  {renderScoreBar(savedResult.domain_cycle_score, MAX_SCORES.cycle, 'cycle')}
+                  {renderScoreBar(savedResult.domain_energy_score, MAX_SCORES.energy, 'energy')}
+                  {renderScoreBar(savedResult.domain_mental_score, MAX_SCORES.mental, 'mental')}
+                  {renderScoreBar(savedResult.domain_body_score, MAX_SCORES.body, 'body')}
                 </div>
 
                 <Separator />
@@ -432,8 +421,7 @@ export default function PerimenopauseTest() {
                 <Alert variant="default">
                   <AlertCircle className="h-4 w-4" />
                   <AlertDescription className="text-xs">
-                    Deze test geeft geen medische diagnose. Bij aanhoudende of verergerende 
-                    klachten is het verstandig dit te bespreken met een arts of zorgverlener.
+                    {t('perimenopause_test.result_disclaimer')}
                   </AlertDescription>
                 </Alert>
 
@@ -441,21 +429,21 @@ export default function PerimenopauseTest() {
                 <div className="flex flex-col gap-3">
                   <Button variant="outline" onClick={() => navigate('/educatie')}>
                     <BookOpen className="mr-2 h-4 w-4" />
-                    Lees meer over perimenopauze
+                    {t('perimenopause_test.read_more')}
                   </Button>
                   <Button variant="outline" onClick={handleRestart}>
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    Doe de test opnieuw
+                    {t('perimenopause_test.take_again')}
                   </Button>
                   {testHistory.length > 1 && (
                     <Button variant="ghost" onClick={() => setStep('history')}>
                       <History className="mr-2 h-4 w-4" />
-                      Bekijk eerdere resultaten
+                      {t('perimenopause_test.view_history')}
                     </Button>
                   )}
                   <Button variant="ghost" onClick={() => navigate('/dashboard')}>
                     <Home className="mr-2 h-4 w-4" />
-                    Terug naar home
+                    {t('perimenopause_test.back_to_home')}
                   </Button>
                 </div>
               </CardContent>
@@ -475,23 +463,23 @@ export default function PerimenopauseTest() {
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
-                    <CardTitle>Eerdere Resultaten</CardTitle>
+                    <CardTitle>{t('perimenopause_test.test_history')}</CardTitle>
                     <CardDescription>
-                      Bekijk je testgeschiedenis
+                      {t('perimenopause_test.view_history')}
                     </CardDescription>
                   </div>
                   <Button variant="outline" size="sm" onClick={handleRestart}>
                     <RotateCcw className="mr-2 h-4 w-4" />
-                    Nieuwe test
+                    {t('perimenopause_test.start_test')}
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
                 {historyLoading ? (
-                  <p className="text-center text-muted-foreground py-8">Laden...</p>
+                  <p className="text-center text-muted-foreground py-8">{t('common.loading')}</p>
                 ) : testHistory.length === 0 ? (
                   <p className="text-center text-muted-foreground py-8">
-                    Je hebt nog geen tests gedaan.
+                    {t('common.no_data')}
                   </p>
                 ) : (
                   <div className="space-y-4">
@@ -503,10 +491,10 @@ export default function PerimenopauseTest() {
                         <div className="flex items-center justify-between">
                           <div>
                             <p className="font-medium">
-                              {format(new Date(test.created_at), 'd MMMM yyyy', { locale: nl })}
+                              {format(new Date(test.created_at), 'd MMMM yyyy', { locale: dateLocale })}
                             </p>
                             <p className="text-sm text-muted-foreground">
-                              {RESULT_TEXTS[test.result_category].title}
+                              {getResultTitle(test.result_category)}
                             </p>
                           </div>
                           <div className="flex items-center gap-2">
@@ -518,7 +506,7 @@ export default function PerimenopauseTest() {
                         </div>
                         
                         <div className="grid grid-cols-4 gap-2 text-xs">
-                          {Object.entries(DOMAIN_LABELS).map(([key, { label, Icon }]) => {
+                          {Object.entries(DOMAIN_ICONS).map(([key, Icon]) => {
                             const score = key === 'cycle' ? test.domain_cycle_score :
                                          key === 'energy' ? test.domain_energy_score :
                                          key === 'mental' ? test.domain_mental_score :
@@ -538,24 +526,23 @@ export default function PerimenopauseTest() {
                             <AlertDialogTrigger asChild>
                               <Button variant="ghost" size="sm" className="text-destructive">
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Verwijderen
+                                {t('common.delete')}
                               </Button>
                             </AlertDialogTrigger>
                             <AlertDialogContent>
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Resultaat verwijderen?</AlertDialogTitle>
+                                <AlertDialogTitle>{t('perimenopause_test.delete_confirm_title')}</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Dit testresultaat wordt permanent verwijderd. 
-                                  Dit kan niet ongedaan worden gemaakt.
+                                  {t('perimenopause_test.delete_confirm_desc')}
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Annuleren</AlertDialogCancel>
+                                <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => handleDeleteTest(test.id)}
                                   className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                                 >
-                                  Verwijderen
+                                  {t('common.delete')}
                                 </AlertDialogAction>
                               </AlertDialogFooter>
                             </AlertDialogContent>
