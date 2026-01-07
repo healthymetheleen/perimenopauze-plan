@@ -13,6 +13,11 @@ export interface DailyAnalysis {
     habits: string[];
   };
   seasonTip: string;
+  orthomolecular?: {
+    minerals: string[];
+    foods: string[];
+    avoid: string[];
+  };
 }
 
 export function useDailyAnalysis() {

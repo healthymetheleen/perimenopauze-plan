@@ -7,6 +7,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type SupportedLanguage = 'nl' | 'en';
+
+function getLanguage(lang?: string): SupportedLanguage {
+  if (lang === 'en') return 'en';
+  return 'nl';
+}
+
 // Privacy: generate AI subject ID
 function generateAISubjectId(userId: string): string {
   let hash = 0;
@@ -20,8 +27,9 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-// Comprehensive monthly analysis prompt - no medical/supplement advice
-const monthlyAnalysisPrompt = `ROL & KADER
+const prompts = {
+  nl: {
+    system: `ROL & KADER
 
 Je bent een ondersteunende reflectie-assistent voor vrouwen, met kennis van leefstijl en voeding.
 Je bent GEEN arts, GEEN therapeut en GEEN medisch hulpmiddel.
@@ -75,7 +83,76 @@ REGELS:
 • Nooit supplementen, vitamines of mineralen noemen
 • Geen doseringen
 • Focus op patronen en observaties
-• Moedig gesprek met zorgverlener aan`;
+• Moedig gesprek met zorgverlener aan`,
+    disclaimer: "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.",
+    consentRequired: 'AI-toestemming is vereist voor deze analyse.',
+    aiNotConfigured: 'AI-service is niet geconfigureerd.',
+    aiError: 'Er ging iets mis bij het genereren van de analyse.',
+    serviceError: 'Er ging iets mis. Probeer het later opnieuw.',
+  },
+  en: {
+    system: `ROLE & FRAMEWORK
+
+You are a supportive reflection assistant for women, with knowledge of lifestyle and nutrition.
+You are NOT a doctor, NOT a therapist, and NOT a medical device.
+
+EXPERTISE:
+• Lifestyle factors such as nutrition, sleep and movement
+• Recognizing patterns in daily habits
+• Cycle awareness and energy fluctuations
+
+You may NEVER:
+• make medical diagnoses
+• prescribe or mention medications or supplements
+• mention specific vitamins, minerals or dosages
+• make causal claims
+• give guarantees about results
+• give medical advice
+
+Your task is:
+• analyze monthly patterns based on nutrition, sleep and movement
+• make connections visible between lifestyle and experience
+• invite self-observation and conversation with healthcare provider
+
+HORMONE CONTEXT (general, educational only):
+• Hormones fluctuate throughout the cycle and can influence energy and mood
+• This is normal and part of the body
+
+OUTPUT STRUCTURE (JSON):
+{
+  "summary": "Short summary of the month (max 3 sentences)",
+  "patterns": [
+    {
+      "domain": "sleep|food|cycle|mood|energy",
+      "observation": "what you see in the data (max 2 sentences)",
+      "context": "general context without medical claims (max 1 sentence)"
+    }
+  ],
+  "lifestyleAnalysis": "Analysis of lifestyle patterns during the month (max 4 sentences)",
+  "nutritionInsights": "Observations about nutrition patterns and possible connections with experience (max 3 sentences, no supplement advice)",
+  "sleepAnalysis": "Analysis of sleep patterns (max 3 sentences)",
+  "movementAnalysis": "Analysis of movement/energy patterns (max 2 sentences)",
+  "recommendations": [
+    "Lifestyle observation or point of attention (no medical advice, max 5 items)"
+  ],
+  "talkToProvider": "Suggestion to discuss with healthcare provider if relevant (max 1 sentence)",
+  "positiveNote": "Positive observation or encouragement (max 1 sentence)"
+}
+
+RULES:
+• Max 600 words total
+• Always add disclaimer
+• Never mention supplements, vitamins or minerals
+• No dosages
+• Focus on patterns and observations
+• Encourage conversation with healthcare provider`,
+    disclaimer: "This analysis is purely informational and based on orthomolecular nutrition. It is not medical advice. Always discuss any concerns with your doctor or a qualified healthcare provider.",
+    consentRequired: 'AI consent is required for this analysis.',
+    aiNotConfigured: 'AI service is not configured.',
+    aiError: 'Something went wrong while generating the analysis.',
+    serviceError: 'Something went wrong. Please try again later.',
+  },
+};
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -90,6 +167,17 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+
+    // Parse request body for language
+    let language: SupportedLanguage = 'nl';
+    try {
+      const body = await req.json();
+      language = getLanguage(body.language);
+    } catch {
+      // No body or invalid JSON, use default language
+    }
+
+    const t = prompts[language];
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -119,7 +207,7 @@ serve(async (req) => {
     if (!consent?.accepted_ai_processing) {
       return new Response(JSON.stringify({
         error: 'consent_required',
-        message: 'AI-toestemming is vereist voor deze analyse.'
+        message: t.consentRequired
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -184,12 +272,17 @@ serve(async (req) => {
     symptoms.forEach(s => {
       symptomCounts[s.symptom_code] = (symptomCounts[s.symptom_code] || 0) + 1;
     });
+
+    const frequencyLabels = language === 'en'
+      ? { none: 'not logged', occasional: 'occasional', regular: 'regular', frequent: 'frequent' }
+      : { none: 'niet gelogd', occasional: 'incidenteel', regular: 'regelmatig', frequent: 'frequent' };
+
     const topSymptoms = Object.entries(symptomCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 5)
       .map(([code, count]) => ({ 
         code, 
-        frequency: count <= 3 ? 'incidenteel' : count <= 7 ? 'regelmatig' : 'frequent' 
+        frequency: count <= 3 ? frequencyLabels.occasional : count <= 7 ? frequencyLabels.regular : frequencyLabels.frequent 
       }));
 
     // Cycle symptom patterns (categorized)
@@ -200,8 +293,40 @@ serve(async (req) => {
     const hotFlashDays = cycleLogs.filter(l => l.hot_flashes).length;
     const headacheDays = cycleLogs.filter(l => l.headache).length;
 
+    const categoryLabels = language === 'en'
+      ? { none: 'unknown', few: 'few', average: 'average', many: 'many', low: 'low', medium: 'medium', good: 'good', short: 'short', long: 'long', varying: 'varying', elevated: 'elevated' }
+      : { none: 'onbekend', few: 'weinig', average: 'gemiddeld', many: 'veel', low: 'laag', medium: 'gemiddeld', good: 'goed', short: 'kort', long: 'lang', varying: 'wisselend', elevated: 'verhoogd' };
+
     // Build MINIMAL CONTEXT PACK with CATEGORICAL data only
-    const context = `MAANDOVERZICHT (laatste 30 dagen, geanonimiseerd - geen persoonlijke identificatoren):
+    const context = language === 'en' 
+      ? `MONTHLY OVERVIEW (last 30 days, anonymized - no personal identifiers):
+
+NUTRITION:
+- Meals logged: ${meals.length === 0 ? 'none' : meals.length < 10 ? 'few' : meals.length < 50 ? 'average' : 'many'}
+- Protein intake: ${avgProtein < 30 ? 'low' : avgProtein < 50 ? 'medium' : 'good'}
+- Fiber intake: ${avgFiber < 15 ? 'low' : avgFiber < 25 ? 'medium' : 'good'}
+
+SLEEP:
+- Sleep sessions logged: ${sleepSessions.length === 0 ? 'none' : sleepSessions.length < 10 ? 'few' : 'regular'}
+- Sleep quality: ${avgSleepQuality < 4 ? 'low' : avgSleepQuality < 7 ? 'medium' : 'good'}
+- Sleep duration: ${avgSleepDuration < 360 ? 'short' : avgSleepDuration < 480 ? 'average' : 'long'}
+
+CYCLE:
+- Current phase: ${prediction?.current_phase || 'unknown'}
+- Current season: ${prediction?.current_season || 'unknown'}
+- Mood: ${moodAvg < 4 ? 'low' : moodAvg < 7 ? 'varying' : 'good'}
+- Energy: ${energyAvg < 4 ? 'low' : energyAvg < 7 ? 'varying' : 'good'}
+- Hot flashes: ${hotFlashDays === 0 ? 'not logged' : hotFlashDays <= 3 ? 'occasional' : 'regular'}
+- Headaches: ${headacheDays === 0 ? 'not logged' : headacheDays <= 3 ? 'occasional' : 'regular'}
+
+MOST COMMON EXPERIENCES:
+${topSymptoms.map(s => `- ${s.code}: ${s.frequency}`).join('\n') || '- No experiences logged'}
+
+STRESS:
+- Stress level: ${contexts.length === 0 ? 'unknown' : (contexts.reduce((sum, c) => sum + (c.stress_0_10 || 0), 0) / contexts.length) < 4 ? 'low' : 'elevated'}
+
+Generate a comprehensive monthly analysis focusing on lifestyle patterns and hormone patterns.`
+      : `MAANDOVERZICHT (laatste 30 dagen, geanonimiseerd - geen persoonlijke identificatoren):
 
 VOEDING:
 - Maaltijden gelogd: ${meals.length === 0 ? 'geen' : meals.length < 10 ? 'weinig' : meals.length < 50 ? 'gemiddeld' : 'veel'}
@@ -227,14 +352,14 @@ ${topSymptoms.map(s => `- ${s.code}: ${s.frequency}`).join('\n') || '- Geen erva
 STRESS:
 - Stressniveau: ${contexts.length === 0 ? 'onbekend' : (contexts.reduce((sum, c) => sum + (c.stress_0_10 || 0), 0) / contexts.length) < 4 ? 'laag' : 'verhoogd'}
 
-Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en hormoonpatronen.`;
+Genereer een uitgebreide maandanalyse met focus op leefstijlpatronen en hormoonpatronen.`;
 
     // Use direct OpenAI API for full control and GDPR compliance
     const OPENAI_API_KEY = Deno.env.get('ChatGPT');
     if (!OPENAI_API_KEY) {
       return new Response(JSON.stringify({
         error: 'ai_not_configured',
-        message: 'AI-service is niet geconfigureerd.'
+        message: t.aiNotConfigured
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -252,7 +377,7 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: monthlyAnalysisPrompt },
+          { role: 'system', content: t.system },
           { role: 'user', content: context }
         ],
         max_tokens: 1500,
@@ -264,7 +389,7 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       console.error('OpenAI API error:', response.status);
       return new Response(JSON.stringify({
         error: 'ai_error',
-        message: 'Er ging iets mis bij het genereren van de analyse.'
+        message: t.aiError
       }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -284,15 +409,15 @@ Genereer een uitgebreide maandanalyse met focus op orthomoleculaire inzichten en
       }
     } catch {
       result = {
-        summary: "De analyse kon niet volledig worden gegenereerd.",
+        summary: language === 'en' ? "The analysis could not be fully generated." : "De analyse kon niet volledig worden gegenereerd.",
         patterns: [],
-        hormoneAnalysis: content || "Probeer het later opnieuw.",
+        hormoneAnalysis: content || (language === 'en' ? "Please try again later." : "Probeer het later opnieuw."),
         nutritionInsights: "",
         recommendations: [],
       };
     }
 
-    result.disclaimer = "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.";
+    result.disclaimer = t.disclaimer;
     result.generatedAt = new Date().toISOString();
 
     // Save to cache AFTER successful generation (this prevents the mismatch issue)

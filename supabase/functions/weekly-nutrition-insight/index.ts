@@ -7,6 +7,13 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+type SupportedLanguage = 'nl' | 'en';
+
+function getLanguage(lang?: string): SupportedLanguage {
+  if (lang === 'en') return 'en';
+  return 'nl';
+}
+
 // Privacy-compliant: generate AI subject ID (not reversible without DB)
 function generateAISubjectId(userId: string): string {
   let hash = 0;
@@ -33,6 +40,99 @@ function toRelativeDay(dateStr: string): string {
   return `D${diffDays}`;
 }
 
+const prompts = {
+  nl: {
+    system: `Je bent een voedingscoach die vrouwen helpt met leefstijl en voeding. 
+Je geeft warme, persoonlijke adviezen gebaseerd op voedingspatronen.
+
+BELANGRIJK:
+- Je bent GEEN arts en geeft GEEN medisch advies
+- Noem NOOIT supplementen, vitamines of mineralen
+- Gebruik relatieve dagen (D-1 = gisteren, D-2 = eergisteren)
+- Geef alleen leefstijl en voedingstips, geen diagnoses
+
+Focus op:
+- Gevarieerd eten met voldoende groenten en fruit
+- Stabiele bloedsuiker door regelmatige maaltijden
+- Voldoende eiwit bij elke maaltijd
+- Slaap en ontspanning
+- Vezels en gevarieerde voeding
+
+Geef concrete, haalbare tips. Vermijd medisch jargon. Schrijf in het Nederlands.`,
+    userPrompt: (nutritionSummary: string) => `Analyseer deze weekelijkse voedingsdata en geef een persoonlijk weekadvies:
+
+${nutritionSummary}
+
+Geef je analyse in dit exact JSON format:
+{
+  "samenvatting": "Korte samenvatting van de week in 1-2 zinnen",
+  "sterke_punten": ["punt 1", "punt 2"],
+  "aandachtspunten": ["punt 1", "punt 2"],
+  "leefstijl_tip": {
+    "titel": "Concrete tip voor deze week",
+    "uitleg": "Waarom dit helpt",
+    "voedingsmiddelen": ["voedingsmiddel 1", "voedingsmiddel 2", "voedingsmiddel 3"]
+  },
+  "weekdoel": "Één specifiek, haalbaar doel voor komende week"
+}`,
+    notEnoughData: "Log minimaal 3 dagen met maaltijden om een weekanalyse te krijgen.",
+    disclaimer: "Deze inzichten zijn informatief en geen medisch advies.",
+    rateLimit: "Te veel verzoeken, probeer het later opnieuw.",
+    weekOverview: (daysLogged: number, totalMeals: number, avgKcal: number, avgProtein: number, avgFiber: number, avgCarbs: number, reasonCounts: Record<string, number>, dailyPatterns: { relDay: string; meals: number; proteinCategory: string }[]) => `
+WEEKOVERZICHT VOEDING (${daysLogged} dagen gelogd):
+- Totaal maaltijden: ${totalMeals}
+- Gemiddeld per dag: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g eiwit, ~${Math.round(avgFiber)}g vezels, ~${Math.round(avgCarbs)}g koolhydraten
+- Patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
+- Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
+    `.trim(),
+  },
+  en: {
+    system: `You are a nutrition coach helping women with lifestyle and nutrition.
+You provide warm, personal advice based on nutrition patterns.
+
+IMPORTANT:
+- You are NOT a doctor and do NOT give medical advice
+- NEVER mention supplements, vitamins or minerals
+- Use relative days (D-1 = yesterday, D-2 = day before yesterday)
+- Only give lifestyle and nutrition tips, no diagnoses
+
+Focus on:
+- Varied diet with plenty of vegetables and fruit
+- Stable blood sugar through regular meals
+- Sufficient protein with each meal
+- Sleep and relaxation
+- Fiber and varied nutrition
+
+Give concrete, achievable tips. Avoid medical jargon. Write in English.`,
+    userPrompt: (nutritionSummary: string) => `Analyze this weekly nutrition data and provide personal weekly advice:
+
+${nutritionSummary}
+
+Provide your analysis in this exact JSON format:
+{
+  "samenvatting": "Short summary of the week in 1-2 sentences",
+  "sterke_punten": ["point 1", "point 2"],
+  "aandachtspunten": ["point 1", "point 2"],
+  "leefstijl_tip": {
+    "titel": "Concrete tip for this week",
+    "uitleg": "Why this helps",
+    "voedingsmiddelen": ["food item 1", "food item 2", "food item 3"]
+  },
+  "weekdoel": "One specific, achievable goal for the coming week"
+}`,
+    notEnoughData: "Log at least 3 days with meals to get a weekly analysis.",
+    disclaimer: "These insights are informational and not medical advice.",
+    rateLimit: "Too many requests, please try again later.",
+    weekOverview: (daysLogged: number, totalMeals: number, avgKcal: number, avgProtein: number, avgFiber: number, avgCarbs: number, reasonCounts: Record<string, number>, dailyPatterns: { relDay: string; meals: number; proteinCategory: string }[]) => `
+WEEKLY NUTRITION OVERVIEW (${daysLogged} days logged):
+- Total meals: ${totalMeals}
+- Daily average: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g protein, ~${Math.round(avgFiber)}g fiber, ~${Math.round(avgCarbs)}g carbs
+- Patterns: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
+- Daily patterns: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} meals, protein ${d.proteinCategory}`).join('; ')}
+    `.trim(),
+  },
+};
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -46,6 +146,17 @@ serve(async (req) => {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Parse request body for language
+    let language: SupportedLanguage = 'nl';
+    try {
+      const body = await req.json();
+      language = getLanguage(body.language);
+    } catch {
+      // No body or invalid JSON, use default language
+    }
+
+    const t = prompts[language];
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -108,8 +219,8 @@ serve(async (req) => {
     // Check if we have enough data
     if (!dailyScores || dailyScores.length < 3) {
       return new Response(JSON.stringify({ 
-        error: "Niet genoeg data", 
-        message: "Log minimaal 3 dagen met maaltijden om een weekanalyse te krijgen." 
+        error: language === 'en' ? "Not enough data" : "Niet genoeg data", 
+        message: t.notEnoughData
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -140,55 +251,17 @@ serve(async (req) => {
     });
 
     // Build MINIMAL CONTEXT PACK with relative days (no dates)
+    const proteinLabels = language === 'en' 
+      ? { low: 'low', medium: 'medium', good: 'good' }
+      : { low: 'laag', medium: 'gemiddeld', good: 'goed' };
+    
     const dailyPatterns = daysWithMeals.map(d => ({
       relDay: toRelativeDay(d.day_date),
       meals: d.meals_count,
-      proteinCategory: (d.protein_g || 0) < 40 ? 'laag' : (d.protein_g || 0) < 60 ? 'gemiddeld' : 'goed',
-      fiberCategory: (d.fiber_g || 0) < 20 ? 'laag' : (d.fiber_g || 0) < 30 ? 'gemiddeld' : 'goed',
+      proteinCategory: (d.protein_g || 0) < 40 ? proteinLabels.low : (d.protein_g || 0) < 60 ? proteinLabels.medium : proteinLabels.good,
     }));
 
-    const nutritionSummary = `
-WEEKOVERZICHT VOEDING (${daysWithMeals.length} dagen gelogd):
-- Totaal maaltijden: ${totalMeals}
-- Gemiddeld per dag: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g eiwit, ~${Math.round(avgFiber)}g vezels, ~${Math.round(avgCarbs)}g koolhydraten
-- Patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
-- Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
-    `.trim();
-
-    const systemPrompt = `Je bent een voedingscoach die vrouwen helpt met leefstijl en voeding. 
-Je geeft warme, persoonlijke adviezen gebaseerd op voedingspatronen.
-
-BELANGRIJK:
-- Je bent GEEN arts en geeft GEEN medisch advies
-- Noem NOOIT supplementen, vitamines of mineralen
-- Gebruik relatieve dagen (D-1 = gisteren, D-2 = eergisteren)
-- Geef alleen leefstijl en voedingstips, geen diagnoses
-
-Focus op:
-- Gevarieerd eten met voldoende groenten en fruit
-- Stabiele bloedsuiker door regelmatige maaltijden
-- Voldoende eiwit bij elke maaltijd
-- Slaap en ontspanning
-- Vezels en gevarieerde voeding
-
-Geef concrete, haalbare tips. Vermijd medisch jargon. Schrijf in het Nederlands.`;
-
-    const userPrompt = `Analyseer deze weekelijkse voedingsdata en geef een persoonlijk weekadvies:
-
-${nutritionSummary}
-
-Geef je analyse in dit exact JSON format:
-{
-  "samenvatting": "Korte samenvatting van de week in 1-2 zinnen",
-  "sterke_punten": ["punt 1", "punt 2"],
-  "aandachtspunten": ["punt 1", "punt 2"],
-  "leefstijl_tip": {
-    "titel": "Concrete tip voor deze week",
-    "uitleg": "Waarom dit helpt",
-    "voedingsmiddelen": ["voedingsmiddel 1", "voedingsmiddel 2", "voedingsmiddel 3"]
-  },
-  "weekdoel": "Één specifiek, haalbaar doel voor komende week"
-}`;
+    const nutritionSummary = t.weekOverview(daysWithMeals.length, totalMeals, avgKcal, avgProtein, avgFiber, avgCarbs, reasonCounts, dailyPatterns);
 
     // Use direct OpenAI API for full control and GDPR compliance
     const OPENAI_API_KEY = Deno.env.get("ChatGPT");
@@ -207,8 +280,8 @@ Geef je analyse in dit exact JSON format:
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
+          { role: "system", content: t.system },
+          { role: "user", content: t.userPrompt(nutritionSummary) },
         ],
         max_tokens: 1000,
         temperature: 0.7,
@@ -220,7 +293,7 @@ Geef je analyse in dit exact JSON format:
       console.error("OpenAI API error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: "Te veel verzoeken, probeer het later opnieuw." }), {
+        return new Response(JSON.stringify({ error: t.rateLimit }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -240,11 +313,11 @@ Geef je analyse in dit exact JSON format:
     } catch (parseError) {
       console.error("Failed to parse AI response for", aiSubjectId, ":", content);
       insight = {
-        samenvatting: "Analyse kon niet worden voltooid.",
+        samenvatting: language === 'en' ? "Analysis could not be completed." : "Analyse kon niet worden voltooid.",
         sterke_punten: [],
         aandachtspunten: [],
         ortho_tip: null,
-        weekdoel: "Blijf je maaltijden loggen voor betere inzichten.",
+        weekdoel: language === 'en' ? "Keep logging your meals for better insights." : "Blijf je maaltijden loggen voor betere inzichten.",
       };
     }
 
@@ -254,7 +327,7 @@ Geef je analyse in dit exact JSON format:
     insight.avg_protein = Math.round(avgProtein);
     insight.avg_fiber = Math.round(avgFiber);
     insight.avg_kcal = Math.round(avgKcal);
-    insight.disclaimer = "Deze inzichten zijn informatief en geen medisch advies.";
+    insight.disclaimer = t.disclaimer;
 
     // Cache the insight (linked to real user_id in our DB only)
     const { error: cacheError } = await supabaseClient

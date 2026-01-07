@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
 import { startOfMonth, format } from 'date-fns';
+import { useTranslation } from 'react-i18next';
 
 export interface MonthlyAnalysisPattern {
   domain: 'sleep' | 'food' | 'cycle' | 'mood' | 'energy';
@@ -83,10 +84,14 @@ export function useMonthlyAnalysisList() {
 export function useGenerateMonthlyAnalysis() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const { i18n } = useTranslation();
+  const language = i18n.language?.startsWith('en') ? 'en' : 'nl';
 
   return useMutation({
     mutationFn: async (): Promise<MonthlyAnalysis> => {
-      const { data, error } = await supabase.functions.invoke('monthly-analysis');
+      const { data, error } = await supabase.functions.invoke('monthly-analysis', {
+        body: { language }
+      });
 
       if (error) throw error;
       if (data.error) throw new Error(data.message || data.error);
