@@ -273,6 +273,32 @@ export function useSubscription() {
   });
 }
 
+interface PaymentHistoryItem {
+  id: string;
+  amount: string;
+  currency: string;
+  description: string;
+  status: string;
+  paidAt: string;
+  method: string;
+  invoiceRef: string;
+}
+
+// Get payment history for current user
+export function usePaymentHistory() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['payment-history', user?.id],
+    queryFn: async (): Promise<PaymentHistoryItem[]> => {
+      const { data, error } = await supabase.functions.invoke('mollie-payments/get-payment-history');
+      if (error) throw error;
+      return data.payments || [];
+    },
+    enabled: !!user,
+  });
+}
+
 export function usePaymentStatus(paymentId: string | null) {
   return useQuery({
     queryKey: ['payment-status', paymentId],
