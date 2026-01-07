@@ -36,7 +36,7 @@ const categoryColors: Record<string, string> = {
 export default function CommunityPage() {
   const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>('alle');
-  const [selectedLanguage, setSelectedLanguage] = useState<string>('alle');
+  const [selectedLanguage, setSelectedLanguage] = useState<string>(i18n.language === 'nl' ? 'nl' : 'en');
   const [searchQuery, setSearchQuery] = useState('');
   const [showNewPost, setShowNewPost] = useState(false);
   const [newPost, setNewPost] = useState({
