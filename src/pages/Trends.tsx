@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { LoadingState } from '@/components/ui/loading-state';
 import { useTrendsData, TrendPeriod } from '@/hooks/useTrendsData';
@@ -16,6 +17,7 @@ import {
 import { TrendDayData } from '@/hooks/useTrendsData';
 
 export default function TrendsPage() {
+  const { t } = useTranslation();
   const [period, setPeriod] = useState<TrendPeriod>(14);
   const [showSeasonOverlay, setShowSeasonOverlay] = useState(true);
   const [selectedDay, setSelectedDay] = useState<TrendDayData | null>(null);
@@ -41,14 +43,14 @@ export default function TrendsPage() {
       <div className="space-y-6">
         {/* Header */}
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Trends & Analyses</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t('trends.title')}</h1>
           <p className="text-muted-foreground">
-            Ontdek patronen en krijg persoonlijke inzichten
+            {t('trends.subtitle')}
           </p>
         </div>
 
         {isLoading ? (
-          <LoadingState message="Data laden..." />
+          <LoadingState message={t('trends.loading')} />
         ) : (
           <>
             {/* KPI Strip */}

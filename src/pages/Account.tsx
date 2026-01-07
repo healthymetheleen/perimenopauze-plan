@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,6 +25,7 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AccountPage() {
+  const { t, i18n } = useTranslation();
   const { user, signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
   const { toast } = useToast();
@@ -36,6 +38,8 @@ export default function AccountPage() {
   const [deleteConfirm, setDeleteConfirm] = useState('');
   
   const isPremium = entitlements?.can_use_trends || entitlements?.can_use_patterns;
+  
+  const deleteConfirmWord = i18n.language === 'en' ? 'DELETE' : 'VERWIJDER';
 
   const handleExport = async () => {
     try {
@@ -53,34 +57,34 @@ export default function AccountPage() {
       URL.revokeObjectURL(url);
       
       toast({
-        title: 'Export succesvol',
-        description: 'Je gegevens zijn gedownload als JSON bestand.',
+        title: t('account.export_success'),
+        description: t('account.export_success_desc'),
       });
     } catch (error) {
       console.error('Export error:', error);
       toast({
-        title: 'Export mislukt',
-        description: 'Er ging iets mis bij het exporteren. Probeer het opnieuw.',
+        title: t('account.export_error'),
+        description: t('account.export_error_desc'),
         variant: 'destructive',
       });
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (deleteConfirm !== 'VERWIJDER') return;
+    if (deleteConfirm !== deleteConfirmWord) return;
     
     try {
       await deleteAccount.mutateAsync();
       toast({
-        title: 'Account verwijderd',
-        description: 'Al je gegevens zijn permanent verwijderd.',
+        title: t('account.delete_success'),
+        description: t('account.delete_success_desc'),
       });
       navigate('/login');
     } catch (error) {
       console.error('Delete error:', error);
       toast({
-        title: 'Verwijderen mislukt',
-        description: 'Er ging iets mis. Neem contact op met support.',
+        title: t('account.delete_error'),
+        description: t('account.delete_error_desc'),
         variant: 'destructive',
       });
     }
@@ -91,17 +95,15 @@ export default function AccountPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-semibold text-gradient">Account</h1>
-          <p className="text-muted-foreground">Beheer je account en gegevens</p>
+          <h1 className="text-2xl font-semibold text-gradient">{t('account.title')}</h1>
+          <p className="text-muted-foreground">{t('account.subtitle')}</p>
         </div>
 
         {/* Privacy Info */}
         <Alert className="glass border-primary/20">
           <Shield className="h-4 w-4 text-primary" />
           <AlertDescription>
-            <strong>Je privacy is belangrijk.</strong> We verwerken je gezondheidsdata alleen om 
-            jou te helpen. AI ontvangt alleen geanonimiseerde statistieken. Je hebt volledige 
-            controle over je gegevens.
+            <strong>{t('account.privacy_notice')}</strong> {t('account.privacy_desc')}
           </AlertDescription>
         </Alert>
 
@@ -110,19 +112,19 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <User className="h-5 w-5 text-primary" />
-              Profiel
+              {t('account.profile')}
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div>
-              <p className="text-sm text-muted-foreground">E-mailadres</p>
+              <p className="text-sm text-muted-foreground">{t('account.email')}</p>
               <p className="font-medium">{user?.email}</p>
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Abonnement</p>
+              <p className="text-sm text-muted-foreground">{t('account.subscription')}</p>
               <div className="flex items-center gap-2">
                 <p className="font-medium capitalize">
-                  {isPremium ? 'Premium' : 'Gratis'}
+                  {isPremium ? t('account.premium') : t('account.free')}
                 </p>
                 {isPremium && <Crown className="h-4 w-4 text-primary" />}
               </div>
@@ -132,7 +134,7 @@ export default function AccountPage() {
               onClick={() => navigate('/subscription')}
               className="mt-2"
             >
-              {isPremium ? 'Beheer abonnement' : 'Start 7 dagen gratis'}
+              {isPremium ? t('account.manage_subscription') : t('account.start_trial')}
             </Button>
           </CardContent>
         </Card>
@@ -142,20 +144,19 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <FileText className="h-5 w-5 text-primary" />
-              Jouw gegevens (AVG/GDPR)
+              {t('account.gdpr_title')}
             </CardTitle>
             <CardDescription>
-              Je hebt het recht om je gegevens in te zien, te downloaden en te verwijderen.
+              {t('account.gdpr_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
               <CheckCircle className="h-5 w-5 text-success mt-0.5" />
               <div>
-                <p className="font-medium text-sm">Data retentie</p>
+                <p className="font-medium text-sm">{t('account.retention_title')}</p>
                 <p className="text-sm text-muted-foreground">
-                  Eetdagboeken en symptomen worden automatisch na 12 maanden verwijderd. 
-                  AI-logs worden na 6 maanden verwijderd.
+                  {t('account.retention_desc')}
                 </p>
               </div>
             </div>
@@ -163,10 +164,9 @@ export default function AccountPage() {
             <div className="flex items-start gap-3 p-3 bg-muted/50 rounded-lg">
               <Info className="h-5 w-5 text-info mt-0.5" />
               <div>
-                <p className="font-medium text-sm">AI privacy</p>
+                <p className="font-medium text-sm">{t('account.ai_privacy_title')}</p>
                 <p className="text-sm text-muted-foreground">
-                  AI ontvangt alleen geanonimiseerde statistieken (gemiddelden, frequenties). 
-                  Geen namen, datums of herleidbare informatie.
+                  {t('account.ai_privacy_desc')}
                 </p>
               </div>
             </div>
@@ -178,10 +178,10 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
               <Download className="h-5 w-5 text-primary" />
-              Data exporteren
+              {t('account.export_title')}
             </CardTitle>
             <CardDescription>
-              Download al je gegevens in JSON formaat. Dit is jouw recht onder de AVG.
+              {t('account.export_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -193,7 +193,7 @@ export default function AccountPage() {
             >
               {exportData.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
               <Download className="h-4 w-4 mr-2" />
-              Download mijn gegevens
+              {t('account.download_data')}
             </Button>
           </CardContent>
         </Card>
@@ -203,11 +203,10 @@ export default function AccountPage() {
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2 text-destructive">
               <Trash2 className="h-5 w-5" />
-              Account verwijderen
+              {t('account.delete_title')}
             </CardTitle>
             <CardDescription>
-              Verwijder je account en alle bijbehorende gegevens permanent. Dit kan niet ongedaan 
-              worden gemaakt.
+              {t('account.delete_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -216,7 +215,7 @@ export default function AccountPage() {
               onClick={() => setShowDeleteDialog(true)}
             >
               <Trash2 className="h-4 w-4 mr-2" />
-              Account verwijderen
+              {t('account.delete_button')}
             </Button>
           </CardContent>
         </Card>
@@ -228,40 +227,40 @@ export default function AccountPage() {
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
               <AlertTriangle className="h-5 w-5 text-destructive" />
-              Account permanent verwijderen?
+              {t('account.delete_confirm_title')}
             </AlertDialogTitle>
             <AlertDialogDescription asChild>
               <div className="space-y-4">
-                <p>Dit verwijdert permanent:</p>
+                <p>{t('account.delete_confirm_desc')}</p>
                 <ul className="list-disc list-inside text-sm space-y-1">
-                  <li>Je profiel en accountgegevens</li>
-                  <li>Alle eetdagboeken en maaltijden</li>
-                  <li>Cyclusdata en symptoomlogs</li>
-                  <li>Slaapregistraties</li>
-                  <li>Alle andere opgeslagen data</li>
+                  <li>{t('account.delete_item_profile')}</li>
+                  <li>{t('account.delete_item_diary')}</li>
+                  <li>{t('account.delete_item_cycle')}</li>
+                  <li>{t('account.delete_item_sleep')}</li>
+                  <li>{t('account.delete_item_other')}</li>
                 </ul>
-                <p className="font-medium">Typ "VERWIJDER" om te bevestigen:</p>
+                <p className="font-medium">{t('account.delete_type_confirm')}</p>
                 <input
                   type="text"
                   className="w-full p-3 border rounded-lg bg-background"
                   value={deleteConfirm}
                   onChange={(e) => setDeleteConfirm(e.target.value)}
-                  placeholder="VERWIJDER"
+                  placeholder={deleteConfirmWord}
                 />
               </div>
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel onClick={() => setDeleteConfirm('')}>
-              Annuleren
+              {t('account.delete_cancel')}
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleDeleteAccount}
-              disabled={deleteConfirm !== 'VERWIJDER' || deleteAccount.isPending}
+              disabled={deleteConfirm !== deleteConfirmWord || deleteAccount.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               {deleteAccount.isPending && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-              Definitief verwijderen
+              {t('account.delete_final')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
