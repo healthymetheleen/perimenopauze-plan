@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
@@ -21,7 +21,7 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useLatestPrediction, useCyclePreferences, seasonLabels, seasonColors } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, seasonColors } from '@/hooks/useCycle';
 import { 
   phaseWorkouts, 
   getWorkoutForSeason, 
@@ -43,71 +43,37 @@ const intensityColors = {
   high: 'bg-destructive/20 text-destructive-foreground',
 };
 
-const intensityLabels = {
-  low: 'Rustig',
-  moderate: 'Gemiddeld',
-  high: 'Intensief',
-};
-
-const allDays = ['Maandag', 'Dinsdag', 'Woensdag', 'Donderdag', 'Vrijdag', 'Zaterdag', 'Zondag'];
-
-// Generate personalized weekly schedule with excluded days
-function generatePersonalizedSchedule(
-  currentSeason: string,
-  preferences: TrainingPreferences
-): { day: string; workout: PhaseWorkout | null; duration: number; exercises: YogaExercise[] }[] {
-  const workout = getWorkoutForSeason(currentSeason);
-  const availableDays = allDays.filter(day => !preferences.excludedDays?.includes(day));
-  
-  // Distribute sessions across available days
-  const sessionsPerWeek = Math.min(preferences.sessionsPerWeek, availableDays.length);
-  
-  // Pick the best days (spread evenly)
-  const workoutDays: string[] = [];
-  if (availableDays.length > 0 && sessionsPerWeek > 0) {
-    const step = Math.floor(availableDays.length / sessionsPerWeek);
-    for (let i = 0; i < sessionsPerWeek; i++) {
-      const dayIndex = (i * step) % availableDays.length;
-      workoutDays.push(availableDays[dayIndex]);
-    }
-  }
-
-  return allDays.map(day => {
-    const isWorkoutDay = workoutDays.includes(day);
-    const isExcluded = preferences.excludedDays?.includes(day);
-    
-    // Select specific exercises for this day based on workout and day of week
-    const dayExercises: YogaExercise[] = [];
-    if (isWorkoutDay && workout) {
-      // Rotate through exercises based on day index
-      const dayIndex = allDays.indexOf(day);
-      const exerciseCount = Math.min(3, workout.exercises.length);
-      for (let i = 0; i < exerciseCount; i++) {
-        const exerciseIndex = (dayIndex + i) % workout.exercises.length;
-        dayExercises.push(workout.exercises[exerciseIndex]);
-      }
-    }
-
-    return {
-      day,
-      workout: isWorkoutDay ? workout || null : null,
-      duration: isWorkoutDay ? preferences.minutesPerSession : 0,
-      exercises: dayExercises,
-      isExcluded,
-    };
-  });
-}
+// Day keys for translation - these are internal keys used for storage
+const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
 export default function MovementPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const { data: cyclePrefs } = useCyclePreferences();
+  
+  // Translated labels
+  const seasonLabelsTranslated = useMemo(() => ({
+    winter: t('seasons.winter'),
+    lente: t('seasons.lente'),
+    zomer: t('seasons.zomer'),
+    herfst: t('seasons.herfst'),
+    onbekend: t('seasons.onbekend'),
+  }), [t]);
+  
+  const intensityLabelsTranslated = useMemo(() => ({
+    low: i18n.language === 'nl' ? 'Rustig' : 'Easy',
+    moderate: i18n.language === 'nl' ? 'Gemiddeld' : 'Moderate',
+    high: i18n.language === 'nl' ? 'Intensief' : 'Intensive',
+  }), [i18n.language]);
+  
+  // Translated day names
+  const dayLabels = useMemo(() => dayKeys.map(key => t(`movement.${key}`)), [t]);
   
   const [trainingPrefs, setTrainingPrefs] = useState<TrainingPreferences>({
     sessionsPerWeek: 3,
     minutesPerSession: 30,
     preferredDays: [],
-    excludedDays: ['Zondag'],
+    excludedDays: ['sunday'], // Use keys instead of translated names
     goals: ['flexibiliteit', 'ontspanning'],
   });
   
@@ -117,17 +83,56 @@ export default function MovementPage() {
   const currentSeason = prediction?.current_season || 'onbekend';
   const colors = seasonColors[currentSeason] || seasonColors.onbekend;
   const currentWorkout = getWorkoutForSeason(currentSeason);
-  const weeklySchedule = generatePersonalizedSchedule(currentSeason, trainingPrefs);
+  
+  // Generate personalized weekly schedule
+  const weeklySchedule = useMemo(() => {
+    const workout = getWorkoutForSeason(currentSeason);
+    const availableDayKeys = dayKeys.filter(key => !trainingPrefs.excludedDays?.includes(key));
+    
+    const sessionsPerWeek = Math.min(trainingPrefs.sessionsPerWeek, availableDayKeys.length);
+    
+    const workoutDayKeys: string[] = [];
+    if (availableDayKeys.length > 0 && sessionsPerWeek > 0) {
+      const step = Math.floor(availableDayKeys.length / sessionsPerWeek);
+      for (let i = 0; i < sessionsPerWeek; i++) {
+        const dayIndex = (i * step) % availableDayKeys.length;
+        workoutDayKeys.push(availableDayKeys[dayIndex]);
+      }
+    }
+
+    return dayKeys.map((key, index) => {
+      const isWorkoutDay = workoutDayKeys.includes(key);
+      const isExcluded = trainingPrefs.excludedDays?.includes(key);
+      
+      const dayExercises: YogaExercise[] = [];
+      if (isWorkoutDay && workout) {
+        const exerciseCount = Math.min(3, workout.exercises.length);
+        for (let i = 0; i < exerciseCount; i++) {
+          const exerciseIndex = (index + i) % workout.exercises.length;
+          dayExercises.push(workout.exercises[exerciseIndex]);
+        }
+      }
+
+      return {
+        key,
+        label: dayLabels[index],
+        workout: isWorkoutDay ? workout || null : null,
+        duration: isWorkoutDay ? trainingPrefs.minutesPerSession : 0,
+        exercises: dayExercises,
+        isExcluded,
+      };
+    });
+  }, [currentSeason, trainingPrefs, dayLabels]);
   
   const workoutDays = weeklySchedule.filter(d => d.workout).length;
   const totalMinutes = workoutDays * trainingPrefs.minutesPerSession;
 
-  const toggleExcludedDay = (day: string) => {
+  const toggleExcludedDay = (key: string) => {
     setTrainingPrefs(prev => ({
       ...prev,
-      excludedDays: prev.excludedDays?.includes(day)
-        ? prev.excludedDays.filter(d => d !== day)
-        : [...(prev.excludedDays || []), day]
+      excludedDays: prev.excludedDays?.includes(key)
+        ? prev.excludedDays.filter(d => d !== key)
+        : [...(prev.excludedDays || []), key]
     }));
   };
 
@@ -178,18 +183,18 @@ export default function MovementPage() {
                 <div className="space-y-3">
                   <Label>{t('movement.excludeDays')}</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {allDays.map(day => (
-                      <div key={day} className="flex items-center space-x-2">
+                    {dayKeys.map((key, index) => (
+                      <div key={key} className="flex items-center space-x-2">
                         <Checkbox
-                          id={`exclude-${day}`}
-                          checked={trainingPrefs.excludedDays?.includes(day) ?? false}
-                          onCheckedChange={() => toggleExcludedDay(day)}
+                          id={`exclude-${key}`}
+                          checked={trainingPrefs.excludedDays?.includes(key) ?? false}
+                          onCheckedChange={() => toggleExcludedDay(key)}
                         />
                         <label 
-                          htmlFor={`exclude-${day}`} 
+                          htmlFor={`exclude-${key}`} 
                           className="text-sm cursor-pointer"
                         >
-                          {day}
+                          {dayLabels[index]}
                         </label>
                       </div>
                     ))}
@@ -218,10 +223,10 @@ export default function MovementPage() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <Badge variant="secondary" className={`text-white ${colors.accent}`}>
-                      {seasonLabels[currentSeason]}
+                      {seasonLabelsTranslated[currentSeason as keyof typeof seasonLabelsTranslated]}
                     </Badge>
                     <Badge className={intensityColors[currentWorkout.intensity]}>
-                      {intensityLabels[currentWorkout.intensity]}
+                      {intensityLabelsTranslated[currentWorkout.intensity]}
                     </Badge>
                   </div>
                   <h2 className={`font-semibold text-lg ${colors.text}`}>{currentWorkout.phaseDutch}</h2>
@@ -252,29 +257,29 @@ export default function MovementPage() {
               {t('movement.yourSchedule')}
             </CardTitle>
             <CardDescription>
-              {t('movement.adjustedToPhase')}: {seasonLabels[currentSeason]}
+              {t('movement.adjustedToPhase')}: {seasonLabelsTranslated[currentSeason as keyof typeof seasonLabelsTranslated]}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             {weeklySchedule.map((day) => (
               <div 
-                key={day.day}
+                key={day.key}
                 className={`p-3 rounded-xl ${
                   day.workout 
                     ? 'bg-primary/10 border border-primary/20' 
-                    : trainingPrefs.excludedDays?.includes(day.day)
+                    : day.isExcluded
                     ? 'bg-muted/30 opacity-50'
                     : 'bg-muted/50'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{day.day}</span>
+                  <span className="font-medium">{day.label}</span>
                   {day.workout ? (
                     <Badge className="bg-primary/20 text-primary">
                       <Clock className="h-3 w-3 mr-1" />
                       {day.duration} min
                     </Badge>
-                  ) : trainingPrefs.excludedDays?.includes(day.day) ? (
+                  ) : day.isExcluded ? (
                     <Badge variant="outline" className="text-muted-foreground">
                       {t('movement.excluded')}
                     </Badge>
@@ -336,10 +341,12 @@ export default function MovementPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-semibold">{workout.phaseDutch}</h3>
-                  <p className="text-sm text-muted-foreground">{seasonLabels[workout.season]}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {seasonLabelsTranslated[workout.season as keyof typeof seasonLabelsTranslated]}
+                  </p>
                 </div>
                 <Badge className={intensityColors[workout.intensity]}>
-                  {intensityLabels[workout.intensity]}
+                  {intensityLabelsTranslated[workout.intensity]}
                 </Badge>
               </div>
 
@@ -435,7 +442,7 @@ export default function MovementPage() {
                     onClick={() => setSelectedExercise(null)}
                   >
                     <Play className="h-4 w-4 mr-2" />
-                    Start oefening
+                    {t('movement.startExercise')}
                   </Button>
                 </div>
               </>
