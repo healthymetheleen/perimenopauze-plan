@@ -5,11 +5,10 @@ import { useAuth } from '@/lib/auth';
 // Yoga exercises by cycle phase
 export interface YogaExercise {
   id: string;
-  name: string;
-  nameDutch: string;
+  nameKey: string; // i18n key for name
   duration: string;
-  description: string;
-  benefits: string[];
+  descriptionKey: string; // i18n key for description  
+  benefitsKey: string; // i18n key for benefits array
   imageUrl: string;
   videoUrl?: string;
   difficulty: 'beginner' | 'intermediate' | 'advanced';
@@ -17,54 +16,50 @@ export interface YogaExercise {
 
 export interface PhaseWorkout {
   phase: string;
-  phaseDutch: string;
+  phaseKey: string; // i18n key for phase name
   season: string;
-  description: string;
+  descriptionKey: string; // i18n key for description
   intensity: 'low' | 'moderate' | 'high';
   recommendedMinutes: number;
   exercises: YogaExercise[];
 }
 
-// Yoga exercises database
+// Yoga exercises database - using i18n keys for translations
 const yogaExercises: Record<string, YogaExercise[]> = {
   menstrual: [
     {
       id: 'child-pose',
-      name: 'Child\'s Pose',
-      nameDutch: 'Kindhouding',
+      nameKey: 'exercises.items.child-pose.name',
       duration: '2-5 min',
-      description: 'Kniel op de grond, breng je tenen samen en spreid je knieën. Buig voorover en strek je armen voor je uit of langs je lichaam.',
-      benefits: ['Ontspant de onderrug', 'Kalmeert het zenuwstelsel', 'Helpt bij menstruatiepijn'],
+      descriptionKey: 'exercises.items.child-pose.description',
+      benefitsKey: 'exercises.items.child-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'supine-twist',
-      name: 'Supine Twist',
-      nameDutch: 'Liggende Draai',
+      nameKey: 'exercises.items.supine-twist.name',
       duration: '2-3 min per kant',
-      description: 'Lig op je rug, trek één knie naar je borst en laat deze naar de tegenovergestelde kant zakken. Kijk naar de andere kant.',
-      benefits: ['Ontspant de onderrug', 'Stimuleert spijsvertering', 'Verlicht spanning'],
+      descriptionKey: 'exercises.items.supine-twist.description',
+      benefitsKey: 'exercises.items.supine-twist.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'legs-up-wall',
-      name: 'Legs Up the Wall',
-      nameDutch: 'Benen tegen de Muur',
+      nameKey: 'exercises.items.legs-up-wall.name',
       duration: '5-10 min',
-      description: 'Lig op je rug met je benen verticaal tegen een muur. Ontspan volledig.',
-      benefits: ['Verbetert bloedcirculatie', 'Vermindert zwelling', 'Diep ontspannend'],
+      descriptionKey: 'exercises.items.legs-up-wall.description',
+      benefitsKey: 'exercises.items.legs-up-wall.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'cat-cow',
-      name: 'Cat-Cow Stretch',
-      nameDutch: 'Kat-Koe Stretch',
+      nameKey: 'exercises.items.cat-cow.name',
       duration: '2-3 min',
-      description: 'Op handen en knieën, wissel tussen een holle rug (koe) en een bolle rug (kat) op je ademhaling.',
-      benefits: ['Maakt de wervelkolom soepel', 'Verlicht rugpijn', 'Kalmerend'],
+      descriptionKey: 'exercises.items.cat-cow.description',
+      benefitsKey: 'exercises.items.cat-cow.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
@@ -72,41 +67,37 @@ const yogaExercises: Record<string, YogaExercise[]> = {
   follicular: [
     {
       id: 'sun-salutation',
-      name: 'Sun Salutation',
-      nameDutch: 'Zonnegroet',
+      nameKey: 'exercises.items.sun-salutation.name',
       duration: '5-10 rondes',
-      description: 'Een dynamische reeks van poses die het hele lichaam activeert. Begin langzaam en bouw op.',
-      benefits: ['Verhoogt energie', 'Versterkt spieren', 'Verbetert flexibiliteit'],
+      descriptionKey: 'exercises.items.sun-salutation.description',
+      benefitsKey: 'exercises.items.sun-salutation.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',
       difficulty: 'intermediate',
     },
     {
       id: 'warrior-2',
-      name: 'Warrior II',
-      nameDutch: 'Krijger II',
+      nameKey: 'exercises.items.warrior-2.name',
       duration: '30-60 sec per kant',
-      description: 'Sta met benen wijd, draai één voet 90 graden en buig die knie. Strek je armen naar de zijkanten.',
-      benefits: ['Versterkt benen', 'Opent heupen', 'Bouwt focus'],
+      descriptionKey: 'exercises.items.warrior-2.description',
+      benefitsKey: 'exercises.items.warrior-2.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'triangle-pose',
-      name: 'Triangle Pose',
-      nameDutch: 'Driehoek',
+      nameKey: 'exercises.items.triangle-pose.name',
       duration: '30-60 sec per kant',
-      description: 'Vanuit brede stand, buig zijwaarts naar één voet terwijl je armen een verticale lijn vormen.',
-      benefits: ['Stretcht zijkant', 'Versterkt benen', 'Verbetert balans'],
+      descriptionKey: 'exercises.items.triangle-pose.description',
+      benefitsKey: 'exercises.items.triangle-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'boat-pose',
-      name: 'Boat Pose',
-      nameDutch: 'Boothouding',
+      nameKey: 'exercises.items.boat-pose.name',
       duration: '30-60 sec',
-      description: 'Zit met gebogen knieën, til je voeten van de grond en balanceer op je zitbotten met gestrekte armen.',
-      benefits: ['Versterkt core', 'Verbetert balans', 'Stimuleert spijsvertering'],
+      descriptionKey: 'exercises.items.boat-pose.description',
+      benefitsKey: 'exercises.items.boat-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
       difficulty: 'intermediate',
     },
@@ -114,41 +105,37 @@ const yogaExercises: Record<string, YogaExercise[]> = {
   ovulatory: [
     {
       id: 'crow-pose',
-      name: 'Crow Pose',
-      nameDutch: 'Kraaihouding',
+      nameKey: 'exercises.items.crow-pose.name',
       duration: '15-30 sec',
-      description: 'Balanceer op je handen met je knieën rustend op je bovenarm. Een uitdagende armbalans.',
-      benefits: ['Bouwt kracht', 'Verbetert focus', 'Verhoogt zelfvertrouwen'],
+      descriptionKey: 'exercises.items.crow-pose.description',
+      benefitsKey: 'exercises.items.crow-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
       difficulty: 'advanced',
     },
     {
       id: 'headstand-prep',
-      name: 'Headstand Prep',
-      nameDutch: 'Hoofdstand Voorbereiding',
+      nameKey: 'exercises.items.headstand-prep.name',
       duration: '1-3 min',
-      description: 'Dolfijnhouding met voorhoofd op de grond. Bouw kracht op voor hoofdstand.',
-      benefits: ['Versterkt schouders', 'Verbetert bloedcirculatie', 'Energizerend'],
+      descriptionKey: 'exercises.items.headstand-prep.description',
+      benefitsKey: 'exercises.items.headstand-prep.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
       difficulty: 'intermediate',
     },
     {
       id: 'wheel-pose',
-      name: 'Wheel Pose',
-      nameDutch: 'Wielhouding',
+      nameKey: 'exercises.items.wheel-pose.name',
       duration: '15-30 sec',
-      description: 'Diepe achterwaartse buiging met handen en voeten op de grond, lichaam omhoog.',
-      benefits: ['Opent borst en schouders', 'Energizerend', 'Versterkt rug'],
+      descriptionKey: 'exercises.items.wheel-pose.description',
+      benefitsKey: 'exercises.items.wheel-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
       difficulty: 'advanced',
     },
     {
       id: 'dancer-pose',
-      name: 'Dancer\'s Pose',
-      nameDutch: 'Dansershouding',
+      nameKey: 'exercises.items.dancer-pose.name',
       duration: '30 sec per kant',
-      description: 'Sta op één been, pak de andere enkel vast en strek naar achteren terwijl je voorover buigt.',
-      benefits: ['Verbetert balans', 'Opent schouders', 'Versterkt benen'],
+      descriptionKey: 'exercises.items.dancer-pose.description',
+      benefitsKey: 'exercises.items.dancer-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
       difficulty: 'intermediate',
     },
@@ -156,81 +143,77 @@ const yogaExercises: Record<string, YogaExercise[]> = {
   luteal: [
     {
       id: 'pigeon-pose',
-      name: 'Pigeon Pose',
-      nameDutch: 'Duifhouding',
+      nameKey: 'exercises.items.pigeon-pose.name',
       duration: '2-3 min per kant',
-      description: 'Vanuit plank, breng één knie naar voren en strek het andere been naar achteren. Buig voorover.',
-      benefits: ['Opent heupen', 'Verlicht spanning', 'Emotioneel bevrijdend'],
+      descriptionKey: 'exercises.items.pigeon-pose.description',
+      benefitsKey: 'exercises.items.pigeon-pose.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
       difficulty: 'intermediate',
     },
     {
       id: 'seated-forward-fold',
-      name: 'Seated Forward Fold',
-      nameDutch: 'Zittende Vooroverbuiging',
+      nameKey: 'exercises.items.seated-forward-fold.name',
       duration: '2-5 min',
-      description: 'Zit met gestrekte benen en buig vanuit je heupen voorover naar je voeten.',
-      benefits: ['Kalmeert zenuwstelsel', 'Stretcht hamstrings', 'Verlicht stress'],
+      descriptionKey: 'exercises.items.seated-forward-fold.description',
+      benefitsKey: 'exercises.items.seated-forward-fold.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'supported-bridge',
-      name: 'Supported Bridge',
-      nameDutch: 'Ondersteunde Brug',
+      nameKey: 'exercises.items.supported-bridge.name',
       duration: '3-5 min',
-      description: 'Lig op je rug, voeten plat op de grond, til je heupen en plaats een blok eronder.',
-      benefits: ['Opent borst', 'Ontspant onderrug', 'Kalmerend'],
+      descriptionKey: 'exercises.items.supported-bridge.description',
+      benefitsKey: 'exercises.items.supported-bridge.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
     {
       id: 'reclined-butterfly',
-      name: 'Reclined Butterfly',
-      nameDutch: 'Liggende Vlinder',
+      nameKey: 'exercises.items.reclined-butterfly.name',
       duration: '3-5 min',
-      description: 'Lig op je rug, breng je voetzolen samen en laat je knieën naar de zijkanten zakken.',
-      benefits: ['Opent heupen', 'Verlicht menstruele klachten', 'Diep ontspannend'],
+      descriptionKey: 'exercises.items.reclined-butterfly.description',
+      benefitsKey: 'exercises.items.reclined-butterfly.benefits',
       imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',
       difficulty: 'beginner',
     },
   ],
 };
 
-// Phase workout configurations
+// Phase workout configurations - using i18n keys
 export const phaseWorkouts: PhaseWorkout[] = [
   {
     phase: 'menstrual',
-    phaseDutch: 'Menstruatie',
+    phaseKey: 'exercises.phases.menstrual',
     season: 'winter',
-    description: 'Rust en herstel staan centraal. Zachte, herstellende oefeningen die je helpen ontspannen.',
+    descriptionKey: 'exercises.phase_descriptions.menstrual',
     intensity: 'low',
     recommendedMinutes: 15,
     exercises: yogaExercises.menstrual,
   },
   {
     phase: 'follicular',
-    phaseDutch: 'Folliculaire fase',
+    phaseKey: 'exercises.phases.follicular',
     season: 'lente',
-    description: 'Je energie groeit! Tijd voor dynamische oefeningen die kracht en flexibiliteit opbouwen.',
+    descriptionKey: 'exercises.phase_descriptions.follicular',
     intensity: 'moderate',
     recommendedMinutes: 30,
     exercises: yogaExercises.follicular,
   },
   {
     phase: 'ovulatory',
-    phaseDutch: 'Ovulatie',
+    phaseKey: 'exercises.phases.ovulatory',
     season: 'zomer',
-    description: 'Piek van energie en kracht. Uitdagende oefeningen die je grenzen verleggen.',
+    descriptionKey: 'exercises.phase_descriptions.ovulatory',
     intensity: 'high',
     recommendedMinutes: 45,
     exercises: yogaExercises.ovulatory,
   },
   {
     phase: 'luteal',
-    phaseDutch: 'Luteale fase',
+    phaseKey: 'exercises.phases.luteal',
     season: 'herfst',
-    description: 'Tijd om te vertragen. Focus op stretching, ademhaling en stressverlichting.',
+    descriptionKey: 'exercises.phase_descriptions.luteal',
     intensity: 'moderate',
     recommendedMinutes: 25,
     exercises: yogaExercises.luteal,

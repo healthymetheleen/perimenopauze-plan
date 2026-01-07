@@ -229,9 +229,9 @@ export default function MovementPage() {
                       {intensityLabelsTranslated[currentWorkout.intensity]}
                     </Badge>
                   </div>
-                  <h2 className={`font-semibold text-lg ${colors.text}`}>{currentWorkout.phaseDutch}</h2>
+                  <h2 className={`font-semibold text-lg ${colors.text}`}>{t(currentWorkout.phaseKey)}</h2>
                   <p className="text-sm text-muted-foreground mb-3">
-                    {currentWorkout.description}
+                    {t(currentWorkout.descriptionKey)}
                   </p>
                   <div className="flex gap-4 text-sm">
                     <div className="flex items-center gap-1">
@@ -302,11 +302,11 @@ export default function MovementPage() {
                         <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
                           <img 
                             src={exercise.imageUrl} 
-                            alt={exercise.nameDutch}
+                            alt={t(exercise.nameKey)}
                             className="w-full h-full object-cover"
                           />
                         </div>
-                        <span>{exercise.nameDutch}</span>
+                        <span>{t(exercise.nameKey)}</span>
                         <span className="text-muted-foreground text-xs ml-auto">{exercise.duration}</span>
                       </div>
                     ))}
@@ -340,7 +340,7 @@ export default function MovementPage() {
             <TabsContent key={workout.season} value={workout.season} className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="font-semibold">{workout.phaseDutch}</h3>
+                  <h3 className="font-semibold">{t(workout.phaseKey)}</h3>
                   <p className="text-sm text-muted-foreground">
                     {seasonLabelsTranslated[workout.season as keyof typeof seasonLabelsTranslated]}
                   </p>
@@ -361,15 +361,14 @@ export default function MovementPage() {
                       <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
                         <img 
                           src={exercise.imageUrl} 
-                          alt={exercise.nameDutch}
+                          alt={t(exercise.nameKey)}
                           className="w-full h-full object-cover"
                         />
                       </div>
                       <CardContent className="flex-1 p-3 sm:p-4">
                         <div className="flex items-start justify-between">
                           <div>
-                            <h4 className="font-medium text-sm sm:text-base">{exercise.nameDutch}</h4>
-                            <p className="text-xs text-muted-foreground">{exercise.name}</p>
+                            <h4 className="font-medium text-sm sm:text-base">{t(exercise.nameKey)}</h4>
                           </div>
                           <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         </div>
@@ -399,13 +398,12 @@ export default function MovementPage() {
                 <div className="aspect-video w-full overflow-hidden rounded-lg -mt-2 mb-4">
                   <img 
                     src={selectedExercise.imageUrl} 
-                    alt={selectedExercise.nameDutch}
+                    alt={t(selectedExercise.nameKey)}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <DialogHeader>
-                  <DialogTitle className="text-xl">{selectedExercise.nameDutch}</DialogTitle>
-                  <p className="text-sm text-muted-foreground">{selectedExercise.name}</p>
+                  <DialogTitle className="text-xl">{t(selectedExercise.nameKey)}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="flex gap-2">
@@ -414,21 +412,21 @@ export default function MovementPage() {
                       {selectedExercise.duration}
                     </Badge>
                     <Badge variant="outline" className="capitalize">
-                      {selectedExercise.difficulty}
+                      {t(`exercises.difficulty.${selectedExercise.difficulty}`)}
                     </Badge>
                   </div>
                   
                   <div>
                     <h4 className="font-medium mb-2">{t('movement.execution')}</h4>
                     <p className="text-sm text-muted-foreground">
-                      {selectedExercise.description}
+                      {t(selectedExercise.descriptionKey)}
                     </p>
                   </div>
                   
                   <div>
                     <h4 className="font-medium mb-2">{t('movement.benefits')}</h4>
                     <ul className="space-y-1">
-                      {selectedExercise.benefits.map((benefit, i) => (
+                      {(t(selectedExercise.benefitsKey, { returnObjects: true }) as string[]).map((benefit, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm">
                           <Check className="h-4 w-4 text-success" />
                           <span className="text-muted-foreground">{benefit}</span>
@@ -437,7 +435,7 @@ export default function MovementPage() {
                     </ul>
                   </div>
 
-                  <Button 
+                  <Button
                     className="w-full btn-gradient" 
                     onClick={() => setSelectedExercise(null)}
                   >

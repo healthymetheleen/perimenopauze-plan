@@ -17,7 +17,7 @@ import {
   useDeleteSleep,
   calculateSleepStats,
   calculateSleepScore,
-  generateSleepAdvice,
+  generateSleepAdviceKeys,
 } from '@/hooks/useSleep';
 import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
 import { SleepInsightCard } from '@/components/insights';
@@ -73,7 +73,7 @@ export default function SleepPage() {
 
   const stats = sessions ? calculateSleepStats(sessions) : null;
   const sleepScore = sessions ? calculateSleepScore(sessions) : 0;
-  const advice = sessions ? generateSleepAdvice(sessions) : [];
+  const adviceKeys = sessions ? generateSleepAdviceKeys(sessions) : [];
   const currentSeason = prediction?.current_season || 'onbekend';
 
   const handleStartSleep = async () => {
@@ -361,12 +361,12 @@ export default function SleepPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {advice.length > 0 ? (
+            {adviceKeys.length > 0 ? (
               <ul className="space-y-3">
-                {advice.map((tip, index) => (
+                {adviceKeys.map((item, index) => (
                   <li key={index} className="flex items-start gap-2 text-sm">
                     <span className="text-primary mt-0.5">•</span>
-                    <span>{tip}</span>
+                    <span>{t(item.key, item.params)}</span>
                   </li>
                 ))}
               </ul>
