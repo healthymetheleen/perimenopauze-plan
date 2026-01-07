@@ -1,16 +1,19 @@
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, Target, Check, X, AlertTriangle, FileText } from 'lucide-react';
 
 export default function IntendedUse() {
+  const { t } = useTranslation();
+
   return (
     <div className="min-h-screen bg-gradient-subtle px-4 py-8">
       <div className="max-w-3xl mx-auto">
         <Link to="/login">
           <Button variant="ghost" size="sm" className="mb-6">
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Terug
+            {t('intended_use.back')}
           </Button>
         </Link>
 
@@ -19,31 +22,28 @@ export default function IntendedUse() {
             <div className="flex justify-center mb-4">
               <Target className="h-12 w-12 text-primary" />
             </div>
-            <CardTitle className="text-2xl text-gradient">Intended Use Statement</CardTitle>
-            <p className="text-muted-foreground mt-2">Perimenopauze Plan</p>
-            <p className="text-sm text-muted-foreground">Versie 1.0 · Classificatie: Niet-medisch hulpmiddel</p>
+            <CardTitle className="text-2xl text-gradient">{t('intended_use.title')}</CardTitle>
+            <p className="text-muted-foreground mt-2">{t('intended_use.subtitle')}</p>
+            <p className="text-sm text-muted-foreground">{t('intended_use.version')}</p>
           </CardHeader>
 
           <CardContent className="prose prose-sm max-w-none pt-6 space-y-8">
             {/* Official Intended Use Statement */}
             <section className="bg-primary/5 border border-primary/20 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-foreground mt-0">
-                Beoogd gebruik (Intended Use)
+                {t('intended_use.intended_use_title')}
               </h2>
               <p className="text-muted-foreground mb-2">
-                Deze app is bedoeld om gebruikers inzicht te geven in leefstijl- en cyclusgerelateerde 
-                patronen, zoals voeding, welzijn en ervaren klachten.
+                {t('intended_use.intended_use_p1')}
               </p>
               <p className="text-muted-foreground mb-2">
-                De app ondersteunt zelfobservatie en bewustwording en is gericht op preventie en leefstijl.
+                {t('intended_use.intended_use_p2')}
               </p>
               <p className="text-muted-foreground mb-2">
-                De app stelt geen medische diagnoses, doet geen prognoses en biedt geen ondersteuning 
-                bij medische behandelingen of therapiekeuzes.
+                {t('intended_use.intended_use_p3')}
               </p>
               <p className="text-muted-foreground mb-0">
-                De informatie en inzichten die de app biedt zijn niet bedoeld ter vervanging van 
-                professioneel medisch advies.
+                {t('intended_use.intended_use_p4')}
               </p>
             </section>
 
@@ -51,27 +51,21 @@ export default function IntendedUse() {
             <section className="bg-success/10 border border-success/30 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mt-0">
                 <FileText className="h-5 w-5 text-success" />
-                MDR/IVDR Classificatie
+                {t('intended_use.mdr_title')}
               </h2>
               <p className="text-foreground font-medium mb-2">
-                Perimenopauze Plan is <strong>GEEN medisch hulpmiddel</strong> in de zin van de 
-                EU Verordening Medische Hulpmiddelen (MDR 2017/745).
+                {t('intended_use.mdr_p1')}
               </p>
               <p className="text-muted-foreground mb-0">
-                De software valt buiten de scope van de MDR omdat het geen medisch doel heeft 
-                en niet bedoeld is voor diagnose, preventie, monitoring, voorspelling, prognose, 
-                behandeling of verlichting van ziekte.
+                {t('intended_use.mdr_p2')}
               </p>
             </section>
 
             {/* Product Description */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground">1. Productbeschrijving</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t('intended_use.product_title')}</h2>
               <p className="text-muted-foreground">
-                Perimenopauze Plan is een mobiele/web applicatie voor leefstijlondersteuning en 
-                zelfobservatie, specifiek ontworpen voor vrouwen in de perimenopauze. De app 
-                stelt gebruikers in staat om persoonlijke gegevens bij te houden en patronen 
-                te herkennen ter ondersteuning van hun algehele welzijn.
+                {t('intended_use.product_description')}
               </p>
             </section>
 
@@ -79,31 +73,31 @@ export default function IntendedUse() {
             <section>
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <Check className="h-5 w-5 text-success" />
-                2. Beoogd Gebruik (Intended Purpose)
+                {t('intended_use.purpose_title')}
               </h2>
               <p className="text-muted-foreground">
-                De app is bedoeld voor:
+                {t('intended_use.purpose_intro')}
               </p>
               <ul className="space-y-2 mt-3">
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground"><strong>Zelfobservatie:</strong> Bijhouden van menstruatiecyclus, symptomen, stemming en energieniveau</span>
+                  <span className="text-muted-foreground"><strong>{t('intended_use.purpose_self_observation')}</strong> {t('intended_use.purpose_self_observation_desc')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground"><strong>Leefstijlregistratie:</strong> Vastleggen van voeding, slaap en beweging</span>
+                  <span className="text-muted-foreground"><strong>{t('intended_use.purpose_lifestyle')}</strong> {t('intended_use.purpose_lifestyle_desc')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground"><strong>Patronenherkenning:</strong> Visualisatie van trends in eigen data</span>
+                  <span className="text-muted-foreground"><strong>{t('intended_use.purpose_patterns')}</strong> {t('intended_use.purpose_patterns_desc')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground"><strong>Educatie:</strong> Algemene informatie over de perimenopauze</span>
+                  <span className="text-muted-foreground"><strong>{t('intended_use.purpose_education')}</strong> {t('intended_use.purpose_education_desc')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <Check className="h-4 w-4 text-success mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground"><strong>Gespreksvoorbereiding:</strong> Data-export voor gesprekken met zorgverleners</span>
+                  <span className="text-muted-foreground"><strong>{t('intended_use.purpose_conversation')}</strong> {t('intended_use.purpose_conversation_desc')}</span>
                 </li>
               </ul>
             </section>
@@ -112,88 +106,85 @@ export default function IntendedUse() {
             <section>
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
                 <X className="h-5 w-5 text-destructive" />
-                3. Niet-Beoogd Gebruik (Contraindications)
+                {t('intended_use.contra_title')}
               </h2>
               <p className="text-muted-foreground">
-                De app is <strong>NIET</strong> bedoeld voor:
+                {t('intended_use.contra_intro')}
               </p>
               <ul className="space-y-2 mt-3">
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Diagnosticeren van medische aandoeningen of ziekten</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_diagnosis')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Voorschrijven of adviseren van behandelingen of medicatie</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_treatment')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Medische monitoring van patiënten</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_monitoring')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Voorspellen van medische risico's of prognoses</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_prediction')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Bepalen of beïnvloeden van hormoonwaarden</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_hormones')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Ondersteunen van klinische besluitvorming door zorgverleners</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_clinical')}</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <X className="h-4 w-4 text-destructive mt-1 flex-shrink-0" />
-                  <span className="text-muted-foreground">Vervangen van professioneel medisch advies</span>
+                  <span className="text-muted-foreground">{t('intended_use.contra_replace')}</span>
                 </li>
               </ul>
             </section>
 
             {/* Target Users */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground">4. Doelgroep</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t('intended_use.target_title')}</h2>
               <p className="text-muted-foreground">
-                <strong>Primaire gebruikers:</strong> Vrouwen in de perimenopauze die hun leefstijl 
-                en welzijn willen ondersteunen door zelfobservatie en bewuste keuzes.
+                <strong>{t('intended_use.target_primary')}</strong> {t('intended_use.target_primary_desc')}
               </p>
               <p className="text-muted-foreground mt-2">
-                <strong>Leeftijdscategorie:</strong> Volwassenen (18+)
+                <strong>{t('intended_use.target_age')}</strong> {t('intended_use.target_age_desc')}
               </p>
               <p className="text-muted-foreground mt-2">
-                <strong>Gebruikscontext:</strong> Persoonlijk/thuisgebruik, niet in klinische setting
+                <strong>{t('intended_use.target_context')}</strong> {t('intended_use.target_context_desc')}
               </p>
             </section>
 
             {/* Technical Safeguards */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground">5. Technische Waarborgen</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t('intended_use.safeguards_title')}</h2>
               <p className="text-muted-foreground">
-                De volgende maatregelen zijn geïmplementeerd om niet-medisch gebruik te waarborgen:
+                {t('intended_use.safeguards_intro')}
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
-                <li>AI-guardrails die medische claims, diagnoses en behandeladviezen blokkeren</li>
-                <li>Expliciete disclaimers bij alle output</li>
-                <li>Consent flow met medische disclaimer vóór eerste gebruik</li>
-                <li>Geen koppeling met medische apparatuur of zorgsystemen</li>
-                <li>Geen claims over effectiviteit bij aandoeningen</li>
+                <li>{t('intended_use.safeguards_1')}</li>
+                <li>{t('intended_use.safeguards_2')}</li>
+                <li>{t('intended_use.safeguards_3')}</li>
+                <li>{t('intended_use.safeguards_4')}</li>
+                <li>{t('intended_use.safeguards_5')}</li>
               </ul>
             </section>
 
             {/* Regulatory Basis */}
             <section>
-              <h2 className="text-lg font-semibold text-foreground">6. Regulatoire Basis</h2>
+              <h2 className="text-lg font-semibold text-foreground">{t('intended_use.regulatory_title')}</h2>
               <p className="text-muted-foreground">
-                Deze classificatie is gebaseerd op:
+                {t('intended_use.regulatory_intro')}
               </p>
               <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
-                <li>EU Verordening 2017/745 (MDR) - Artikel 2, definitie van medisch hulpmiddel</li>
-                <li>MDCG 2019-11 Guidance on Qualification and Classification of Software</li>
-                <li>MDCG 2021-24 Guidance on classification of medical devices</li>
+                <li>{t('intended_use.regulatory_1')}</li>
+                <li>{t('intended_use.regulatory_2')}</li>
+                <li>{t('intended_use.regulatory_3')}</li>
               </ul>
               <p className="text-muted-foreground mt-2">
-                De app voldoet niet aan de MDR-definitie van een medisch hulpmiddel omdat het 
-                primaire doel <strong>leefstijlondersteuning en educatie</strong> is, niet 
-                diagnose, behandeling of monitoring van ziekte.
+                {t('intended_use.regulatory_conclusion')}
               </p>
             </section>
 
@@ -201,23 +192,20 @@ export default function IntendedUse() {
             <section className="bg-warning/10 border border-warning/30 rounded-lg p-4">
               <h2 className="text-lg font-semibold text-foreground flex items-center gap-2 mt-0">
                 <AlertTriangle className="h-5 w-5 text-warning" />
-                Belangrijke Waarschuwing
+                {t('intended_use.warning_title')}
               </h2>
               <p className="text-muted-foreground mb-0">
-                Als je medische klachten hebt of je zorgen maakt over je gezondheid, neem dan 
-                altijd contact op met een gekwalificeerde zorgverlener. De informatie in deze 
-                app is geen vervanging voor professioneel medisch advies, diagnose of behandeling.
+                {t('intended_use.warning_text')}
               </p>
             </section>
 
             {/* Document Info */}
             <section className="text-center pt-4 border-t border-border/50">
               <p className="text-xs text-muted-foreground">
-                Dit document dient als formele vastlegging van het beoogd gebruik van 
-                Perimenopauze Plan conform EU-regelgeving.
+                {t('intended_use.document_info')}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                Versie 1.0 · Datum: januari 2026
+                {t('intended_use.document_version')}
               </p>
             </section>
           </CardContent>
@@ -226,12 +214,12 @@ export default function IntendedUse() {
         <div className="flex justify-center gap-4 mt-6">
           <Link to="/privacy">
             <Button variant="link" className="text-muted-foreground">
-              Privacybeleid
+              {t('intended_use.privacy_policy')}
             </Button>
           </Link>
           <Link to="/terms">
             <Button variant="link" className="text-muted-foreground">
-              Algemene Voorwaarden
+              {t('intended_use.terms')}
             </Button>
           </Link>
         </div>
