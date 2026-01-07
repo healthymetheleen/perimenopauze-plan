@@ -9,6 +9,48 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
+type SupportedLanguage = 'nl' | 'en';
+
+function getLanguage(lang?: string): SupportedLanguage {
+  if (lang === 'en') return 'en';
+  return 'nl';
+}
+
+const translations = {
+  nl: {
+    limitExceeded: 'Dagelijkse AI-limiet bereikt. Probeer het morgen opnieuw.',
+    rateLimit: 'Te veel verzoeken. Probeer het later opnieuw.',
+    serviceError: 'Er ging iets mis bij de analyse. Probeer het later opnieuw.',
+    unauthorized: 'Authenticatie vereist',
+    consentRequired: 'Om AI-analyse te gebruiken is toestemming nodig. Schakel dit in bij Instellingen.',
+    noDescription: 'Geen beschrijving of foto ontvangen',
+    manualInput: 'Vul de waarden handmatig in of schakel AI-ondersteuning in bij Instellingen.',
+    fallbackQuestion: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
+    fallbackNote: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.',
+    mealLabel: 'Maaltijd',
+    optionBreakfast: 'Ontbijt met brood',
+    optionWarm: 'Warme maaltijd',
+    optionSnack: 'Snack/tussendoor',
+    optionDrink: 'Drank',
+  },
+  en: {
+    limitExceeded: 'Daily AI limit reached. Please try again tomorrow.',
+    rateLimit: 'Too many requests. Please try again later.',
+    serviceError: 'Something went wrong during analysis. Please try again later.',
+    unauthorized: 'Authentication required',
+    consentRequired: 'Consent is required to use AI analysis. Enable this in Settings.',
+    noDescription: 'No description or photo received',
+    manualInput: 'Enter values manually or enable AI support in Settings.',
+    fallbackQuestion: 'The AI could not analyze this meal. Can you provide more details?',
+    fallbackNote: 'Try again with a clearer description or photo.',
+    mealLabel: 'Meal',
+    optionBreakfast: 'Breakfast with bread',
+    optionWarm: 'Warm meal',
+    optionSnack: 'Snack',
+    optionDrink: 'Drink',
+  },
+};
+
 // Privacy: generate AI subject ID (not reversible without DB)
 function generateAISubjectId(userId: string): string {
   let hash = 0;
@@ -35,11 +77,9 @@ function scrubPII(input: string): string {
 
 /**
  * Strip EXIF metadata from base64 image to remove GPS, device, timestamp info
- * Returns clean JPEG base64 without metadata
  */
 function stripExifFromBase64(base64Image: string): string {
   try {
-    // Extract the base64 data part
     let base64Data = base64Image;
     let prefix = '';
     
@@ -51,58 +91,45 @@ function stripExifFromBase64(base64Image: string): string {
       }
     }
     
-    // Decode base64 to binary
     const binaryString = atob(base64Data);
     const bytes = new Uint8Array(binaryString.length);
     for (let i = 0; i < binaryString.length; i++) {
       bytes[i] = binaryString.charCodeAt(i);
     }
     
-    // Check if it's a JPEG (starts with 0xFF 0xD8)
     if (bytes[0] !== 0xFF || bytes[1] !== 0xD8) {
-      // Not a JPEG, return as-is (PNG doesn't have EXIF in same way)
       return base64Image;
     }
     
-    // Find and remove EXIF segments (APP1 = 0xFF 0xE1)
     const cleanBytes: number[] = [];
     let i = 0;
     
     while (i < bytes.length) {
-      // Copy SOI marker (start of image)
       if (i === 0) {
         cleanBytes.push(bytes[i], bytes[i + 1]);
         i += 2;
         continue;
       }
       
-      // Check for marker
       if (bytes[i] === 0xFF) {
         const marker = bytes[i + 1];
         
-        // Skip APP1 (EXIF), APP2-APP15 markers (metadata)
         if (marker >= 0xE1 && marker <= 0xEF) {
-          // Get segment length and skip
           const segmentLength = (bytes[i + 2] << 8) | bytes[i + 3];
           i += 2 + segmentLength;
           continue;
         }
         
-        // For other markers, copy them
         if (marker === 0xD8 || marker === 0xD9) {
-          // SOI or EOI - just the marker
           cleanBytes.push(bytes[i], bytes[i + 1]);
           i += 2;
         } else if (marker >= 0xD0 && marker <= 0xD7) {
-          // RST markers - just the marker
           cleanBytes.push(bytes[i], bytes[i + 1]);
           i += 2;
         } else if (marker === 0x00 || marker === 0xFF) {
-          // Stuffed byte or fill
           cleanBytes.push(bytes[i]);
           i += 1;
         } else {
-          // Segment with length
           const segmentLength = (bytes[i + 2] << 8) | bytes[i + 3];
           for (let j = 0; j < segmentLength + 2 && i + j < bytes.length; j++) {
             cleanBytes.push(bytes[i + j]);
@@ -110,13 +137,11 @@ function stripExifFromBase64(base64Image: string): string {
           i += 2 + segmentLength;
         }
       } else {
-        // Raw data
         cleanBytes.push(bytes[i]);
         i += 1;
       }
     }
     
-    // Convert back to base64
     const cleanArray = new Uint8Array(cleanBytes);
     let binary = '';
     for (let i = 0; i < cleanArray.length; i++) {
@@ -132,8 +157,9 @@ function stripExifFromBase64(base64Image: string): string {
   }
 }
 
-// FOOD PARSING PROMPT - Verbeterde Nederlandse voedselherkenning met ranges en confidence
-const foodParsingPrompt = `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
+// Bilingual food parsing prompts
+const foodParsingPrompts = {
+  nl: `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
 BELANGRIJKE RICHTLIJNEN:
 - Je bent GEEN arts of diëtist met behandelrelatie
@@ -213,13 +239,96 @@ BELANGRIJK:
 - **clarification_question**: Als confidence < 0.5, stel EEN duidelijke vraag om de maaltijd beter te begrijpen. Bijv: "Hoeveel sneetjes brood waren het?" of "Welke saus zat erbij?"
 - Bij informele beschrijvingen, gebruik standaard portiegroottes
 - alcohol_g en caffeine_mg alleen invullen indien relevant (anders null)
-- Hoe meer info ontbreekt, hoe breder de range en lager de confidence`;
+- Hoe meer info ontbreekt, hoe breder de range en lager de confidence`,
+
+  en: `You are a nutrition expert analyzing meal descriptions.
+
+IMPORTANT GUIDELINES:
+- You are NOT a doctor or dietitian with a treatment relationship
+- You provide NO medical nutrition advice
+- You make NO statements about allergies or intolerances
+- NO judgments about whether food is "healthy" or "unhealthy"
+
+TASK: Analyze the meal and provide nutritional values with RANGES and CONFIDENCE SCORES.
+
+EXAMPLES OF INFORMAL DESCRIPTIONS:
+- "a bowl of yogurt with oatmeal" = 1 portion (200g) yogurt + 40g oatmeal
+- "toast with cheese" = 1 slice bread + 1 slice cheese
+- "cup of coffee with milk" = 150ml coffee + 30ml milk
+- "salad with tuna" = mixed greens + can of tuna
+
+STANDARD PORTION SIZES:
+- Bowl of yogurt/quark: 150-200g
+- Portion of oatmeal: 40-50g dry
+- Slice of bread: 35g
+- Slice of cheese: 20g
+- Egg: 60g
+- Portion of vegetables: 150g
+- Glass of milk: 200ml
+- Cup of coffee/tea: 150ml
+
+PROCESSING LEVEL (ultra_processed_level 0-3):
+0: Fresh/minimally processed (vegetables, fruit, meat, fish, eggs)
+1: Lightly processed (yogurt, oil, butter, cheese)
+2: Processed (bread, pasta, canned)
+3: Ultra-processed (soda, chips, candy, ready-made meals)
+
+Answer ONLY with a JSON object:
+{
+  "description": "detailed description with portion and preparation (e.g. '2 slices whole wheat bread with 2 slices aged cheese (40g) and a boiled egg')",
+  "items": [
+    {
+      "name": "item name",
+      "grams": number,
+      "kcal": number,
+      "protein_g": number,
+      "carbs_g": number,
+      "fat_g": number,
+      "fiber_g": number,
+      "processing_level": 0-3
+    }
+  ],
+  "totals": {
+    "kcal_min": number,
+    "kcal_max": number,
+    "kcal": number,
+    "protein_g": number,
+    "carbs_g": number,
+    "fat_g": number,
+    "fiber_g": number,
+    "alcohol_g": number | null,
+    "caffeine_mg": number | null
+  },
+  "ultra_processed_level": 0-3,
+  "confidence": 0.0-1.0,
+  "missing_info": ["portion unknown", "sauce unknown"],
+  "clarification_question": "string or null - ask for clarification if confidence < 0.5",
+  "quality_flags": {
+    "has_protein": boolean,
+    "has_fiber": boolean,
+    "has_vegetables": boolean,
+    "is_ultra_processed": boolean,
+    "is_late_meal": false
+  }
+}
+
+IMPORTANT:
+- **description** must be DETAILED: specify exact products, amounts (grams or pieces), and preparation
+- confidence is a number between 0.0 and 1.0 (e.g. 0.62, 0.85)
+- kcal_min and kcal_max indicate the range (e.g. 520-720)
+- kcal is the average of the range
+- missing_info contains ALL missing information affecting the estimate
+- **clarification_question**: If confidence < 0.5, ask ONE clear question to better understand the meal. E.g: "How many slices of bread were there?" or "What sauce was included?"
+- For informal descriptions, use standard portion sizes
+- alcohol_g and caffeine_mg only fill in if relevant (otherwise null)
+- The more info is missing, the wider the range and lower the confidence`,
+};
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof translations.nl): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
-    return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
+    return new Response(JSON.stringify({ error: 'Unauthorized', message: t.unauthorized }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
@@ -236,16 +345,14 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
   
   if (authError || !user) {
     console.error('Auth error:', authError);
-    return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Invalid or expired token' }), {
+    return new Response(JSON.stringify({ error: 'Unauthorized', message: t.unauthorized }), {
       status: 401,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }
 
-  // Generate pseudonymous ID for logging (never log real user_id with AI data)
   const aiSubjectId = generateAISubjectId(user.id);
 
-  // Check daily AI usage limit server-side
   const today = new Date().toISOString().split('T')[0];
   const { count, error: countError } = await supabase
     .from('ai_usage')
@@ -260,7 +367,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
   if ((count || 0) >= DAILY_AI_LIMIT) {
     return new Response(JSON.stringify({ 
       error: 'limit_exceeded', 
-      message: `Dagelijkse AI-limiet (${DAILY_AI_LIMIT}) bereikt. Probeer het morgen opnieuw.` 
+      message: t.limitExceeded
     }), {
       status: 429,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -287,16 +394,20 @@ serve(async (req) => {
   }
 
   try {
+    const { description, imageBase64, hasAIConsent, mealTime, language } = await req.json();
+    
+    const lang = getLanguage(language);
+    const t = translations[lang];
+    const foodParsingPrompt = foodParsingPrompts[lang];
+
     // Authenticate and check limits
-    const authResult = await authenticateAndCheckLimits(req);
+    const authResult = await authenticateAndCheckLimits(req, t);
     if (authResult instanceof Response) {
       return authResult;
     }
     const { user, supabase, aiSubjectId } = authResult;
-
-    const { description, imageBase64, hasAIConsent, mealTime } = await req.json();
     
-    // CONSENT CHECK - verify consent server-side
+    // CONSENT CHECK
     if (hasAIConsent === false) {
       const { data: consent } = await supabase
         .from('user_consents')
@@ -307,43 +418,41 @@ serve(async (req) => {
       if (!consent?.accepted_ai_processing) {
         return new Response(JSON.stringify({
           error: 'consent_required',
-          message: 'Om AI-analyse te gebruiken is toestemming nodig. Schakel dit in bij Instellingen.',
-          description: description || 'Maaltijd',
+          message: t.consentRequired,
+          description: description || t.mealLabel,
           items: [],
           totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
           ultra_processed_level: null,
           confidence: 'low',
           verification_questions: [],
           quality_flags: {},
-          notes: 'Vul de waarden handmatig in of schakel AI-ondersteuning in bij Instellingen.'
+          notes: t.manualInput
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
     }
     
-    // Use direct OpenAI API for full control and GDPR compliance
     const OPENAI_API_KEY = Deno.env.get('ChatGPT');
     if (!OPENAI_API_KEY) {
       console.error('OpenAI API key not configured');
       throw new Error('AI service is niet geconfigureerd');
     }
 
-    // PRIVACY: Scrub PII from description before sending to AI
     const scrubbedDescription = description ? scrubPII(description) : null;
 
-    // Build user content - NO PII, only food description and image
     const userContent: any[] = [];
+    const analyzeText = lang === 'en' ? 'Analyze this meal:' : 'Analyseer deze maaltijd:';
+    const photoText = lang === 'en' ? 'Analyze this meal in the photo.' : 'Analyseer deze maaltijd op de foto.';
     
     if (scrubbedDescription) {
       userContent.push({
         type: 'text',
-        text: `Analyseer deze maaltijd: ${scrubbedDescription}`
+        text: `${analyzeText} ${scrubbedDescription}`
       });
     }
     
     if (imageBase64) {
-      // PRIVACY: Strip EXIF metadata (GPS, device info, timestamps) before sending to OpenAI
       console.log('Stripping EXIF metadata from image for subject:', aiSubjectId);
       const cleanImage = stripExifFromBase64(imageBase64);
       
@@ -356,25 +465,22 @@ serve(async (req) => {
       if (!scrubbedDescription) {
         userContent.push({
           type: 'text',
-          text: 'Analyseer deze maaltijd op de foto.'
+          text: photoText
         });
       }
     }
 
     if (userContent.length === 0) {
-      throw new Error('Geen beschrijving of foto ontvangen');
+      throw new Error(t.noDescription);
     }
 
-    // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'analyze-meal');
 
-    console.log('Analyzing meal via OpenAI API, subject:', aiSubjectId);
+    console.log('Analyzing meal via OpenAI API, subject:', aiSubjectId, 'language:', lang);
     
-    // TWO-TIER AI STRATEGY: Start with gpt-4o-mini (cheap), fallback to gpt-4o if confidence low
     let analysis;
     let usedFallback = false;
     
-    // First try with gpt-4o-mini (cheapest, fast)
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -401,7 +507,7 @@ serve(async (req) => {
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
           error: 'rate_limit',
-          message: 'Te veel verzoeken. Probeer het later opnieuw.' 
+          message: t.rateLimit
         }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -414,17 +520,14 @@ serve(async (req) => {
     const aiData = await response.json();
     const content = aiData.choices?.[0]?.message?.content;
     
-    // Track token usage for cost calculation
     if (aiData.usage) {
       tokensUsed.prompt += aiData.usage.prompt_tokens || 0;
       tokensUsed.completion += aiData.usage.completion_tokens || 0;
-      // gpt-4o-mini pricing: $0.15/1M input, $0.60/1M output → EUR (approx 0.93 factor)
       costEur.mini = ((tokensUsed.prompt * 0.15 + tokensUsed.completion * 0.60) / 1000000) * 0.93;
     }
     
     console.log('Meal analysis received for subject:', aiSubjectId);
 
-    // Parse response
     try {
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -433,7 +536,6 @@ serve(async (req) => {
         throw new Error('No JSON found in response');
       }
       
-      // CHECK FOR LOW CONFIDENCE - escalate to gpt-4o if photo analysis and confidence < 0.65
       const confidenceNum = typeof analysis.confidence === 'number' ? analysis.confidence : 0.5;
       if (imageBase64 && confidenceNum < 0.65 && !usedFallback) {
         console.log(`Low confidence (${confidenceNum}) for photo analysis, escalating to gpt-4o for subject:`, aiSubjectId);
@@ -459,11 +561,9 @@ serve(async (req) => {
           const fallbackData = await fallbackResponse.json();
           const fallbackContent = fallbackData.choices?.[0]?.message?.content;
           
-          // Track fallback token usage
           if (fallbackData.usage) {
             tokensUsed.prompt += fallbackData.usage.prompt_tokens || 0;
             tokensUsed.completion += fallbackData.usage.completion_tokens || 0;
-            // gpt-4o pricing: $2.50/1M input, $10/1M output → EUR
             costEur.full = ((fallbackData.usage.prompt_tokens * 2.50 + fallbackData.usage.completion_tokens * 10) / 1000000) * 0.93;
           }
           
@@ -471,7 +571,6 @@ serve(async (req) => {
             const jsonMatch = fallbackContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const fallbackAnalysis = JSON.parse(jsonMatch[0]);
-              // Only use fallback if it has higher confidence
               if (typeof fallbackAnalysis.confidence === 'number' && fallbackAnalysis.confidence > confidenceNum) {
                 analysis = fallbackAnalysis;
                 console.log(`Fallback improved confidence: ${confidenceNum} → ${fallbackAnalysis.confidence}`);
@@ -485,7 +584,6 @@ serve(async (req) => {
     } catch (parseError) {
       console.error('Failed to parse AI response for', aiSubjectId);
       
-      // Fallback to gpt-4o for more complex parsing
       if (!usedFallback) {
         console.log('Falling back to gpt-4o for subject:', aiSubjectId);
         usedFallback = true;
@@ -523,29 +621,27 @@ serve(async (req) => {
       
       if (!analysis) {
         analysis = {
-          description: description || 'Maaltijd',
+          description: description || t.mealLabel,
           items: [],
           totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
           ultra_processed_level: null,
           confidence: 0.3,
           verification_questions: [{
-            question: 'De AI kon deze maaltijd niet analyseren. Kun je meer details geven?',
-            options: ['Ontbijt met brood', 'Warme maaltijd', 'Snack/tussendoor', 'Drank'],
+            question: t.fallbackQuestion,
+            options: [t.optionBreakfast, t.optionWarm, t.optionSnack, t.optionDrink],
             affects: 'description'
           }],
           quality_flags: {},
-          notes: 'Probeer het opnieuw met een duidelijkere beschrijving of foto.'
+          notes: t.fallbackNote
         };
       }
     }
 
-    // Add model info and cost tracking
     analysis.model_used = usedFallback ? 'gpt-4o' : 'gpt-4o-mini';
     costEur.total = costEur.mini + costEur.full;
     analysis.tokens_used = tokensUsed.prompt + tokensUsed.completion;
-    analysis.cost_eur = Math.round(costEur.total * 10000) / 10000; // Round to 4 decimals
+    analysis.cost_eur = Math.round(costEur.total * 10000) / 10000;
 
-    // Add late meal flag based on time
     if (mealTime) {
       const hour = parseInt(mealTime.split(':')[0], 10);
       if (analysis.quality_flags) {
@@ -553,7 +649,6 @@ serve(async (req) => {
       }
     }
 
-    // Ensure backward compatibility with old format
     if (!analysis.totals && analysis.kcal !== undefined) {
       analysis.totals = {
         kcal: analysis.kcal,
@@ -564,7 +659,6 @@ serve(async (req) => {
       };
     }
     
-    // Also provide flat values for backward compatibility
     if (analysis.totals) {
       analysis.kcal = analysis.totals.kcal;
       analysis.protein_g = analysis.totals.protein_g;

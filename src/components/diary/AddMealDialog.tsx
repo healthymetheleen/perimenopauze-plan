@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/lib/auth';
+import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,6 +90,7 @@ type AnalysisStep = 'idle' | 'compressing' | 'analyzing' | 'clarifying' | 'done'
 export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selectedDate, onDateChange }: AddMealDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { i18n } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -238,6 +240,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
           imageBase64: imageBase64,
           hasAIConsent: hasAIConsent,
           mealTime: time,
+          language: i18n.language,
         },
       });
 

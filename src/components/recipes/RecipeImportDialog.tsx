@@ -11,6 +11,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateRecipe, RecipeInsert, Ingredient } from '@/hooks/useRecipes';
 import { supabase } from '@/integrations/supabase/client';
 import { Loader2, FileJson, Sparkles, Check, X, ChefHat } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 
 interface RecipeImportDialogProps {
   open: boolean;
@@ -35,6 +36,7 @@ function normalizeDietTags(tags: string[]): string[] {
 
 export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogProps) {
   const { toast } = useToast();
+  const { i18n } = useTranslation();
   const createRecipe = useCreateRecipe();
 
   const [tab, setTab] = useState<'json' | 'ai'>('json');
@@ -100,7 +102,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
     setIsLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-recipes', {
-        body: { prompt: aiPrompt, count: recipeCount },
+        body: { prompt: aiPrompt, count: recipeCount, language: i18n.language },
       });
 
       if (error) throw error;
