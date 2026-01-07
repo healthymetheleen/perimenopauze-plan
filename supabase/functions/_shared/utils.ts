@@ -3,7 +3,7 @@
  * Security, validation, rate limiting, and audit logging
  */
 
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "npm:@supabase/supabase-js@2";
 
 // CORS headers for all edge functions
 export const corsHeaders = {
