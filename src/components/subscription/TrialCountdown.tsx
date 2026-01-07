@@ -1,7 +1,8 @@
 import { differenceInDays, addDays, format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 import { Clock, Sparkles, Crown } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { useSubscription } from '@/hooks/useMollie';
@@ -10,9 +11,11 @@ import { useEntitlements } from '@/hooks/useEntitlements';
 const TRIAL_DAYS = 7;
 
 export function TrialCountdown() {
+  const { t, i18n } = useTranslation();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
 
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const isPremium = entitlements?.can_use_trends || entitlements?.can_use_patterns;
   
   // If no subscription or not premium, don't show countdown
@@ -43,18 +46,18 @@ export function TrialCountdown() {
               <div className="flex items-center justify-between mb-1">
                 <p className="font-semibold text-foreground">
                   {daysRemaining === 1 
-                    ? 'Nog 1 dag gratis trial' 
-                    : `Nog ${daysRemaining} dagen gratis trial`}
+                    ? t('trial.one_day_left')
+                    : t('trial.days_left', { days: daysRemaining })}
                 </p>
                 <span className="text-xs text-muted-foreground">
-                  t/m {format(trialEndDate, 'd MMM', { locale: nl })}
+                  {format(trialEndDate, 'd MMM', { locale: dateLocale })}
                 </span>
               </div>
               <Progress value={trialProgress} className="h-2" />
               <p className="text-xs text-muted-foreground mt-1">
                 {daysRemaining <= 2 
-                  ? 'Daarna €4,50/maand via automatische incasso'
-                  : 'Premium toegang actief'}
+                  ? t('trial.after_trial')
+                  : t('trial.premium_active')}
               </p>
             </div>
           </div>

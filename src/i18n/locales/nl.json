@@ -37,6 +37,75 @@
     "settings": "Instellingen",
     "premium": "Premium"
   },
+  "footer": {
+    "privacy_policy": "Privacybeleid",
+    "terms": "Voorwaarden",
+    "intended_use": "Beoogd gebruik",
+    "feedback": "Feedback",
+    "disclaimer": "Geen medisch advies · Inzicht & zelfobservatie",
+    "copyright": "© {{year}} Perimenopauze Plan. Alle rechten voorbehouden."
+  },
+  "trial": {
+    "one_day_left": "Nog 1 dag gratis trial",
+    "days_left": "Nog {{days}} dagen gratis trial",
+    "until": "t/m {{date}}",
+    "after_trial": "Daarna €4,50/maand via automatische incasso",
+    "premium_active": "Premium toegang actief"
+  },
+  "today": {
+    "fertile": "Vruchtbaar",
+    "possible": "Mogelijk:",
+    "yesterday_advice": "Gisteren & Advies",
+    "personal_advice": "Persoonlijk advies",
+    "food_today": "Eten vandaag",
+    "movement": "Bewegen",
+    "log_first_meal": "Log je eerste maaltijd →",
+    "meals_logged": "{{count}} maaltijd gelogd",
+    "meals_logged_plural": "{{count}} maaltijden gelogd",
+    "protein": "eiwit",
+    "fiber": "vezels",
+    "view_exercises": "Bekijk oefeningen →",
+    "min_recommended": "{{minutes}} min aanbevolen",
+    "exercises_available": "{{count}} oefeningen beschikbaar",
+    "ortho_for_season": "Orthomoleculair voor {{season}}:",
+    "minerals": "Mineralen:",
+    "nutrition": "Voeding:",
+    "avoid": "Vermijd:"
+  },
+  "seasons": {
+    "winter": "Winter",
+    "lente": "Lente",
+    "zomer": "Zomer",
+    "herfst": "Herfst",
+    "onbekend": "Onbekend"
+  },
+  "phases": {
+    "menstruation": "Menstruatie",
+    "follicular": "Folliculair",
+    "ovulation": "Ovulatie",
+    "luteal": "Luteaal",
+    "onbekend": "Onbekend"
+  },
+  "season_symptoms": {
+    "winter": ["Vermoeidheid", "Krampen", "Lage energie"],
+    "lente": ["Stijgende energie", "Betere focus"],
+    "zomer": ["Piek energie", "Soms overstimulatie"],
+    "herfst": ["PMS", "Stemmingswisselingen", "Cravings"]
+  },
+  "season_movement_tips": {
+    "winter": "Wandelen, zachte yoga, stretching",
+    "lente": "Krachttraining, HIIT, cardio",
+    "zomer": "Intensief: hardlopen, groepslessen",
+    "herfst": "Pilates, yoga, rustig joggen",
+    "onbekend": "Beweeg op een manier die goed voelt"
+  },
+  "season_food_tips": {
+    "winter": "IJzerrijk: spinazie, rode biet, peulvruchten",
+    "lente": "Eiwit voor spieropbouw (1.6-2g/kg)",
+    "zomer": "Licht maar voedzaam, extra hydratatie",
+    "herfst": "Stabiele maaltijdtijden, magnesiumrijk",
+    "onbekend": "Gevarieerd en voedzaam eten"
+  },
   "settings": {
     "title": "Instellingen",
     "subtitle": "Beheer je voorkeuren en privacy",
