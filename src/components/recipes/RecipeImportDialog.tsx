@@ -62,7 +62,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       
       // Validate and map
       const mapped: ParsedRecipe[] = recipes.map((r: any) => ({
-        title: r.title || 'Naamloos recept',
+        title: r.title || t('recipeImport.untitledRecipe'),
         description: r.description || null,
         instructions: r.instructions || '',
         prep_time_minutes: r.prep_time_minutes || null,
@@ -87,15 +87,15 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       }));
 
       setParsedRecipes(mapped);
-      toast({ title: `${mapped.length} recepten gevonden` });
+      toast({ title: t('recipeImport.recipesGenerated', { count: mapped.length }) });
     } catch (e) {
-      toast({ title: 'Ongeldige JSON', variant: 'destructive' });
+      toast({ title: t('recipeImport.invalidJson'), variant: 'destructive' });
     }
   };
 
   const handleAiGenerate = async () => {
     if (!aiPrompt.trim()) {
-      toast({ title: 'Voer een prompt in', variant: 'destructive' });
+      toast({ title: t('recipeImport.enterPrompt'), variant: 'destructive' });
       return;
     }
 
@@ -109,7 +109,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       if (data.error) throw new Error(data.error);
 
       const recipes: ParsedRecipe[] = data.recipes.map((r: any) => ({
-        title: r.title || 'Naamloos recept',
+        title: r.title || t('recipeImport.untitledRecipe'),
         description: r.description || null,
         instructions: r.instructions || '',
         prep_time_minutes: r.prep_time_minutes || null,
@@ -119,7 +119,6 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         seasons: r.seasons || [],
         cycle_phases: r.cycle_phases || [],
         diet_tags: normalizeDietTags(r.diet_tags || []),
-        // Filter out is_seasonal from ingredients as it's not in the DB schema
         ingredients: (r.ingredients || []).map((i: any) => ({
           name: i.name || '',
           amount: String(i.amount || ''),
@@ -135,12 +134,12 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       }));
 
       setParsedRecipes(recipes);
-      toast({ title: `${recipes.length} recepten gegenereerd` });
+      toast({ title: t('recipeImport.recipesGenerated', { count: recipes.length }) });
     } catch (e: any) {
       console.error('AI generation error:', e);
       toast({ 
-        title: 'Genereren mislukt', 
-        description: e.message || 'Probeer het opnieuw',
+        title: t('recipeImport.generationFailed'), 
+        description: e.message || t('recipeImport.tryAgain'),
         variant: 'destructive' 
       });
     } finally {
@@ -161,7 +160,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
   const handleImport = async () => {
     const toImport = parsedRecipes.filter(r => r._selected);
     if (toImport.length === 0) {
-      toast({ title: 'Selecteer minimaal 1 recept', variant: 'destructive' });
+      toast({ title: t('recipeImport.selectAtLeastOne'), variant: 'destructive' });
       return;
     }
 
@@ -183,10 +182,10 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
     setImporting(false);
     
     if (successCount > 0) {
-      toast({ title: `${successCount} recepten geïmporteerd` });
+      toast({ title: t('recipeImport.recipesImported', { count: successCount }) });
     }
     if (errorCount > 0) {
-      toast({ title: `${errorCount} recepten mislukt`, variant: 'destructive' });
+      toast({ title: t('recipeImport.recipesFailed', { count: errorCount }), variant: 'destructive' });
     }
 
     if (successCount > 0 && errorCount === 0) {
@@ -270,14 +269,14 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <p className="text-sm text-muted-foreground">
-                {selectedCount} van {parsedRecipes.length} geselecteerd
+                {t('recipeImport.selectedOf', { selected: selectedCount, total: parsedRecipes.length })}
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => selectAll(true)}>
-                  Alles selecteren
+                  {t('recipeImport.selectAll')}
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => selectAll(false)}>
-                  Alles deselecteren
+                  {t('recipeImport.deselectAll')}
                 </Button>
               </div>
             </div>
@@ -308,11 +307,11 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
                     <div className="flex flex-wrap gap-1 mt-1">
                       <Badge variant="secondary" className="text-xs">{recipe.meal_type}</Badge>
                       {recipe.protein_g && (
-                        <Badge variant="outline" className="text-xs">{recipe.protein_g}g eiwit</Badge>
+                        <Badge variant="outline" className="text-xs">{recipe.protein_g}g {t('recipeImport.protein')}</Badge>
                       )}
                       {recipe.ingredients.length > 0 && (
                         <Badge variant="outline" className="text-xs">
-                          {recipe.ingredients.length} ingrediënten
+                          {recipe.ingredients.length} {t('recipeImport.ingredients')}
                         </Badge>
                       )}
                     </div>
@@ -324,7 +323,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
             <div className="flex gap-3 pt-4 border-t">
               <Button variant="outline" onClick={() => setParsedRecipes([])} className="flex-1">
                 <X className="h-4 w-4 mr-2" />
-                Terug
+                {t('recipeImport.back')}
               </Button>
               <Button 
                 onClick={handleImport} 
@@ -333,7 +332,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
               >
                 {importing && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
                 <Check className="h-4 w-4 mr-2" />
-                {selectedCount} importeren
+                {t('recipeImport.import', { count: selectedCount })}
               </Button>
             </div>
           </div>
