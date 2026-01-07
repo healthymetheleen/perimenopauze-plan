@@ -160,7 +160,7 @@ export function CycleWeekWidget() {
           </div>
 
           {/* 7-day strip (season background + event markers) */}
-          <div className="grid grid-cols-7 gap-2">
+          <div className="grid grid-cols-7 gap-2 pt-1">
             {calendarDays.map((d) => (
               <div
                 key={d.dateStr}
@@ -169,7 +169,7 @@ export function CycleWeekWidget() {
                   flex flex-col items-center justify-center text-center
                   ${seasonTileClass[d.predictedSeason]}
                   ${d.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
-                  ${d.isFertile ? 'outline outline-2 outline-offset-1 outline-green-500' : ''}
+                  ${d.isFertile ? 'ring-2 ring-green-500 ring-inset' : ''}
                 `}
               >
                 {/* Menstruation marker */}
@@ -182,7 +182,7 @@ export function CycleWeekWidget() {
                 )}
                 {/* Ovulation star */}
                 {d.isOvulation && (
-                  <span className="absolute top-0.5 right-0.5 cycle-ovulation-star text-xs font-bold">★</span>
+                  <span className="absolute top-1 right-1 cycle-ovulation-star text-xs font-bold">★</span>
                 )}
 
                 <span className="text-[10px] text-muted-foreground leading-none">
