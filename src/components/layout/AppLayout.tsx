@@ -66,6 +66,7 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const { signOut } = useAuth();
   const { data: entitlements } = useEntitlements();
@@ -139,7 +140,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     )}
                   >
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey)}</span>
                     {item.premium && !isPremium && (
                       <span className="ml-auto text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">
                         Premium
@@ -189,7 +190,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                     )}
                   >
                     {item.icon}
-                    <span>{item.label}</span>
+                    <span>{t(item.labelKey)}</span>
                     {item.premium && !isPremium && (
                       <span className="ml-auto text-xs bg-secondary/20 text-secondary px-2 py-0.5 rounded-full">
                         Premium
