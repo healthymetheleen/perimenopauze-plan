@@ -36,7 +36,7 @@ function normalizeDietTags(tags: string[]): string[] {
 
 export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogProps) {
   const { toast } = useToast();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const createRecipe = useCreateRecipe();
 
   const [tab, setTab] = useState<'json' | 'ai'>('json');
@@ -201,9 +201,9 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
     <Dialog open={open} onOpenChange={(o) => { if (!o) resetState(); onOpenChange(o); }}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Recepten importeren</DialogTitle>
+          <DialogTitle>{t('recipeImport.title')}</DialogTitle>
           <DialogDescription>
-            Importeer meerdere recepten via JSON of laat AI recepten genereren
+            {t('recipeImport.description')}
           </DialogDescription>
         </DialogHeader>
 
@@ -212,53 +212,42 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="json" className="flex items-center gap-2">
                 <FileJson className="h-4 w-4" />
-                JSON import
+                {t('recipeImport.tabJson')}
               </TabsTrigger>
               <TabsTrigger value="ai" className="flex items-center gap-2">
                 <Sparkles className="h-4 w-4" />
-                AI generatie
+                {t('recipeImport.tabAi')}
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="json" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>JSON recepten</Label>
+                <Label>{t('recipeImport.jsonLabel')}</Label>
                 <Textarea
                   value={jsonInput}
                   onChange={(e) => setJsonInput(e.target.value)}
-                  placeholder={`[
-  {
-    "title": "Eiwitrijke havermout",
-    "description": "Gezond ontbijt",
-    "instructions": "1. Kook havermout...",
-    "meal_type": "ontbijt",
-    "servings": 2,
-    "ingredients": [
-      { "name": "havermout", "amount": "100", "unit": "gram" }
-    ]
-  }
-]`}
+                  placeholder={t('recipeImport.jsonPlaceholder')}
                   rows={12}
                   className="font-mono text-sm"
                 />
               </div>
               <Button onClick={handleJsonParse} disabled={!jsonInput.trim()}>
-                JSON verwerken
+                {t('recipeImport.jsonProcess')}
               </Button>
             </TabsContent>
 
             <TabsContent value="ai" className="space-y-4 mt-4">
               <div className="space-y-2">
-                <Label>Beschrijf welke recepten je wilt</Label>
+                <Label>{t('recipeImport.aiDescribeLabel')}</Label>
                 <Textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
-                  placeholder="Bijv: 10 eiwitrijke ontbijtrecepten voor perimenopauze, minimaal 25g eiwit per portie, makkelijk te maken in 15 minuten"
+                  placeholder={t('recipeImport.aiPlaceholder')}
                   rows={4}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Aantal recepten (max 10)</Label>
+                <Label>{t('recipeImport.recipeCount')}</Label>
                 <Input
                   type="number"
                   min={1}
@@ -268,12 +257,12 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
                   className="w-24"
                 />
                 <p className="text-xs text-muted-foreground">
-                  Voor meer recepten, genereer meerdere keren met verschillende prompts
+                  {t('recipeImport.recipeCountHint')}
                 </p>
               </div>
               <Button onClick={handleAiGenerate} disabled={isLoading || !aiPrompt.trim()}>
                 {isLoading && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                {isLoading ? 'Genereren...' : 'Recepten genereren'}
+                {isLoading ? t('recipeImport.generating') : t('recipeImport.generate')}
               </Button>
             </TabsContent>
           </Tabs>

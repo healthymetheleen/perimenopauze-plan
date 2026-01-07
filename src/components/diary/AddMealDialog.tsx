@@ -90,7 +90,7 @@ type AnalysisStep = 'idle' | 'compressing' | 'analyzing' | 'clarifying' | 'done'
 export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selectedDate, onDateChange }: AddMealDialogProps) {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -532,9 +532,9 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
   // Convert numeric confidence to display values
   const getConfidenceDisplay = (conf: number) => {
-    if (conf >= 0.75) return { label: 'Zeker', color: 'bg-success/20 text-success-foreground' };
-    if (conf >= 0.5) return { label: 'Redelijk', color: 'bg-warning/20 text-warning-foreground' };
-    return { label: 'Onzeker', color: 'bg-destructive/20 text-destructive-foreground' };
+    if (conf >= 0.75) return { label: t('addMeal.confidenceHigh'), color: 'bg-success/20 text-success-foreground' };
+    if (conf >= 0.5) return { label: t('addMeal.confidenceMedium'), color: 'bg-warning/20 text-warning-foreground' };
+    return { label: t('addMeal.confidenceLow'), color: 'bg-destructive/20 text-destructive-foreground' };
   };
 
   return (
@@ -542,11 +542,11 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       <DialogContent className="sm:max-w-lg max-w-[95vw]">
         <DialogHeader>
           <DialogTitle>
-            {showConfirmation ? 'Bevestig maaltijd' : 'Maaltijd toevoegen'}
+            {showConfirmation ? t('addMeal.confirmMeal') : t('addMeal.title')}
           </DialogTitle>
           {!showConfirmation && aiUsage && (
             <p className="text-xs text-muted-foreground">
-              {aiUsage.remaining} van {aiUsage.limit} AI analyses vandaag
+              {t('addMeal.aiCreditsRemaining', { count: aiUsage.remaining })}
             </p>
           )}
         </DialogHeader>
@@ -557,24 +557,24 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="text" className="flex items-center gap-2">
                   <Type className="h-4 w-4" />
-                  Beschrijf
+                  {t('addMeal.tabDescribe')}
                 </TabsTrigger>
                 <TabsTrigger value="photo" className="flex items-center gap-2">
                   <Camera className="h-4 w-4" />
-                  Foto
+                  {t('addMeal.tabPhoto')}
                 </TabsTrigger>
                 <TabsTrigger value="voice" className="flex items-center gap-2">
                   <Mic className="h-4 w-4" />
-                  Spreek in
+                  {t('addMeal.tabVoice')}
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="text" className="space-y-4 mt-4">
                 <div className="space-y-2">
-                  <Label htmlFor="description">Beschrijf je maaltijd</Label>
+                  <Label htmlFor="description">{t('addMeal.describeLabel')}</Label>
                   <Input
                     id="description"
-                    placeholder="Bijv: 2 boterhammen met kaas en een glas melk"
+                    placeholder={t('addMeal.describePlaceholder')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
@@ -588,10 +588,10 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                   {isAnalyzing ? (
                     <>
                       <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Analyseren...
+                      {t('addMeal.analyzing')}
                     </>
                   ) : (
-                    'Analyseer'
+                    t('addMeal.analyze')
                   )}
                 </Button>
               </TabsContent>
@@ -602,9 +602,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                   <Alert className="bg-warning/10 border-warning/30">
                     <AlertTriangle className="h-4 w-4 text-warning" />
                     <AlertDescription className="text-sm">
-                      <strong>Foto-analyse nog niet ingeschakeld.</strong> Ga naar{' '}
-                      <a href="/settings" className="underline font-medium">Instellingen</a>{' '}
-                      om toestemming te geven voor foto-analyse. Tot die tijd kun je alleen tekst gebruiken.
+                      <strong>{t('addMeal.photoConsentWarning')}</strong> {t('addMeal.photoConsentLink')}
                     </AlertDescription>
                   </Alert>
                 )}
@@ -615,8 +613,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     <Alert className="bg-info/5 border-info/20">
                       <Info className="h-4 w-4 text-info" />
                       <AlertDescription className="text-xs text-muted-foreground">
-                        <strong>Privacy:</strong> Foto's worden direct na analyse verwijderd en niet opgeslagen. 
-                        Fotografeer alleen het bord/eten. Geen gezichten of documenten.
+                        <strong>Privacy:</strong> {t('addMeal.photoPrivacy')}
                       </AlertDescription>
                     </Alert>
 
@@ -644,7 +641,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                           className="w-full text-muted-foreground"
                           onClick={handleSkipCrop}
                         >
-                          Overslaan (hele foto gebruiken)
+                          {t('addMeal.skipCrop')}
                         </Button>
                       </div>
                     ) : imagePreview ? (
@@ -680,18 +677,18 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                               <p className="text-sm font-medium">{analysis.clarification_question}</p>
                               <div className="flex gap-2">
                                 <Input
-                                  placeholder="Bijv: 2 sneetjes, met boter"
+                                  placeholder={t('addMeal.clarificationPlaceholder')}
                                   value={clarificationAnswer}
                                   onChange={(e) => setClarificationAnswer(e.target.value)}
                                   onKeyDown={(e) => e.key === 'Enter' && handleClarificationSubmit()}
                                   className="flex-1"
                                 />
                                 <Button size="sm" onClick={handleClarificationSubmit}>
-                                  Bevestig
+                                  {t('addMeal.confirm')}
                                 </Button>
                               </div>
                               <Button variant="ghost" size="sm" onClick={skipClarification} className="w-full text-muted-foreground">
-                                Overslaan (huidige analyse gebruiken)
+                                {t('addMeal.skipClarification')}
                               </Button>
                             </AlertDescription>
                           </Alert>
@@ -700,15 +697,15 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         {/* Extra beschrijving veld - only show if not in clarification mode */}
                         {analysisStep !== 'clarifying' && (
                           <div className="space-y-2">
-                            <Label htmlFor="photo-description">Extra details (optioneel)</Label>
+                            <Label htmlFor="photo-description">{t('addMeal.extraDetails')}</Label>
                             <Input
                               id="photo-description"
-                              placeholder="Bijv: volkoren brood, havermelk, biologisch"
+                              placeholder={t('addMeal.extraDetailsPlaceholder')}
                               value={photoDescription}
                               onChange={(e) => setPhotoDescription(e.target.value)}
                             />
                             <p className="text-xs text-muted-foreground">
-                              Voeg details toe zoals: volkoren/spelt, volle/magere melk, biologisch, etc.
+                              {t('addMeal.extraDetailsHint')}
                             </p>
                           </div>
                         )}
@@ -726,7 +723,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                               }}
                               className="flex-1"
                             >
-                              Andere foto
+                              {t('addMeal.anotherPhoto')}
                             </Button>
                             <Button
                               onClick={handlePhotoAnalyze}
@@ -736,10 +733,10 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                               {isAnalyzing ? (
                                 <>
                                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                  Analyseren...
+                                  {t('addMeal.analyzing')}
                                 </>
                               ) : (
-                                'Analyseer'
+                                t('addMeal.analyze')
                               )}
                             </Button>
                           </div>
@@ -749,7 +746,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                       <div className="w-full h-32 border-2 border-dashed border-primary rounded-lg flex flex-col items-center justify-center gap-3 bg-primary/5">
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                         <div className="text-center space-y-2 w-full px-4">
-                          <p className="text-sm font-medium">Foto comprimeren...</p>
+                          <p className="text-sm font-medium">{t('addMeal.compressing')}</p>
                           <Progress value={compressionProgress.progress} className="h-2" />
                           <p className="text-xs text-muted-foreground">
                             {formatBytes(compressionProgress.originalSize)} → optimaliseren
@@ -764,8 +761,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                       >
                         <div className="flex flex-col items-center gap-2">
                           <Camera className="h-8 w-8 text-muted-foreground" />
-                          <span className="text-muted-foreground">Maak of kies een foto</span>
-                          <span className="text-xs text-muted-foreground">Max 10MB • wordt gecomprimeerd naar ~80kb</span>
+                          <span className="text-muted-foreground">{t('addMeal.takeOrChoosePhoto')}</span>
+                          <span className="text-xs text-muted-foreground">{t('addMeal.maxSize')}</span>
                         </div>
                       </Button>
                     )}
@@ -781,8 +778,8 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                       <div className="text-center space-y-1">
-                        <p className="text-sm font-medium">Spraak wordt herkend...</p>
-                        <p className="text-xs text-muted-foreground">Even geduld</p>
+                        <p className="text-sm font-medium">{t('addMeal.voiceRecognizing')}</p>
+                        <p className="text-xs text-muted-foreground">{t('addMeal.voicePleaseWait')}</p>
                       </div>
                     </>
                   ) : isAnalyzing ? (
@@ -791,26 +788,26 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         <Loader2 className="h-8 w-8 animate-spin text-primary" />
                       </div>
                       <div className="text-center space-y-1">
-                        <p className="text-sm font-medium">Bezig met analyseren...</p>
-                        <p className="text-xs text-muted-foreground">Dit kan enkele seconden duren</p>
+                        <p className="text-sm font-medium">{t('addMeal.voiceAnalyzing')}</p>
+                        <p className="text-xs text-muted-foreground">{t('addMeal.voiceAnalyzingHint')}</p>
                       </div>
                     </>
                   ) : transcription ? (
                     <div className="w-full space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="transcription">Herkende tekst</Label>
+                        <Label htmlFor="transcription">{t('addMeal.voiceRecognizedText')}</Label>
                         <div className="p-3 rounded-lg bg-muted/50 border">
                           <p className="text-sm italic text-muted-foreground mb-2">"{transcription}"</p>
                         </div>
                         <p className="text-xs text-muted-foreground">
-                          Je kunt de tekst hieronder aanpassen voordat je analyseert
+                          {t('addMeal.voiceAdjustHint')}
                         </p>
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="voice-description">Maaltijdbeschrijving</Label>
+                        <Label htmlFor="voice-description">{t('addMeal.voiceMealDescription')}</Label>
                         <Input
                           id="voice-description"
-                          placeholder="Pas aan of voeg details toe..."
+                          placeholder={t('addMeal.voiceAdjustPlaceholder')}
                           value={description || transcription}
                           onChange={(e) => setDescription(e.target.value)}
                         />
@@ -824,14 +821,14 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                             setDescription('');
                           }}
                         >
-                          Opnieuw opnemen
+                          {t('addMeal.voiceRecordAgain')}
                         </Button>
                         <Button
                           className="flex-1"
                           onClick={() => analyzeMeal(description || transcription)}
                           disabled={isAnalyzing}
                         >
-                          Analyseer
+                          {t('addMeal.analyze')}
                         </Button>
                       </div>
                     </div>
@@ -846,7 +843,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                         <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
                       </Button>
                       <p className="text-sm text-muted-foreground">
-                        {isRecording ? 'Tap om te stoppen' : 'Tap om in te spreken'}
+                        {isRecording ? t('addMeal.voiceTapToStop') : t('addMeal.voiceTapToSpeak')}
                       </p>
                     </>
                   )}
@@ -871,14 +868,14 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                   {/* Calorie range if available */}
                   {editableAnalysis.totals?.kcal_min && editableAnalysis.totals?.kcal_max && (
                     <p className="text-sm text-muted-foreground">
-                      Geschat: <span className="font-medium">{editableAnalysis.totals.kcal_min} - {editableAnalysis.totals.kcal_max} kcal</span>
+                      {t('addMeal.estimated')}: <span className="font-medium">{editableAnalysis.totals.kcal_min} - {editableAnalysis.totals.kcal_max} kcal</span>
                     </p>
                   )}
                   
                   {/* Missing info warnings */}
                   {editableAnalysis.missing_info && editableAnalysis.missing_info.length > 0 && (
                     <div className="text-xs text-warning-foreground bg-warning/10 px-2 py-1.5 rounded">
-                      ⚠️ Ontbrekend: {editableAnalysis.missing_info.join(', ')}
+                      ⚠️ {t('addMeal.missing')}: {editableAnalysis.missing_info.join(', ')}
                     </div>
                   )}
                   
@@ -887,9 +884,9 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     <Alert className="mt-2 bg-info/10 border-info/30">
                       <Info className="h-4 w-4 text-info" />
                       <AlertDescription className="text-sm">
-                        <strong>Verduidelijking nodig:</strong> {editableAnalysis.clarification_question}
+                        <strong>{t('addMeal.clarificationNeeded')}:</strong> {editableAnalysis.clarification_question}
                         <p className="text-xs text-muted-foreground mt-1">
-                          Je kunt teruggaan en meer details toevoegen, of de waarden handmatig aanpassen.
+                          {t('addMeal.clarificationHint')}
                         </p>
                       </AlertDescription>
                     </Alert>
@@ -899,7 +896,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                 {/* Date and Time */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="date">Datum</Label>
+                    <Label htmlFor="date">{t('addMeal.date')}</Label>
                     <Input 
                       id="date" 
                       type="date" 
@@ -909,7 +906,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="time">Tijd</Label>
+                    <Label htmlFor="time">{t('addMeal.time')}</Label>
                     <Input 
                       id="time" 
                       type="time" 
@@ -922,7 +919,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                 {/* Editable nutrition values */}
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="kcal">Calorieën</Label>
+                    <Label htmlFor="kcal">{t('addMeal.calories')}</Label>
                     <Input
                       id="kcal"
                       type="number"
@@ -932,7 +929,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="protein">Eiwit (g)</Label>
+                    <Label htmlFor="protein">{t('addMeal.protein')}</Label>
                     <Input
                       id="protein"
                       type="number"
@@ -945,7 +942,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="carbs">Koolh. (g)</Label>
+                    <Label htmlFor="carbs">{t('addMeal.carbs')}</Label>
                     <Input
                       id="carbs"
                       type="number"
@@ -955,7 +952,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fat">Vet (g)</Label>
+                    <Label htmlFor="fat">{t('addMeal.fat')}</Label>
                     <Input
                       id="fat"
                       type="number"
@@ -965,7 +962,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fiber">Vezels (g)</Label>
+                    <Label htmlFor="fiber">{t('addMeal.fiber')}</Label>
                     <Input
                       id="fiber"
                       type="number"
@@ -984,7 +981,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     onClick={() => setShowConfirmation(false)}
                   >
                     <Edit2 className="h-4 w-4 mr-2" />
-                    Terug
+                    {t('addMeal.back')}
                   </Button>
                   <Button
                     type="button"
@@ -997,7 +994,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     ) : (
                       <Check className="h-4 w-4 mr-2" />
                     )}
-                    Bevestigen
+                    {t('addMeal.confirmMeal')}
                   </Button>
                 </div>
               </>
