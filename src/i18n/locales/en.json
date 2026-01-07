@@ -1033,6 +1033,54 @@
     "loading": "Loading products...",
     "view_on_amazon": "View on Amazon"
   },
+  "subscription": {
+    "title": "Subscription",
+    "subtitle": "Manage your Perimenopause Plan subscription",
+    "payment_processed": "Payment processed!",
+    "payment_processing": "Your payment is being processed. This may take a few minutes. Refresh the page to see your subscription status.",
+    "current_status": "Current status",
+    "loading": "Loading...",
+    "premium_subscription": "Premium subscription",
+    "plan": "Plan",
+    "active": "Active",
+    "free_trial": "Free trial",
+    "days_remaining": "{{days}} {{dayWord}} of full access remaining",
+    "trial_progress": "Trial progress",
+    "days_of_trial": "{{remaining}} of 7 days remaining",
+    "after_trial": "After the trial, €7.50/month will be automatically charged",
+    "started_on": "Started on {{date}}",
+    "premium_benefits": "Premium benefits:",
+    "benefit_1": "Unlimited meal analyses",
+    "benefit_2": "AI insights & reflections",
+    "benefit_3": "Monthly total analysis",
+    "benefit_4": "All movement exercises",
+    "cancel_subscription": "Cancel subscription",
+    "trial_active": "Trial period active",
+    "trial_expired": "Trial period expired",
+    "trial_expired_desc": "You can no longer enter new data. Upgrade to Premium to continue.",
+    "trial_expired_warning": "Note: without a subscription, your data will be automatically deleted after 30 days.",
+    "free_account": "Free account",
+    "upgrade_for_access": "Upgrade to Premium for full access",
+    "premium_title": "Premium",
+    "premium_desc": "Especially for women in perimenopause",
+    "per_month": "per month",
+    "start_premium": "Start Premium - €{{price}}/month",
+    "processing": "Processing...",
+    "safe_payment": "Secure payment via Mollie. Cancel anytime.",
+    "questions_title": "Questions about your subscription?",
+    "contact_us": "Contact us",
+    "cancel_dialog_title": "Cancel subscription?",
+    "cancel_dialog_desc": "If you cancel your subscription, you will lose access to:",
+    "cancel_later": "You can always subscribe again later.",
+    "cancel_button": "Cancel",
+    "subscription_cancelled": "Subscription cancelled",
+    "subscription_cancelled_desc": "You still have access until the end of your current period.",
+    "cancel_failed": "Cancellation failed",
+    "cancel_failed_desc": "Please contact us via the contact form.",
+    "must_be_logged_in": "You must be logged in",
+    "payment_failed": "Payment failed",
+    "try_again": "Please try again"
+  },
   "account": {
     "title": "Account",
     "subtitle": "Manage your account and data",
@@ -1796,84 +1844,106 @@
       "intermediate": "Intermediate",
       "advanced": "Advanced"
     },
+    "duration": {
+      "min": "min",
+      "sec": "sec",
+      "per_side": "per side",
+      "rounds": "rounds"
+    },
     "items": {
       "child-pose": {
         "name": "Child's Pose",
+        "duration": "2-5 min",
         "description": "Kneel on the floor, bring your toes together and spread your knees. Bend forward and stretch your arms in front of you or along your body.",
         "benefits": ["Relaxes the lower back", "Calms the nervous system", "Helps with menstrual pain"]
       },
       "supine-twist": {
         "name": "Supine Twist",
+        "duration": "2-3 min per side",
         "description": "Lie on your back, pull one knee to your chest and let it fall to the opposite side. Look in the other direction.",
         "benefits": ["Relaxes the lower back", "Stimulates digestion", "Relieves tension"]
       },
       "legs-up-wall": {
         "name": "Legs Up the Wall",
+        "duration": "5-10 min",
         "description": "Lie on your back with your legs vertically against a wall. Relax completely.",
         "benefits": ["Improves blood circulation", "Reduces swelling", "Deeply relaxing"]
       },
       "cat-cow": {
         "name": "Cat-Cow Stretch",
+        "duration": "2-3 min",
         "description": "On hands and knees, alternate between a hollow back (cow) and a rounded back (cat) with your breath.",
         "benefits": ["Makes the spine supple", "Relieves back pain", "Calming"]
       },
       "sun-salutation": {
         "name": "Sun Salutation",
+        "duration": "5-10 rounds",
         "description": "A dynamic series of poses that activates the whole body. Start slowly and build up.",
         "benefits": ["Increases energy", "Strengthens muscles", "Improves flexibility"]
       },
       "warrior-2": {
         "name": "Warrior II",
+        "duration": "30-60 sec per side",
         "description": "Stand with legs wide, turn one foot 90 degrees and bend that knee. Stretch your arms to the sides.",
         "benefits": ["Strengthens legs", "Opens hips", "Builds focus"]
       },
       "triangle-pose": {
         "name": "Triangle Pose",
+        "duration": "30-60 sec per side",
         "description": "From a wide stance, bend sideways toward one foot while your arms form a vertical line.",
         "benefits": ["Stretches side body", "Strengthens legs", "Improves balance"]
       },
       "boat-pose": {
         "name": "Boat Pose",
+        "duration": "30-60 sec",
         "description": "Sit with bent knees, lift your feet off the ground and balance on your sit bones with arms extended.",
         "benefits": ["Strengthens core", "Improves balance", "Stimulates digestion"]
       },
       "crow-pose": {
         "name": "Crow Pose",
+        "duration": "15-30 sec",
         "description": "Balance on your hands with your knees resting on your upper arms. A challenging arm balance.",
         "benefits": ["Builds strength", "Improves focus", "Increases confidence"]
       },
       "headstand-prep": {
         "name": "Headstand Prep",
+        "duration": "1-3 min",
         "description": "Dolphin pose with forehead on the floor. Build strength for headstand.",
         "benefits": ["Strengthens shoulders", "Improves blood circulation", "Energizing"]
       },
       "wheel-pose": {
         "name": "Wheel Pose",
+        "duration": "15-30 sec",
         "description": "Deep backbend with hands and feet on the floor, body arched upward.",
         "benefits": ["Opens chest and shoulders", "Energizing", "Strengthens back"]
       },
       "dancer-pose": {
         "name": "Dancer's Pose",
+        "duration": "30 sec per side",
         "description": "Stand on one leg, grab the other ankle and stretch backward while bending forward.",
         "benefits": ["Improves balance", "Opens shoulders", "Strengthens legs"]
       },
       "pigeon-pose": {
         "name": "Pigeon Pose",
+        "duration": "2-3 min per side",
         "description": "From plank, bring one knee forward and extend the other leg back. Bend forward.",
         "benefits": ["Opens hips", "Relieves tension", "Emotionally liberating"]
       },
       "seated-forward-fold": {
         "name": "Seated Forward Fold",
+        "duration": "2-5 min",
         "description": "Sit with legs extended and bend forward from your hips toward your feet.",
         "benefits": ["Calms nervous system", "Stretches hamstrings", "Relieves stress"]
       },
       "supported-bridge": {
         "name": "Supported Bridge",
+        "duration": "3-5 min",
         "description": "Lie on your back, feet flat on the floor, lift your hips and place a block underneath.",
         "benefits": ["Opens chest", "Relaxes lower back", "Calming"]
       },
       "reclined-butterfly": {
         "name": "Reclined Butterfly",
+        "duration": "3-5 min",
         "description": "Lie on your back, bring the soles of your feet together and let your knees fall to the sides.",
         "benefits": ["Opens hips", "Relieves menstrual complaints", "Deeply relaxing"]
       }
