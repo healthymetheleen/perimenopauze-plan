@@ -189,7 +189,9 @@
     "send_message_desc": "Questions, suggestions or issues",
     "send_feedback": "Give feedback",
     "send_feedback_desc": "Help us improve the app",
-    "version": "Version"
+    "version": "Version",
+    "sign_out": "Log out",
+    "manage_subscription": "Manage subscription"
   },
   "dashboard": {
     "check_in": "Check-in",
@@ -812,7 +814,53 @@
     "pause": "Pause",
     "start_meditation": "Start meditation",
     "audio_playing": "Audio playing...",
-    "close": "Close"
+    "close": "Close",
+    "items": {
+      "sleep_body_scan": {
+        "title": "Body Scan for the Night",
+        "description": "A gentle journey through your body to release tension and prepare for deep sleep."
+      },
+      "sleep_breath": {
+        "title": "4-7-8 Sleep Breathing",
+        "description": "Use this powerful breathing technique to calm your nervous system and fall asleep faster."
+      },
+      "sleep_gratitude": {
+        "title": "Gratitude for the Night",
+        "description": "End your day with a gentle reflection on what was good. Let go of worries and embrace rest."
+      },
+      "stress_reset": {
+        "title": "Quick Stress Reset",
+        "description": "A short but powerful meditation to release tension and regain your focus."
+      },
+      "stress_anxiety": {
+        "title": "Calm in Unrest",
+        "description": "Many women experience periods of unrest. This meditation helps you ground and find peace."
+      },
+      "energy_morning": {
+        "title": "Energetic Morning",
+        "description": "Start your day with intention and gentle energy. Perfect for when you feel tired upon waking."
+      },
+      "energy_afternoon": {
+        "title": "Afternoon Boost",
+        "description": "Recharge your energy midday without caffeine. Many women find this helps with the post-lunch dip."
+      },
+      "cycle_winter": {
+        "title": "Winter: Rest & Recovery",
+        "description": "For the menstruation phase. Embrace the need for rest and give yourself permission to slow down."
+      },
+      "cycle_spring": {
+        "title": "Spring: New Energy",
+        "description": "For the follicular phase. Welcome the growing energy and set intentions for the coming weeks."
+      },
+      "cycle_summer": {
+        "title": "Summer: Peak & Connection",
+        "description": "For the ovulation phase. Celebrate your strength and connect with your body at this peak of energy."
+      },
+      "cycle_autumn": {
+        "title": "Autumn: Reflection & Letting Go",
+        "description": "For the luteal phase. A gentle meditation to let go of what no longer serves you."
+      }
+    }
   },
   "community": {
     "title": "Community",

@@ -189,7 +189,9 @@
     "send_message_desc": "Vragen, suggesties of problemen",
     "send_feedback": "Feedback geven",
     "send_feedback_desc": "Help ons de app te verbeteren",
-    "version": "Versie"
+    "version": "Versie",
+    "sign_out": "Uitloggen",
+    "manage_subscription": "Abonnement beheren"
   },
   "dashboard": {
     "check_in": "Check-in",
@@ -812,7 +814,53 @@
     "pause": "Pauzeer",
     "start_meditation": "Start meditatie",
     "audio_playing": "Audio speelt af...",
-    "close": "Sluiten"
+    "close": "Sluiten",
+    "items": {
+      "sleep_body_scan": {
+        "title": "Bodyscan voor de nacht",
+        "description": "Een zachte reis door je lichaam om spanning los te laten en je voor te bereiden op een diepe slaap."
+      },
+      "sleep_breath": {
+        "title": "4-7-8 Slaapademhaling",
+        "description": "Gebruik deze krachtige ademhalingstechniek om je zenuwstelsel te kalmeren en sneller in slaap te vallen."
+      },
+      "sleep_gratitude": {
+        "title": "Dankbaarheid voor de nacht",
+        "description": "Sluit je dag af met een zachte reflectie op wat goed was. Laat zorgen los en omarm rust."
+      },
+      "stress_reset": {
+        "title": "Snelle stress reset",
+        "description": "Een korte maar krachtige meditatie om spanning los te laten en je focus terug te vinden."
+      },
+      "stress_anxiety": {
+        "title": "Kalmte bij onrust",
+        "description": "Veel vrouwen ervaren periodes van onrust. Deze meditatie helpt je gronden en tot rust komen."
+      },
+      "energy_morning": {
+        "title": "Energieke ochtend",
+        "description": "Begin je dag met intentie en zachte energie. Perfect voor wanneer je je moe voelt bij het opstaan."
+      },
+      "energy_afternoon": {
+        "title": "Middagboost",
+        "description": "Herlaad je energie halverwege de dag zonder cafeïne. Veel vrouwen merken dit helpt bij de dip na de lunch."
+      },
+      "cycle_winter": {
+        "title": "Winter: Rust & Herstel",
+        "description": "Voor de menstruatiefase. Omarm de behoefte aan rust en geef jezelf toestemming om te vertragen."
+      },
+      "cycle_spring": {
+        "title": "Lente: Nieuwe Energie",
+        "description": "Voor de folliculaire fase. Verwelkom de groeiende energie en zet intenties voor de komende weken."
+      },
+      "cycle_summer": {
+        "title": "Zomer: Piek & Verbinding",
+        "description": "Voor de ovulatiefase. Vier je kracht en verbind met je lichaam op dit hoogtepunt van energie."
+      },
+      "cycle_autumn": {
+        "title": "Herfst: Reflectie & Loslaten",
+        "description": "Voor de luteale fase. Een zachte meditatie om los te laten wat niet meer dient."
+      }
+    }
   },
   "community": {
     "title": "Community",

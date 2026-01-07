@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -110,6 +111,8 @@ const statistics = [
 
 const Education = () => {
   const navigate = useNavigate();
+  const { t, i18n } = useTranslation();
+  const isNL = i18n.language?.startsWith('nl');
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
@@ -120,15 +123,16 @@ const Education = () => {
           <div className="max-w-3xl mx-auto text-center">
             <Badge variant="secondary" className="mb-4">
               <BookOpen className="w-3 h-3 mr-1" />
-              Educatie
+              {t('nav.education')}
             </Badge>
             <h1 className="text-3xl md:text-5xl font-bold text-foreground mb-4">
-              Alles over de{" "}
-              <span className="text-primary">Perimenopauze</span>
+              {isNL ? 'Alles over de ' : 'All about '}
+              <span className="text-primary">{isNL ? 'Perimenopauze' : 'Perimenopause'}</span>
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
-              Een natuurlijke levensfase die elke vrouw doormaakt. Begrijpen wat er gebeurt 
-              in je lichaam helpt je om deze periode met meer rust en zelfvertrouwen te doorlopen.
+              {isNL 
+                ? 'Een natuurlijke levensfase die elke vrouw doormaakt. Begrijpen wat er gebeurt in je lichaam helpt je om deze periode met meer rust en zelfvertrouwen te doorlopen.'
+                : 'A natural life phase that every woman goes through. Understanding what happens in your body helps you navigate this period with more peace and confidence.'}
             </p>
             
             <Button 
@@ -137,7 +141,7 @@ const Education = () => {
               className="mb-8"
             >
               <ClipboardList className="mr-2 h-5 w-5" />
-              Doe de Perimenopauze Zelftest
+              {isNL ? 'Doe de Perimenopauze Zelftest' : 'Take the Perimenopause Self-Test'}
             </Button>
             
             <div className="flex flex-wrap justify-center gap-3">
