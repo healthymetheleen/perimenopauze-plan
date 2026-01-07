@@ -31,7 +31,7 @@ export default function ProductsPage() {
         <Alert>
           <Tag className="h-4 w-4" />
           <AlertDescription>
-            <strong>{t('products.affiliateNotice')}:</strong> {t('products.affiliateDescription')}
+            <strong>{t('products.affiliate_notice')}</strong> {t('products.affiliate_desc')}
           </AlertDescription>
         </Alert>
 
@@ -55,10 +55,10 @@ export default function ProductsPage() {
         ) : !products?.length ? (
           <EmptyState
             icon={<Tag className="h-12 w-12" />}
-            title={t('products.noProducts')}
+            title={t('products.no_products')}
             description={selectedCategory === 'alle' 
-              ? t('products.noProductsDescription')
-              : t('products.noProductsInCategory')}
+              ? t('products.no_products_all')
+              : t('products.no_products_category')}
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,7 +105,7 @@ export default function ProductsPage() {
                       rel="noopener noreferrer sponsored"
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      {t('products.viewOnAmazon')}
+                      {t('products.view_on_amazon')}
                     </a>
                   </Button>
                 </CardContent>
