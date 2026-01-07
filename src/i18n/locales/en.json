@@ -19,6 +19,24 @@
     "upgrade": "Upgrade",
     "logout": "Log out"
   },
+  "nav": {
+    "overview": "Overview",
+    "trends": "Trends",
+    "diary": "Food Diary",
+    "cycle": "Cycle",
+    "sleep": "Sleep",
+    "movement": "Movement",
+    "meditations": "Meditations",
+    "recipes": "Recipes",
+    "products": "Products",
+    "education": "Education",
+    "community": "Community",
+    "nutrition_goals": "Nutrition Goals",
+    "admin": "Admin",
+    "account": "Account",
+    "settings": "Settings",
+    "premium": "Premium"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your preferences and privacy",
