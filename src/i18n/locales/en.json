@@ -895,7 +895,10 @@
       "cycle": "Cycle",
       "stress": "Stress",
       "tips": "Tips"
-    }
+    },
+    "language": "Language",
+    "all_languages": "All languages",
+    "post_language": "Post language"
   },
   "products": {
     "title": "Recommended Products",
