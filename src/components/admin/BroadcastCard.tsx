@@ -5,7 +5,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Send, Loader2, Users, CreditCard, Clock, UserX } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Send, Loader2, Users, CreditCard, Clock, UserX, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -18,12 +19,62 @@ const audienceOptions: { value: TargetAudience; label: string; icon: React.React
   { value: 'free', label: 'Gratis', icon: <UserX className="h-4 w-4" />, description: 'Gebruikers zonder actief abonnement' },
 ];
 
+// Brand colors from email template
+const BRAND_COLORS = {
+  primary: '#C4849B',
+  secondary: '#85576D',
+  background: '#FBF4F1',
+  accent: '#7BA356',
+  text: '#4A2D3A',
+  muted: '#6B4D5A',
+};
+
+function EmailPreview({ subject, message }: { subject: string; message: string }) {
+  return (
+    <div className="border rounded-lg overflow-hidden bg-[#FBF4F1]">
+      {/* Email header */}
+      <div 
+        className="p-6 text-center"
+        style={{ background: `linear-gradient(135deg, ${BRAND_COLORS.background} 0%, #FCE7F3 100%)` }}
+      >
+        <div className="text-2xl font-semibold" style={{ color: BRAND_COLORS.secondary }}>
+          Perimenopauze Plan
+        </div>
+      </div>
+      
+      {/* Email content */}
+      <div className="bg-white p-6" style={{ color: BRAND_COLORS.text }}>
+        <div className="mb-4 pb-2 border-b">
+          <p className="text-xs text-muted-foreground">Onderwerp:</p>
+          <p className="font-medium">{subject || '(geen onderwerp)'}</p>
+        </div>
+        
+        <div className="whitespace-pre-wrap leading-relaxed">
+          {message || '(geen bericht)'}
+        </div>
+        
+        <p className="mt-6">Hartelijke groet,<br/>Team Perimenopauze Plan</p>
+      </div>
+      
+      {/* Email footer */}
+      <div 
+        className="p-4 text-center text-xs"
+        style={{ backgroundColor: BRAND_COLORS.background, color: BRAND_COLORS.muted }}
+      >
+        <p>Perimenopauze Plan App</p>
+        <p>Speciaal voor vrouwen in de perimenopauze</p>
+      </div>
+    </div>
+  );
+}
+
 export function BroadcastCard() {
   const [subject, setSubject] = useState('');
   const [message, setMessage] = useState('');
   const [targetAudience, setTargetAudience] = useState<TargetAudience>('all');
   const [isSending, setIsSending] = useState(false);
   const [lastResult, setLastResult] = useState<{ sent: number; failed: number; total: number } | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const handleSend = async () => {
     if (!subject.trim() || !message.trim()) {
@@ -60,6 +111,8 @@ export function BroadcastCard() {
       setIsSending(false);
     }
   };
+
+  const canPreview = subject.trim() || message.trim();
 
   return (
     <Card className="glass rounded-2xl">
@@ -136,24 +189,47 @@ export function BroadcastCard() {
           </div>
         )}
 
-        {/* Send Button */}
-        <Button
-          onClick={handleSend}
-          disabled={isSending || !subject.trim() || !message.trim()}
-          className="w-full"
-        >
-          {isSending ? (
-            <>
-              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Versturen...
-            </>
-          ) : (
-            <>
-              <Send className="h-4 w-4 mr-2" />
-              Verstuur naar {audienceOptions.find(a => a.value === targetAudience)?.label}
-            </>
-          )}
-        </Button>
+        {/* Actions */}
+        <div className="flex gap-2">
+          {/* Preview Dialog */}
+          <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+            <DialogTrigger asChild>
+              <Button
+                variant="outline"
+                disabled={!canPreview}
+                className="flex-1"
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Email Preview</DialogTitle>
+              </DialogHeader>
+              <EmailPreview subject={subject} message={message} />
+            </DialogContent>
+          </Dialog>
+
+          {/* Send Button */}
+          <Button
+            onClick={handleSend}
+            disabled={isSending || !subject.trim() || !message.trim()}
+            className="flex-1"
+          >
+            {isSending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Versturen...
+              </>
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Verstuur
+              </>
+            )}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
