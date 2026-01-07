@@ -69,7 +69,7 @@ export function MovementWidget() {
             <div className="flex flex-wrap gap-2">
               {workout.exercises.slice(0, 3).map((exercise) => (
                 <Badge key={exercise.id} variant="secondary" className="text-sm py-1 px-3">
-                  {exercise.nameDutch}
+                  {t(exercise.nameKey)}
                 </Badge>
               ))}
               {workout.exercises.length > 3 && (

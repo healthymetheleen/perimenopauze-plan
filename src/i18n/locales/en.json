@@ -1723,5 +1723,123 @@
       "sat": "Sat",
       "sun": "Sun"
     }
+  },
+  "sleep_advice": {
+    "no_data": "Start tracking your sleep to get personalized advice.",
+    "duration_short": "You sleep an average of {{hours}} hours. Aim for 7-9 hours for optimal recovery, hormone balance and mood.",
+    "duration_long": "You sleep an average of {{hours}} hours. Excessive sleep may indicate underlying fatigue or sleep quality issues.",
+    "duration_good": "Well done! You sleep an average of {{hours}} hours, which is within the optimal range.",
+    "consistency_low": "Your sleep times vary a lot. Try going to bed and waking up at the same time every day, even on weekends.",
+    "consistency_high": "You have a consistent sleep rhythm. This supports your circadian rhythm and hormone balance.",
+    "quality_low": "Your sleep quality could be better. Consider: no screens 1 hour before bed, cool bedroom (60-65°F / 16-18°C), dark room.",
+    "bedtime_late": "You often go to sleep after midnight. This can disrupt your melatonin production. Try to be in bed before 11pm.",
+    "bedtime_early": "You go to sleep quite early. If you have trouble staying asleep, try going to bed a bit later.",
+    "general_tip": "Avoid caffeine after 2pm and alcohol close to bedtime - both disrupt your sleep architecture."
+  },
+  "exercises": {
+    "phases": {
+      "menstrual": "Menstruation",
+      "follicular": "Follicular phase",
+      "ovulatory": "Ovulation",
+      "luteal": "Luteal phase"
+    },
+    "phase_descriptions": {
+      "menstrual": "Rest and recovery are central. Gentle, restorative exercises to help you relax.",
+      "follicular": "Your energy is growing! Time for dynamic exercises that build strength and flexibility.",
+      "ovulatory": "Peak of energy and strength. Challenging exercises that push your limits.",
+      "luteal": "Time to slow down. Focus on stretching, breathing, and stress relief."
+    },
+    "intensity": {
+      "low": "Low",
+      "moderate": "Moderate",
+      "high": "High"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "items": {
+      "child-pose": {
+        "name": "Child's Pose",
+        "description": "Kneel on the floor, bring your toes together and spread your knees. Bend forward and stretch your arms in front of you or along your body.",
+        "benefits": ["Relaxes the lower back", "Calms the nervous system", "Helps with menstrual pain"]
+      },
+      "supine-twist": {
+        "name": "Supine Twist",
+        "description": "Lie on your back, pull one knee to your chest and let it fall to the opposite side. Look in the other direction.",
+        "benefits": ["Relaxes the lower back", "Stimulates digestion", "Relieves tension"]
+      },
+      "legs-up-wall": {
+        "name": "Legs Up the Wall",
+        "description": "Lie on your back with your legs vertically against a wall. Relax completely.",
+        "benefits": ["Improves blood circulation", "Reduces swelling", "Deeply relaxing"]
+      },
+      "cat-cow": {
+        "name": "Cat-Cow Stretch",
+        "description": "On hands and knees, alternate between a hollow back (cow) and a rounded back (cat) with your breath.",
+        "benefits": ["Makes the spine supple", "Relieves back pain", "Calming"]
+      },
+      "sun-salutation": {
+        "name": "Sun Salutation",
+        "description": "A dynamic series of poses that activates the whole body. Start slowly and build up.",
+        "benefits": ["Increases energy", "Strengthens muscles", "Improves flexibility"]
+      },
+      "warrior-2": {
+        "name": "Warrior II",
+        "description": "Stand with legs wide, turn one foot 90 degrees and bend that knee. Stretch your arms to the sides.",
+        "benefits": ["Strengthens legs", "Opens hips", "Builds focus"]
+      },
+      "triangle-pose": {
+        "name": "Triangle Pose",
+        "description": "From a wide stance, bend sideways toward one foot while your arms form a vertical line.",
+        "benefits": ["Stretches side body", "Strengthens legs", "Improves balance"]
+      },
+      "boat-pose": {
+        "name": "Boat Pose",
+        "description": "Sit with bent knees, lift your feet off the ground and balance on your sit bones with arms extended.",
+        "benefits": ["Strengthens core", "Improves balance", "Stimulates digestion"]
+      },
+      "crow-pose": {
+        "name": "Crow Pose",
+        "description": "Balance on your hands with your knees resting on your upper arms. A challenging arm balance.",
+        "benefits": ["Builds strength", "Improves focus", "Increases confidence"]
+      },
+      "headstand-prep": {
+        "name": "Headstand Prep",
+        "description": "Dolphin pose with forehead on the floor. Build strength for headstand.",
+        "benefits": ["Strengthens shoulders", "Improves blood circulation", "Energizing"]
+      },
+      "wheel-pose": {
+        "name": "Wheel Pose",
+        "description": "Deep backbend with hands and feet on the floor, body arched upward.",
+        "benefits": ["Opens chest and shoulders", "Energizing", "Strengthens back"]
+      },
+      "dancer-pose": {
+        "name": "Dancer's Pose",
+        "description": "Stand on one leg, grab the other ankle and stretch backward while bending forward.",
+        "benefits": ["Improves balance", "Opens shoulders", "Strengthens legs"]
+      },
+      "pigeon-pose": {
+        "name": "Pigeon Pose",
+        "description": "From plank, bring one knee forward and extend the other leg back. Bend forward.",
+        "benefits": ["Opens hips", "Relieves tension", "Emotionally liberating"]
+      },
+      "seated-forward-fold": {
+        "name": "Seated Forward Fold",
+        "description": "Sit with legs extended and bend forward from your hips toward your feet.",
+        "benefits": ["Calms nervous system", "Stretches hamstrings", "Relieves stress"]
+      },
+      "supported-bridge": {
+        "name": "Supported Bridge",
+        "description": "Lie on your back, feet flat on the floor, lift your hips and place a block underneath.",
+        "benefits": ["Opens chest", "Relaxes lower back", "Calming"]
+      },
+      "reclined-butterfly": {
+        "name": "Reclined Butterfly",
+        "description": "Lie on your back, bring the soles of your feet together and let your knees fall to the sides.",
+        "benefits": ["Opens hips", "Relieves menstrual complaints", "Deeply relaxing"]
+      }
+    }
   }
 }

@@ -1582,5 +1582,123 @@
       "sat": "Za",
       "sun": "Zo"
     }
+  },
+  "sleep_advice": {
+    "no_data": "Begin met het bijhouden van je slaap om persoonlijke adviezen te krijgen.",
+    "duration_short": "Je slaapt gemiddeld {{hours}} uur. Streef naar 7-9 uur voor optimaal herstel, hormoonbalans en stemming.",
+    "duration_long": "Je slaapt gemiddeld {{hours}} uur. Overmatig slapen kan wijzen op onderliggende vermoeidheid of slaapkwaliteitsproblemen.",
+    "duration_good": "Goed bezig! Je slaapt gemiddeld {{hours}} uur, dat valt binnen het optimale bereik.",
+    "consistency_low": "Je slaaptijden variëren sterk. Probeer elke dag op dezelfde tijd naar bed te gaan en op te staan, ook in het weekend.",
+    "consistency_high": "Je hebt een consistent slaapritme. Dit ondersteunt je circadiane ritme en hormoonbalans.",
+    "quality_low": "Je slaapkwaliteit kan beter. Overweeg: geen schermen 1 uur voor bed, koele slaapkamer (16-18°C), donkere kamer.",
+    "bedtime_late": "Je gaat vaak na middernacht slapen. Dit kan je melatonineproductie verstoren. Probeer voor 23:00 in bed te liggen.",
+    "bedtime_early": "Je gaat vrij vroeg slapen. Als je moeite hebt met doorslapen, probeer iets later naar bed te gaan.",
+    "general_tip": "Vermijd cafeïne na 14:00 en alcohol dicht voor het slapen - beide verstoren je slaaparchitectuur."
+  },
+  "exercises": {
+    "phases": {
+      "menstrual": "Menstruatie",
+      "follicular": "Folliculaire fase",
+      "ovulatory": "Ovulatie",
+      "luteal": "Luteale fase"
+    },
+    "phase_descriptions": {
+      "menstrual": "Rust en herstel staan centraal. Zachte, herstellende oefeningen die je helpen ontspannen.",
+      "follicular": "Je energie groeit! Tijd voor dynamische oefeningen die kracht en flexibiliteit opbouwen.",
+      "ovulatory": "Piek van energie en kracht. Uitdagende oefeningen die je grenzen verleggen.",
+      "luteal": "Tijd om te vertragen. Focus op stretching, ademhaling en stressverlichting."
+    },
+    "intensity": {
+      "low": "Laag",
+      "moderate": "Gemiddeld",
+      "high": "Hoog"
+    },
+    "difficulty": {
+      "beginner": "Beginner",
+      "intermediate": "Gemiddeld",
+      "advanced": "Gevorderd"
+    },
+    "items": {
+      "child-pose": {
+        "name": "Kindhouding",
+        "description": "Kniel op de grond, breng je tenen samen en spreid je knieën. Buig voorover en strek je armen voor je uit of langs je lichaam.",
+        "benefits": ["Ontspant de onderrug", "Kalmeert het zenuwstelsel", "Helpt bij menstruatiepijn"]
+      },
+      "supine-twist": {
+        "name": "Liggende Draai",
+        "description": "Lig op je rug, trek één knie naar je borst en laat deze naar de tegenovergestelde kant zakken. Kijk naar de andere kant.",
+        "benefits": ["Ontspant de onderrug", "Stimuleert spijsvertering", "Verlicht spanning"]
+      },
+      "legs-up-wall": {
+        "name": "Benen tegen de Muur",
+        "description": "Lig op je rug met je benen verticaal tegen een muur. Ontspan volledig.",
+        "benefits": ["Verbetert bloedcirculatie", "Vermindert zwelling", "Diep ontspannend"]
+      },
+      "cat-cow": {
+        "name": "Kat-Koe Stretch",
+        "description": "Op handen en knieën, wissel tussen een holle rug (koe) en een bolle rug (kat) op je ademhaling.",
+        "benefits": ["Maakt de wervelkolom soepel", "Verlicht rugpijn", "Kalmerend"]
+      },
+      "sun-salutation": {
+        "name": "Zonnegroet",
+        "description": "Een dynamische reeks van poses die het hele lichaam activeert. Begin langzaam en bouw op.",
+        "benefits": ["Verhoogt energie", "Versterkt spieren", "Verbetert flexibiliteit"]
+      },
+      "warrior-2": {
+        "name": "Krijger II",
+        "description": "Sta met benen wijd, draai één voet 90 graden en buig die knie. Strek je armen naar de zijkanten.",
+        "benefits": ["Versterkt benen", "Opent heupen", "Bouwt focus"]
+      },
+      "triangle-pose": {
+        "name": "Driehoek",
+        "description": "Vanuit brede stand, buig zijwaarts naar één voet terwijl je armen een verticale lijn vormen.",
+        "benefits": ["Stretcht zijkant", "Versterkt benen", "Verbetert balans"]
+      },
+      "boat-pose": {
+        "name": "Boothouding",
+        "description": "Zit met gebogen knieën, til je voeten van de grond en balanceer op je zitbotten met gestrekte armen.",
+        "benefits": ["Versterkt core", "Verbetert balans", "Stimuleert spijsvertering"]
+      },
+      "crow-pose": {
+        "name": "Kraaihouding",
+        "description": "Balanceer op je handen met je knieën rustend op je bovenarm. Een uitdagende armbalans.",
+        "benefits": ["Bouwt kracht", "Verbetert focus", "Verhoogt zelfvertrouwen"]
+      },
+      "headstand-prep": {
+        "name": "Hoofdstand Voorbereiding",
+        "description": "Dolfijnhouding met voorhoofd op de grond. Bouw kracht op voor hoofdstand.",
+        "benefits": ["Versterkt schouders", "Verbetert bloedcirculatie", "Energizerend"]
+      },
+      "wheel-pose": {
+        "name": "Wielhouding",
+        "description": "Diepe achterwaartse buiging met handen en voeten op de grond, lichaam omhoog.",
+        "benefits": ["Opent borst en schouders", "Energizerend", "Versterkt rug"]
+      },
+      "dancer-pose": {
+        "name": "Dansershouding",
+        "description": "Sta op één been, pak de andere enkel vast en strek naar achteren terwijl je voorover buigt.",
+        "benefits": ["Verbetert balans", "Opent schouders", "Versterkt benen"]
+      },
+      "pigeon-pose": {
+        "name": "Duifhouding",
+        "description": "Vanuit plank, breng één knie naar voren en strek het andere been naar achteren. Buig voorover.",
+        "benefits": ["Opent heupen", "Verlicht spanning", "Emotioneel bevrijdend"]
+      },
+      "seated-forward-fold": {
+        "name": "Zittende Vooroverbuiging",
+        "description": "Zit met gestrekte benen en buig vanuit je heupen voorover naar je voeten.",
+        "benefits": ["Kalmeert zenuwstelsel", "Stretcht hamstrings", "Verlicht stress"]
+      },
+      "supported-bridge": {
+        "name": "Ondersteunde Brug",
+        "description": "Lig op je rug, voeten plat op de grond, til je heupen en plaats een blok eronder.",
+        "benefits": ["Opent borst", "Ontspant onderrug", "Kalmerend"]
+      },
+      "reclined-butterfly": {
+        "name": "Liggende Vlinder",
+        "description": "Lig op je rug, breng je voetzolen samen en laat je knieën naar de zijkanten zakken.",
+        "benefits": ["Opent heupen", "Verlicht menstruele klachten", "Diep ontspannend"]
+      }
+    }
   }
 }

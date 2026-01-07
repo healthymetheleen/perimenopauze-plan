@@ -276,34 +276,34 @@ export function calculateSleepScore(sessions: SleepSession[]): number {
   return Math.round((durationScore * 0.4) + (qualityScore * 0.35) + (consistencyScore * 0.25));
 }
 
-// Generate personalized sleep advice
-export function generateSleepAdvice(sessions: SleepSession[]): string[] {
+// Generate personalized sleep advice keys for i18n
+export function generateSleepAdviceKeys(sessions: SleepSession[]): { key: string; params?: Record<string, string | number> }[] {
   const stats = calculateSleepStats(sessions);
-  const advice: string[] = [];
+  const advice: { key: string; params?: Record<string, string | number> }[] = [];
   
   if (stats.totalSessions === 0) {
-    return ['Begin met het bijhouden van je slaap om persoonlijke adviezen te krijgen.'];
+    return [{ key: 'sleep_advice.no_data' }];
   }
   
   // Duration advice
   if (stats.avgDurationHours < 7) {
-    advice.push(`Je slaapt gemiddeld ${stats.avgDurationHours.toFixed(1)} uur. Streef naar 7-9 uur voor optimaal herstel, hormoonbalans en stemming.`);
+    advice.push({ key: 'sleep_advice.duration_short', params: { hours: stats.avgDurationHours.toFixed(1) } });
   } else if (stats.avgDurationHours > 9) {
-    advice.push(`Je slaapt gemiddeld ${stats.avgDurationHours.toFixed(1)} uur. Overmatig slapen kan wijzen op onderliggende vermoeidheid of slaapkwaliteitsproblemen.`);
+    advice.push({ key: 'sleep_advice.duration_long', params: { hours: stats.avgDurationHours.toFixed(1) } });
   } else {
-    advice.push(`Goed bezig! Je slaapt gemiddeld ${stats.avgDurationHours.toFixed(1)} uur, dat valt binnen het optimale bereik.`);
+    advice.push({ key: 'sleep_advice.duration_good', params: { hours: stats.avgDurationHours.toFixed(1) } });
   }
   
   // Consistency advice
   if (stats.consistency < 70) {
-    advice.push('Je slaaptijden variëren sterk. Probeer elke dag op dezelfde tijd naar bed te gaan en op te staan, ook in het weekend.');
+    advice.push({ key: 'sleep_advice.consistency_low' });
   } else if (stats.consistency >= 85) {
-    advice.push('Je hebt een consistent slaapritme. Dit ondersteunt je circadiane ritme en hormoonbalans.');
+    advice.push({ key: 'sleep_advice.consistency_high' });
   }
   
   // Quality advice
   if (stats.avgQuality > 0 && stats.avgQuality < 6) {
-    advice.push('Je slaapkwaliteit kan beter. Overweeg: geen schermen 1 uur voor bed, koele slaapkamer (16-18°C), donkere kamer.');
+    advice.push({ key: 'sleep_advice.quality_low' });
   }
   
   // Bedtime advice
@@ -311,17 +311,15 @@ export function generateSleepAdvice(sessions: SleepSession[]): string[] {
     const bedtimeHour = parseInt(stats.avgBedtime.split(':')[0]);
     if (bedtimeHour >= 0 && bedtimeHour < 6) {
       // After midnight
-      advice.push('Je gaat vaak na middernacht slapen. Dit kan je melatonineproductie verstoren. Probeer voor 23:00 in bed te liggen.');
-    } else if (bedtimeHour >= 23 || bedtimeHour < 6) {
-      // Good bedtime range
+      advice.push({ key: 'sleep_advice.bedtime_late' });
     } else if (bedtimeHour < 21) {
-      advice.push('Je gaat vrij vroeg slapen. Als je moeite hebt met doorslapen, probeer iets later naar bed te gaan.');
+      advice.push({ key: 'sleep_advice.bedtime_early' });
     }
   }
   
   // General tips if we have few specific issues
   if (advice.length < 3) {
-    advice.push('Vermijd cafeïne na 14:00 en alcohol dicht voor het slapen - beide verstoren je slaaparchitectuur.');
+    advice.push({ key: 'sleep_advice.general_tip' });
   }
   
   return advice.slice(0, 4); // Max 4 pieces of advice
