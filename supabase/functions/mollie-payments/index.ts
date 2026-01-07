@@ -1176,6 +1176,64 @@ serve(async (req) => {
         });
       }
 
+      case 'get-payment-history': {
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Get Mollie customer ID from database
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('mollie_customer_id')
+          .eq('owner_id', user.id)
+          .single();
+
+        if (!subData?.mollie_customer_id) {
+          return new Response(JSON.stringify({ payments: [] }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Fetch payments from Mollie for this customer
+        const response = await fetch(
+          `${MOLLIE_API_URL}/customers/${subData.mollie_customer_id}/payments?limit=50`,
+          {
+            headers: {
+              'Authorization': `Bearer ${mollieApiKey}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          console.error('Mollie API error:', { status: response.status, endpoint: 'get-customer-payments' });
+          return new Response(JSON.stringify({ payments: [] }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const data = await response.json();
+        const payments = (data._embedded?.payments || [])
+          .filter((p: any) => p.status === 'paid')
+          .map((p: any) => ({
+            id: p.id,
+            amount: p.amount.value,
+            currency: p.amount.currency,
+            description: p.description,
+            status: p.status,
+            paidAt: p.paidAt,
+            method: p.method,
+            // Generate a simple invoice reference
+            invoiceRef: `INV-${p.id.replace('tr_', '').toUpperCase()}`,
+          }));
+
+        return new Response(JSON.stringify({ payments }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       default:
         return new Response(JSON.stringify({ error: 'Unknown endpoint' }), {
           status: 404,

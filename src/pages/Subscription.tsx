@@ -5,6 +5,7 @@ import {
 } from 'lucide-react';
 import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
 import { RefundRequestCard } from '@/components/subscription/RefundRequestCard';
+import { PaymentHistoryCard } from '@/components/subscription/PaymentHistoryCard';
 import { differenceInDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -236,6 +237,9 @@ export default function SubscriptionPage() {
                 </div>
 
                 <Separator />
+
+                {/* Payment history section */}
+                <PaymentHistoryCard />
 
                 {/* Refund request section */}
                 <RefundRequestCard />
