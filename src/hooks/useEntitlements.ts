@@ -104,8 +104,8 @@ export function useFeatureAccess(feature: 'trends' | 'patterns' | 'export' | 'ai
     switch (feature) {
       case 'trends': return hasFullAccess;
       case 'patterns': return hasFullAccess;
-      case 'export': return hasFullAccess;
-      case 'ai': return hasFullAccess;
+      case 'export': return true; // Always available (GDPR right)
+      case 'ai': return isPremium; // AI only for premium, NOT trial
       default: return false;
     }
   })();
