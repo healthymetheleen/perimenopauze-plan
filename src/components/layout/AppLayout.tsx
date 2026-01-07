@@ -1,5 +1,6 @@
 import { ReactNode, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import {
   Home,
   CalendarDays,
@@ -36,28 +37,28 @@ const UNLOCKED_PATHS = ['/subscription', '/account', '/settings', '/login', '/co
 
 interface NavItem {
   href: string;
-  label: string;
+  labelKey: string;
   icon: ReactNode;
   premium?: boolean;
   adminOnly?: boolean;
 }
 
 const baseNavItems: NavItem[] = [
-  { href: '/dashboard', label: 'Overzicht', icon: <Home className="h-5 w-5" /> },
-  { href: '/trends', label: 'Trends', icon: <TrendingUp className="h-5 w-5" /> },
-  { href: '/diary', label: 'Eetdagboek', icon: <CalendarDays className="h-5 w-5" /> },
-  { href: '/cycle', label: 'Cyclus', icon: <Flower2 className="h-5 w-5" /> },
-  { href: '/slaap', label: 'Slaap', icon: <Moon className="h-5 w-5" /> },
-  { href: '/bewegen', label: 'Bewegen', icon: <Dumbbell className="h-5 w-5" /> },
-  { href: '/meditatie', label: 'Meditaties', icon: <Heart className="h-5 w-5" /> },
-  { href: '/recepten', label: 'Recepten', icon: <ChefHat className="h-5 w-5" /> },
-  { href: '/producten', label: 'Producten', icon: <ShoppingBag className="h-5 w-5" /> },
-  { href: '/educatie', label: 'Educatie', icon: <BookOpen className="h-5 w-5" /> },
-  { href: '/community', label: 'Community', icon: <Users className="h-5 w-5" /> },
-  { href: '/voeding-beheer', label: 'Voedingsdoelen', icon: <Settings className="h-5 w-5" />, adminOnly: true },
-  { href: '/admin', label: 'Admin', icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
-  { href: '/account', label: 'Account', icon: <User className="h-5 w-5" /> },
-  { href: '/settings', label: 'Instellingen', icon: <Settings className="h-5 w-5" /> },
+  { href: '/dashboard', labelKey: 'nav.overview', icon: <Home className="h-5 w-5" /> },
+  { href: '/trends', labelKey: 'nav.trends', icon: <TrendingUp className="h-5 w-5" /> },
+  { href: '/diary', labelKey: 'nav.diary', icon: <CalendarDays className="h-5 w-5" /> },
+  { href: '/cycle', labelKey: 'nav.cycle', icon: <Flower2 className="h-5 w-5" /> },
+  { href: '/slaap', labelKey: 'nav.sleep', icon: <Moon className="h-5 w-5" /> },
+  { href: '/bewegen', labelKey: 'nav.movement', icon: <Dumbbell className="h-5 w-5" /> },
+  { href: '/meditatie', labelKey: 'nav.meditations', icon: <Heart className="h-5 w-5" /> },
+  { href: '/recepten', labelKey: 'nav.recipes', icon: <ChefHat className="h-5 w-5" /> },
+  { href: '/producten', labelKey: 'nav.products', icon: <ShoppingBag className="h-5 w-5" /> },
+  { href: '/educatie', labelKey: 'nav.education', icon: <BookOpen className="h-5 w-5" /> },
+  { href: '/community', labelKey: 'nav.community', icon: <Users className="h-5 w-5" /> },
+  { href: '/voeding-beheer', labelKey: 'nav.nutrition_goals', icon: <Settings className="h-5 w-5" />, adminOnly: true },
+  { href: '/admin', labelKey: 'nav.admin', icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
+  { href: '/account', labelKey: 'nav.account', icon: <User className="h-5 w-5" /> },
+  { href: '/settings', labelKey: 'nav.settings', icon: <Settings className="h-5 w-5" /> },
 ];
 
 interface AppLayoutProps {

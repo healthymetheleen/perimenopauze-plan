@@ -19,6 +19,24 @@
     "upgrade": "Upgraden",
     "logout": "Uitloggen"
   },
+  "nav": {
+    "overview": "Overzicht",
+    "trends": "Trends",
+    "diary": "Eetdagboek",
+    "cycle": "Cyclus",
+    "sleep": "Slaap",
+    "movement": "Bewegen",
+    "meditations": "Meditaties",
+    "recipes": "Recepten",
+    "products": "Producten",
+    "education": "Educatie",
+    "community": "Community",
+    "nutrition_goals": "Voedingsdoelen",
+    "admin": "Admin",
+    "account": "Account",
+    "settings": "Instellingen",
+    "premium": "Premium"
+  },
   "settings": {
     "title": "Instellingen",
     "subtitle": "Beheer je voorkeuren en privacy",
