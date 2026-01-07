@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Dumbbell, Play, Clock, Flame, ChevronRight, 
   Calendar, Settings, Snowflake, Leaf, Sun, Wind,
@@ -98,6 +99,7 @@ function generatePersonalizedSchedule(
 }
 
 export default function MovementPage() {
+  const { t } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const { data: cyclePrefs } = useCyclePreferences();
   
@@ -135,9 +137,9 @@ export default function MovementPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-gradient">Bewegen</h1>
+            <h1 className="text-2xl font-semibold text-gradient">{t('movement.title')}</h1>
             <p className="text-muted-foreground">
-              Yoga & beweging afgestemd op je cyclus
+              {t('movement.subtitle')}
             </p>
           </div>
           <Dialog open={prefsDialogOpen} onOpenChange={setPrefsDialogOpen}>
@@ -148,11 +150,11 @@ export default function MovementPage() {
             </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Trainingsvoorkeuren</DialogTitle>
+                <DialogTitle>{t('movement.trainingPreferences')}</DialogTitle>
               </DialogHeader>
               <div className="space-y-6 py-4">
                 <div className="space-y-3">
-                  <Label>Trainingsdagen per week: {trainingPrefs.sessionsPerWeek}</Label>
+                  <Label>{t('movement.daysPerWeek')}: {trainingPrefs.sessionsPerWeek}</Label>
                   <Slider
                     value={[trainingPrefs.sessionsPerWeek]}
                     onValueChange={([v]) => setTrainingPrefs(p => ({ ...p, sessionsPerWeek: v }))}
@@ -162,7 +164,7 @@ export default function MovementPage() {
                   />
                 </div>
                 <div className="space-y-3">
-                  <Label>Minuten per sessie: {trainingPrefs.minutesPerSession}</Label>
+                  <Label>{t('movement.minutesPerSession')}: {trainingPrefs.minutesPerSession}</Label>
                   <Slider
                     value={[trainingPrefs.minutesPerSession]}
                     onValueChange={([v]) => setTrainingPrefs(p => ({ ...p, minutesPerSession: v }))}
@@ -174,7 +176,7 @@ export default function MovementPage() {
                 
                 {/* Day exclusion */}
                 <div className="space-y-3">
-                  <Label>Dagen uitsluiten (nooit trainen)</Label>
+                  <Label>{t('movement.excludeDays')}</Label>
                   <div className="grid grid-cols-2 gap-2">
                     {allDays.map(day => (
                       <div key={day} className="flex items-center space-x-2">
@@ -193,12 +195,12 @@ export default function MovementPage() {
                     ))}
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Uitgesloten dagen worden overgeslagen in je weekschema.
+                    {t('movement.excludedDaysNote')}
                   </p>
                 </div>
                 
                 <Button onClick={() => setPrefsDialogOpen(false)} className="w-full btn-gradient">
-                  Opslaan
+                  {t('movement.save')}
                 </Button>
               </div>
             </DialogContent>
@@ -233,7 +235,7 @@ export default function MovementPage() {
                     </div>
                     <div className="flex items-center gap-1">
                       <Target className="h-4 w-4 text-muted-foreground" />
-                      <span>{currentWorkout.exercises.length} oefeningen</span>
+                      <span>{currentWorkout.exercises.length} {t('movement.exercises')}</span>
                     </div>
                   </div>
                 </div>
@@ -247,10 +249,10 @@ export default function MovementPage() {
           <CardHeader className="pb-3">
             <CardTitle className="text-base flex items-center gap-2">
               <Calendar className="h-5 w-5 text-primary" />
-              Jouw weekschema
+              {t('movement.yourSchedule')}
             </CardTitle>
             <CardDescription>
-              Aangepast aan je cyclusfase: {seasonLabels[currentSeason]}
+              {t('movement.adjustedToPhase')}: {seasonLabels[currentSeason]}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
@@ -274,12 +276,12 @@ export default function MovementPage() {
                     </Badge>
                   ) : trainingPrefs.excludedDays?.includes(day.day) ? (
                     <Badge variant="outline" className="text-muted-foreground">
-                      Uitgesloten
+                      {t('movement.excluded')}
                     </Badge>
                   ) : (
                     <Badge variant="outline" className="text-muted-foreground">
                       <Heart className="h-3 w-3 mr-1" />
-                      Rustdag
+                      {t('movement.restDay')}
                     </Badge>
                   )}
                 </div>
@@ -309,8 +311,8 @@ export default function MovementPage() {
             ))}
             
             <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t">
-              <span>{workoutDays}x per week</span>
-              <span>Totaal: {totalMinutes} min</span>
+              <span>{workoutDays}x {t('movement.perWeek')}</span>
+              <span>{t('movement.total')}: {totalMinutes} min</span>
             </div>
           </CardContent>
         </Card>
@@ -410,14 +412,14 @@ export default function MovementPage() {
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-2">Uitvoering</h4>
+                    <h4 className="font-medium mb-2">{t('movement.execution')}</h4>
                     <p className="text-sm text-muted-foreground">
                       {selectedExercise.description}
                     </p>
                   </div>
                   
                   <div>
-                    <h4 className="font-medium mb-2">Voordelen</h4>
+                    <h4 className="font-medium mb-2">{t('movement.benefits')}</h4>
                     <ul className="space-y-1">
                       {selectedExercise.benefits.map((benefit, i) => (
                         <li key={i} className="flex items-center gap-2 text-sm">

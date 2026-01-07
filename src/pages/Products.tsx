@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ExternalLink, Tag } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useAffiliateProductsByCategory, useCategories } from '@/hooks/useAffiliateProducts';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,6 +12,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function ProductsPage() {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState('alle');
   const { data: products, isLoading } = useAffiliateProductsByCategory(selectedCategory);
   const { data: categories } = useCategories();
@@ -19,9 +21,9 @@ export default function ProductsPage() {
     <AppLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Aanbevolen Producten</h1>
+          <h1 className="text-2xl font-bold">{t('products.title')}</h1>
           <p className="text-muted-foreground mt-1">
-            Producten die ik zelf gebruik en aanbeveel
+            {t('products.subtitle')}
           </p>
         </div>
 
@@ -29,9 +31,7 @@ export default function ProductsPage() {
         <Alert>
           <Tag className="h-4 w-4" />
           <AlertDescription>
-            <strong>Affiliate-melding:</strong> Deze pagina bevat affiliate-links. 
-            Wanneer je via deze links een aankoop doet, ontvang ik een kleine commissie 
-            zonder extra kosten voor jou. Dit helpt mij om deze app te blijven ontwikkelen. Bedankt voor je steun!
+            <strong>{t('products.affiliateNotice')}:</strong> {t('products.affiliateDescription')}
           </AlertDescription>
         </Alert>
 
@@ -39,7 +39,7 @@ export default function ProductsPage() {
         {categories && categories.length > 1 && (
           <Tabs value={selectedCategory} onValueChange={setSelectedCategory}>
             <TabsList>
-              <TabsTrigger value="alle">Alle</TabsTrigger>
+              <TabsTrigger value="alle">{t('products.all')}</TabsTrigger>
               {categories.map((cat) => (
                 <TabsTrigger key={cat} value={cat} className="capitalize">
                   {cat}
@@ -51,14 +51,14 @@ export default function ProductsPage() {
 
         {/* Products grid */}
         {isLoading ? (
-          <LoadingState message="Producten laden..." />
+          <LoadingState message={t('products.loading')} />
         ) : !products?.length ? (
           <EmptyState
             icon={<Tag className="h-12 w-12" />}
-            title="Geen producten gevonden"
+            title={t('products.noProducts')}
             description={selectedCategory === 'alle' 
-              ? "Er zijn nog geen producten toegevoegd."
-              : "Er zijn geen producten in deze categorie."}
+              ? t('products.noProductsDescription')
+              : t('products.noProductsInCategory')}
           />
         ) : (
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -105,7 +105,7 @@ export default function ProductsPage() {
                       rel="noopener noreferrer sponsored"
                     >
                       <ExternalLink className="mr-2 h-4 w-4" />
-                      Bekijk op Amazon
+                      {t('products.viewOnAmazon')}
                     </a>
                   </Button>
                 </CardContent>
