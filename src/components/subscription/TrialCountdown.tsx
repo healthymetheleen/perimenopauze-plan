@@ -68,6 +68,7 @@ export function TrialCountdown() {
 }
 
 export function TrialBadge() {
+  const { t } = useTranslation();
   const { data: subscription } = useSubscription();
   const { data: entitlements } = useEntitlements();
 
@@ -100,7 +101,7 @@ export function TrialBadge() {
       ) : (
         <Sparkles className="h-3 w-3" />
       )}
-      Trial: {daysRemaining}d
+      {t('trial.badge_days', { days: daysRemaining })}
     </div>
   );
 }

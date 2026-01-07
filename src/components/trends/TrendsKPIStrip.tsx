@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   Database, Moon, Utensils, Flame, Drumstick, Leaf, 
   Clock, Coffee, ChevronDown, AlertCircle
@@ -53,15 +54,33 @@ function KPICard({
 }
 
 export function TrendsKPIStrip({ kpis, period }: TrendsKPIStripProps) {
+  const { t, i18n } = useTranslation();
   const [showMissing, setShowMissing] = useState(false);
   
-  const completenessLabel = `${kpis.dataCompleteness.logged} van ${kpis.dataCompleteness.total} dagen`;
+  const isEnglish = i18n.language === 'en';
+  
+  const completenessLabel = t('trends.kpi_days_logged', { 
+    logged: kpis.dataCompleteness.logged, 
+    total: kpis.dataCompleteness.total 
+  });
+  
   const sleepLabel = kpis.sleepAvg.trend 
-    ? `${kpis.sleepAvg.hours.toFixed(1)} uur`
-    : 'Geen data';
+    ? t('trends.kpi_hours', { hours: kpis.sleepAvg.hours.toFixed(1) })
+    : t('common.no_data');
+  
   const caloriesLabel = kpis.caloriesAvg.max > 0 
     ? `${kpis.caloriesAvg.min}–${kpis.caloriesAvg.max}`
-    : 'Geen data';
+    : t('common.no_data');
+
+  // Translate missing items
+  const translateMissing = (item: string) => {
+    const map: Record<string, string> = {
+      'maaltijden': t('trends.missing_meals'),
+      'slaap': t('trends.missing_sleep'),
+      'klachten': t('trends.missing_symptoms'),
+    };
+    return map[item] || item;
+  };
 
   return (
     <Collapsible open={showMissing} onOpenChange={setShowMissing}>
@@ -71,7 +90,7 @@ export function TrendsKPIStrip({ kpis, period }: TrendsKPIStripProps) {
             <div>
               <KPICard 
                 icon={Database}
-                label="Data"
+                label={t('trends.kpi_data')}
                 value={completenessLabel}
                 flag={kpis.dataCompleteness.missing.length > 0}
               />
@@ -80,54 +99,51 @@ export function TrendsKPIStrip({ kpis, period }: TrendsKPIStripProps) {
           
           <KPICard 
             icon={Moon}
-            label="Slaap gem."
+            label={t('trends.kpi_sleep')}
             value={sleepLabel}
-            subValue={kpis.sleepAvg.trend === 'up' ? '↑ goed' : kpis.sleepAvg.trend === 'down' ? '↓ kort' : undefined}
+            subValue={kpis.sleepAvg.trend === 'up' ? '↑' : kpis.sleepAvg.trend === 'down' ? '↓' : undefined}
           />
           
           <KPICard 
             icon={Utensils}
-            label="Eetmomenten"
-            value={kpis.eatingMomentsAvg.count > 0 ? `${kpis.eatingMomentsAvg.count}x/dag` : '-'}
+            label={isEnglish ? 'Meals' : 'Eetmomenten'}
+            value={kpis.eatingMomentsAvg.count > 0 ? `${kpis.eatingMomentsAvg.count}x/${isEnglish ? 'day' : 'dag'}` : '-'}
             flag={kpis.eatingMomentsAvg.flag}
-            subValue={kpis.eatingMomentsAvg.flag ? 'Veel momenten' : undefined}
           />
           
           <KPICard 
             icon={Flame}
-            label="Calorieën"
+            label={t('trends.kpi_calories')}
             value={caloriesLabel}
-            subValue="range"
           />
         </div>
         
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           <KPICard 
             icon={Drumstick}
-            label="Eiwit/dag"
+            label={t('trends.kpi_protein')}
             value={kpis.proteinAvg.grams > 0 ? `${kpis.proteinAvg.grams}g` : '-'}
             subValue={kpis.proteinAvg.perKg ? `${kpis.proteinAvg.perKg}g/kg` : undefined}
           />
           
           <KPICard 
             icon={Leaf}
-            label="Vezels/dag"
+            label={t('trends.kpi_fiber')}
             value={kpis.fiberAvg.grams > 0 ? `${kpis.fiberAvg.grams}g` : '-'}
-            subValue={kpis.fiberAvg.trend === 'up' ? '↑' : kpis.fiberAvg.trend === 'down' ? '↓ laag' : undefined}
+            subValue={kpis.fiberAvg.trend === 'up' ? '↑' : kpis.fiberAvg.trend === 'down' ? '↓' : undefined}
             flag={kpis.fiberAvg.trend === 'down'}
           />
           
           <KPICard 
             icon={Clock}
-            label="Laatste maaltijd"
+            label={t('trends.last_meal')}
             value={kpis.lastMealAvg.time || '-'}
-            subValue="gemiddeld"
           />
           
           <KPICard 
             icon={Coffee}
-            label="Cafeïne na 14u"
-            value={`${kpis.caffeineAfter14.days} dagen`}
+            label={t('trends.kpi_caffeine')}
+            value={t('trends.kpi_after_14', { days: kpis.caffeineAfter14.days })}
             flag={kpis.caffeineAfter14.days > 3}
           />
         </div>
@@ -137,17 +153,19 @@ export function TrendsKPIStrip({ kpis, period }: TrendsKPIStripProps) {
             <div className="p-3 rounded-xl bg-muted/50 border border-warning/30">
               <p className="text-sm font-medium flex items-center gap-2 mb-2">
                 <AlertCircle className="h-4 w-4 text-warning" />
-                Wat ontbreekt
+                {t('trends.kpi_missing', { items: '' })}
               </p>
               <div className="flex flex-wrap gap-2">
                 {kpis.dataCompleteness.missing.map(item => (
                   <Badge key={item} variant="outline" className="capitalize">
-                    {item}
+                    {translateMissing(item)}
                   </Badge>
                 ))}
               </div>
               <p className="text-xs text-muted-foreground mt-2">
-                Meer data = betrouwbaardere inzichten. Log dagelijks voor de beste analyse.
+                {isEnglish 
+                  ? 'More data = more reliable insights. Log daily for the best analysis.'
+                  : 'Meer data = betrouwbaardere inzichten. Log dagelijks voor de beste analyse.'}
               </p>
             </div>
           )}

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { Drumstick, AlertTriangle } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -23,15 +24,19 @@ interface TrendsProteinChartProps {
 }
 
 export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinChartProps) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const isEnglish = i18n.language === 'en';
+
   const chartData = useMemo(() => {
     return data.map(day => ({
-      date: format(new Date(day.date), 'd', { locale: nl }),
+      date: format(new Date(day.date), 'd', { locale: dateLocale }),
       fullDate: day.date,
       protein: Math.round(day.proteinG),
       belowTarget: day.proteinG < targetProtein,
       season: day.season,
     }));
-  }, [data, targetProtein]);
+  }, [data, targetProtein, dateLocale]);
 
   const avgProtein = data.length > 0 
     ? Math.round(data.reduce((sum, d) => sum + d.proteinG, 0) / data.length)
@@ -46,13 +51,13 @@ export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinCh
     
     return (
       <div className="bg-card border rounded-lg p-3 shadow-lg">
-        <p className="font-medium">Dag {label}</p>
+        <p className="font-medium">{isEnglish ? 'Day' : 'Dag'} {label}</p>
         <p className="text-sm">
-          Eiwit: <span className="font-semibold">{value}g</span>
+          {t('trends.kpi_protein')}: <span className="font-semibold">{value}g</span>
         </p>
         {value < targetProtein && value > 0 && (
           <p className="text-xs text-warning">
-            {targetProtein - value}g onder streefwaarde
+            {targetProtein - value}g {t('trends.protein_below_target').toLowerCase()}
           </p>
         )}
       </div>
@@ -63,7 +68,7 @@ export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinCh
     return (
       <Card className="rounded-2xl">
         <CardContent className="py-12 text-center text-muted-foreground">
-          Nog geen data beschikbaar
+          {t('common.no_data')}
         </CardContent>
       </Card>
     );
@@ -76,16 +81,18 @@ export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinCh
           <div>
             <CardTitle className="text-base flex items-center gap-2">
               <Drumstick className="h-5 w-5 text-accent" />
-              Eiwitinname
+              {t('trends.protein_chart_title')}
             </CardTitle>
             <CardDescription>
-              Gemiddeld {avgProtein}g/dag · Streef {targetProtein}g
+              {isEnglish 
+                ? `Average ${avgProtein}g/day · Target ${targetProtein}g`
+                : `Gemiddeld ${avgProtein}g/dag · Streef ${targetProtein}g`}
             </CardDescription>
           </div>
           {lowProteinDays > daysWithData * 0.5 && daysWithData > 0 && (
             <Badge variant="outline" className="text-warning border-warning">
               <AlertTriangle className="h-3 w-3 mr-1" />
-              Vaak te laag
+              {isEnglish ? 'Often low' : 'Vaak te laag'}
             </Badge>
           )}
         </div>
@@ -128,13 +135,11 @@ export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinCh
           </ResponsiveContainer>
         </div>
         
-        {/* Insight */}
         {lowProteinDays > 0 && daysWithData > 0 && (
           <div className="mt-3 p-3 rounded-lg bg-muted/30 text-sm">
-            <p className="font-medium">💡 Tip</p>
+            <p className="font-medium">💡 {isEnglish ? 'Tip' : 'Tip'}</p>
             <p className="text-muted-foreground">
-              Op {lowProteinDays} van {daysWithData} dagen was je eiwit onder {targetProtein}g. 
-              Probeer 25-35g eiwit bij het ontbijt voor een betere verdeling.
+              {t('trends.protein_tip', { days: lowProteinDays, total: daysWithData })}
             </p>
           </div>
         )}
