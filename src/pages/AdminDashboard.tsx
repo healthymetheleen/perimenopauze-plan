@@ -14,6 +14,7 @@ import { format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { PremiumGrantsCard } from '@/components/admin/PremiumGrantsCard';
 import { ProductsAdminCard } from '@/components/admin/ProductsAdminCard';
+import { RefundRequestsCard } from '@/components/admin/RefundRequestsCard';
 
 export default function AdminDashboard() {
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin();
@@ -253,6 +254,9 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Refund Requests */}
+            <RefundRequestsCard />
 
             {/* Premium Grants */}
             <PremiumGrantsCard />
