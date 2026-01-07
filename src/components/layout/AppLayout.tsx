@@ -107,17 +107,17 @@ export function AppLayout({ children }: AppLayoutProps) {
           <Link to="/dashboard" className="flex items-center gap-2">
             <img
               src="/favicon.svg"
-              alt="Perimenopauze Plan"
+              alt={t('layout.app_name')}
               className="h-7 w-7"
               loading="eager"
             />
-            <span className="text-lg font-semibold text-primary">Perimenopauze Plan</span>
+            <span className="text-lg font-semibold text-primary">{t('layout.app_name')}</span>
           </Link>
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            aria-label={mobileMenuOpen ? 'Sluit menu' : 'Open menu'}
+            aria-label={mobileMenuOpen ? t('layout.close_menu') : t('layout.open_menu')}
           >
             {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </Button>
@@ -158,7 +158,7 @@ export function AppLayout({ children }: AppLayoutProps) {
                   className="flex items-center gap-3 px-4 py-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground w-full"
                 >
                   <LogOut className="h-5 w-5" />
-                  <span>Uitloggen</span>
+                  <span>{t('common.logout')}</span>
                 </button>
               </li>
             </ul>
@@ -171,9 +171,9 @@ export function AppLayout({ children }: AppLayoutProps) {
         <aside className="hidden lg:flex flex-col w-64 min-h-screen bg-card/70 backdrop-blur-md border-r border-border/50">
           <div className="p-6">
             <Link to="/dashboard" className="text-xl font-semibold text-foreground">
-              Perimenopauze Plan
+              {t('layout.app_name')}
             </Link>
-            <p className="text-sm text-muted-foreground mt-1">Dagboek</p>
+            <p className="text-sm text-muted-foreground mt-1">{t('layout.diary')}</p>
           </div>
 
           <nav className="flex-1 px-3">

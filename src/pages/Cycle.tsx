@@ -21,8 +21,6 @@ import {
   useDeleteCycle,
   calculatePhaseAndPredictions,
   seasonColors,
-  seasonLabels,
-  phaseLabels,
 } from '@/hooks/useCycle';
 import {
   Droplets,
@@ -178,6 +176,11 @@ export default function CyclePage() {
     return t(`seasons.${seasonKey}`);
   };
 
+  const getPhaseLabel = (phase: string) => {
+    // Map Dutch database values to translation keys
+    return t(`phases.${phase}`, phase);
+  };
+
   return (
     <AppLayout>
       <div className="space-y-6 overflow-x-hidden">
@@ -215,7 +218,7 @@ export default function CyclePage() {
                 {getSeasonLabel(currentSeason)}
               </h1>
               <p className="text-sm text-muted-foreground">
-                {phaseLabels[currentPhase]}
+                {getPhaseLabel(currentPhase)}
               </p>
             </div>
           </div>

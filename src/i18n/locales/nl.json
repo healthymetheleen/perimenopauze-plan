@@ -51,7 +51,31 @@
     "until": "t/m {{date}}",
     "after_trial": "Daarna €7,50/maand via automatische incasso",
     "premium_active": "Premium toegang actief",
-    "badge_days": "Trial: {{days}}d"
+    "badge_days": "Trial: {{days}}d",
+    "trial_remaining": "Proefperiode: nog {{days}} {{dayLabel}}",
+    "day": "dag",
+    "days": "dagen",
+    "view_premium": "Bekijk Premium",
+    "trial_expired": "Je proefperiode is verlopen",
+    "trial_expired_desc": "Je 7 dagen gratis proberen zijn voorbij.",
+    "trial_expired_warning": "Je kunt geen nieuwe gegevens meer invoeren tot je upgradet.",
+    "with_premium": "Met Premium krijg je weer toegang tot:",
+    "per_month": "/maand",
+    "full_access": "Direct volledige toegang na betaling",
+    "upgrade_to_premium": "Upgrade naar Premium",
+    "safe_payment": "Veilig betalen via Mollie. Elk moment opzegbaar.",
+    "data_warning": "Let op: zonder abonnement wordt je data na 30 dagen automatisch verwijderd.",
+    "or_delete": "Of verwijder je gegevens"
+  },
+  "layout": {
+    "app_name": "Perimenopauze Plan",
+    "diary": "Dagboek",
+    "open_menu": "Open menu",
+    "close_menu": "Sluit menu"
+  },
+  "sleep_insight": {
+    "title": "Slaap-inzicht",
+    "not_available": "Slaap-inzicht niet beschikbaar."
   },
   "trends": {
     "title": "Trends & Analyses",
@@ -169,10 +193,15 @@
   },
   "phases": {
     "menstruation": "Menstruatie",
-    "follicular": "Folliculair",
+    "menstruatie": "Menstruatie",
+    "follicular": "Folliculaire fase",
+    "folliculair": "Folliculaire fase",
     "ovulation": "Ovulatie",
-    "luteal": "Luteaal",
-    "onbekend": "Onbekend"
+    "ovulatie": "Ovulatie",
+    "luteal": "Luteale fase",
+    "luteaal": "Luteale fase",
+    "onbekend": "Onbekend",
+    "unknown": "Onbekend"
   },
   "season_symptoms": {
     "winter": ["Vermoeidheid", "Krampen", "Lage energie"],
