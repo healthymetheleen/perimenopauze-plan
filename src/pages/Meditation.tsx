@@ -12,38 +12,38 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLatestPrediction, seasonLabels, seasonColors } from '@/hooks/useCycle';
 
-interface Meditation {
+interface MeditationData {
   id: string;
-  title: string;
-  description: string;
+  titleKey: string;
+  descriptionKey: string;
   duration: string;
   category: 'sleep' | 'stress' | 'energy' | 'cycle';
   audioUrl?: string;
   imageUrl: string;
 }
 
-const meditations: Meditation[] = [
+const meditationsData: MeditationData[] = [
   // Sleep meditations
   {
     id: 'sleep-body-scan',
-    title: 'Bodyscan voor de nacht',
-    description: 'Een zachte reis door je lichaam om spanning los te laten en je voor te bereiden op een diepe slaap.',
+    titleKey: 'meditation.items.sleep_body_scan.title',
+    descriptionKey: 'meditation.items.sleep_body_scan.description',
     duration: '15 min',
     category: 'sleep',
     imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
   },
   {
     id: 'sleep-breath',
-    title: '4-7-8 Slaapademhaling',
-    description: 'Gebruik deze krachtige ademhalingstechniek om je zenuwstelsel te kalmeren en sneller in slaap te vallen.',
+    titleKey: 'meditation.items.sleep_breath.title',
+    descriptionKey: 'meditation.items.sleep_breath.description',
     duration: '10 min',
     category: 'sleep',
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
   },
   {
     id: 'sleep-gratitude',
-    title: 'Dankbaarheid voor de nacht',
-    description: 'Sluit je dag af met een zachte reflectie op wat goed was. Laat zorgen los en omarm rust.',
+    titleKey: 'meditation.items.sleep_gratitude.title',
+    descriptionKey: 'meditation.items.sleep_gratitude.description',
     duration: '8 min',
     category: 'sleep',
     imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
@@ -51,16 +51,16 @@ const meditations: Meditation[] = [
   // Stress meditations
   {
     id: 'stress-reset',
-    title: 'Snelle stress reset',
-    description: 'Een korte maar krachtige meditatie om spanning los te laten en je focus terug te vinden.',
+    titleKey: 'meditation.items.stress_reset.title',
+    descriptionKey: 'meditation.items.stress_reset.description',
     duration: '5 min',
     category: 'stress',
     imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
   },
   {
     id: 'stress-anxiety',
-    title: 'Kalmte bij onrust',
-    description: 'Veel vrouwen ervaren periodes van onrust. Deze meditatie helpt je gronden en tot rust komen.',
+    titleKey: 'meditation.items.stress_anxiety.title',
+    descriptionKey: 'meditation.items.stress_anxiety.description',
     duration: '12 min',
     category: 'stress',
     imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',
@@ -68,16 +68,16 @@ const meditations: Meditation[] = [
   // Energy meditations
   {
     id: 'energy-morning',
-    title: 'Energieke ochtend',
-    description: 'Begin je dag met intentie en zachte energie. Perfect voor wanneer je je moe voelt bij het opstaan.',
+    titleKey: 'meditation.items.energy_morning.title',
+    descriptionKey: 'meditation.items.energy_morning.description',
     duration: '7 min',
     category: 'energy',
     imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
   },
   {
     id: 'energy-afternoon',
-    title: 'Middagboost',
-    description: 'Herlaad je energie halverwege de dag zonder cafeïne. Veel vrouwen merken dit helpt bij de dip na de lunch.',
+    titleKey: 'meditation.items.energy_afternoon.title',
+    descriptionKey: 'meditation.items.energy_afternoon.description',
     duration: '5 min',
     category: 'energy',
     imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
@@ -85,32 +85,32 @@ const meditations: Meditation[] = [
   // Cycle meditations
   {
     id: 'cycle-winter',
-    title: 'Winter: Rust & Herstel',
-    description: 'Voor de menstruatiefase. Omarm de behoefte aan rust en geef jezelf toestemming om te vertragen.',
+    titleKey: 'meditation.items.cycle_winter.title',
+    descriptionKey: 'meditation.items.cycle_winter.description',
     duration: '10 min',
     category: 'cycle',
     imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
   },
   {
     id: 'cycle-spring',
-    title: 'Lente: Nieuwe Energie',
-    description: 'Voor de folliculaire fase. Verwelkom de groeiende energie en zet intenties voor de komende weken.',
+    titleKey: 'meditation.items.cycle_spring.title',
+    descriptionKey: 'meditation.items.cycle_spring.description',
     duration: '10 min',
     category: 'cycle',
     imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
   },
   {
     id: 'cycle-summer',
-    title: 'Zomer: Piek & Verbinding',
-    description: 'Voor de ovulatiefase. Vier je kracht en verbind met je lichaam op dit hoogtepunt van energie.',
+    titleKey: 'meditation.items.cycle_summer.title',
+    descriptionKey: 'meditation.items.cycle_summer.description',
     duration: '10 min',
     category: 'cycle',
     imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
   },
   {
     id: 'cycle-autumn',
-    title: 'Herfst: Reflectie & Loslaten',
-    description: 'Voor de luteale fase. Een zachte meditatie om los te laten wat niet meer dient.',
+    titleKey: 'meditation.items.cycle_autumn.title',
+    descriptionKey: 'meditation.items.cycle_autumn.description',
     duration: '12 min',
     category: 'cycle',
     imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
@@ -124,12 +124,14 @@ const categoryIcons = {
   cycle: Leaf,
 };
 
-const categoryLabels = {
-  sleep: 'Slaap',
-  stress: 'Stress',
-  energy: 'Energie',
-  cycle: 'Cyclus',
-};
+interface Meditation {
+  id: string;
+  title: string;
+  description: string;
+  duration: string;
+  category: 'sleep' | 'stress' | 'energy' | 'cycle';
+  imageUrl: string;
+}
 
 export default function MeditationPage() {
   const { t } = useTranslation();
@@ -139,6 +141,16 @@ export default function MeditationPage() {
   
   const currentSeason = prediction?.current_season || 'onbekend';
   const colors = seasonColors[currentSeason] || seasonColors.onbekend;
+  
+  // Convert data to translated meditations
+  const meditations: Meditation[] = meditationsData.map(m => ({
+    id: m.id,
+    title: t(m.titleKey),
+    description: t(m.descriptionKey),
+    duration: m.duration,
+    category: m.category,
+    imageUrl: m.imageUrl,
+  }));
   
   // Get recommended meditation based on cycle
   const cycleRecommendation = meditations.find(m => {
@@ -151,6 +163,8 @@ export default function MeditationPage() {
 
   const getMeditationsByCategory = (category: Meditation['category']) => 
     meditations.filter(m => m.category === category);
+
+  const seasonLabel = t(`seasons.${currentSeason}`);
 
   return (
     <AppLayout>
@@ -173,7 +187,7 @@ export default function MeditationPage() {
                 </div>
                 <div className="flex-1">
                   <Badge variant="secondary" className={`mb-2 text-white ${colors.accent}`}>
-                    {t('meditation.recommendedFor')} {seasonLabels[currentSeason]}
+                    {t('meditation.recommended_for', { season: seasonLabel })}
                   </Badge>
                   <h2 className="font-semibold text-lg">{cycleRecommendation.title}</h2>
                   <p className="text-sm text-muted-foreground mt-1">
@@ -204,10 +218,10 @@ export default function MeditationPage() {
           <CardHeader className="pb-2">
             <CardTitle className="text-base flex items-center gap-2">
               <Moon className="h-5 w-5 text-indigo-600" />
-              {t('meditation.sleepMeditations')}
+              {t('meditation.sleep_meditations')}
             </CardTitle>
             <CardDescription>
-              {t('meditation.sleepDescription')}
+              {t('meditation.sleep_desc')}
             </CardDescription>
           </CardHeader>
           <CardContent>
