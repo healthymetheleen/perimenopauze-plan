@@ -4,6 +4,7 @@ import {
   Loader2, ChevronRight, XCircle, Clock, Mail
 } from 'lucide-react';
 import { ContactFormDialog } from '@/components/contact/ContactFormDialog';
+import { RefundRequestCard } from '@/components/subscription/RefundRequestCard';
 import { differenceInDays, format } from 'date-fns';
 import { nl } from 'date-fns/locale';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -233,6 +234,11 @@ export default function SubscriptionPage() {
                     </li>
                   </ul>
                 </div>
+
+                <Separator />
+
+                {/* Refund request section */}
+                <RefundRequestCard />
 
                 <Separator />
 

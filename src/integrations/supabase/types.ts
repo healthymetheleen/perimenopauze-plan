@@ -1276,6 +1276,57 @@ export type Database = {
         }
         Relationships: []
       }
+      refund_requests: {
+        Row: {
+          admin_notes: string | null
+          amount_cents: number
+          cooldown_bypass: boolean | null
+          created_at: string
+          id: string
+          mollie_refund_id: string | null
+          owner_id: string
+          payment_id: string | null
+          processed_at: string | null
+          processed_by: string | null
+          reason: string
+          reason_details: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount_cents: number
+          cooldown_bypass?: boolean | null
+          created_at?: string
+          id?: string
+          mollie_refund_id?: string | null
+          owner_id: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason: string
+          reason_details?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount_cents?: number
+          cooldown_bypass?: boolean | null
+          created_at?: string
+          id?: string
+          mollie_refund_id?: string | null
+          owner_id?: string
+          payment_id?: string | null
+          processed_at?: string | null
+          processed_by?: string | null
+          reason?: string
+          reason_details?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sleep_sessions: {
         Row: {
           created_at: string

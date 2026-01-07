@@ -184,9 +184,9 @@ export function useRequestRefund() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (reason?: string) => {
+    mutationFn: async ({ reason, reasonDetails }: { reason: string; reasonDetails?: string }) => {
       const { data, error } = await supabase.functions.invoke('mollie-payments/request-refund', {
-        body: { reason },
+        body: { reason, reasonDetails },
       });
 
       if (error) throw error;
@@ -196,7 +196,41 @@ export function useRequestRefund() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subscription'] });
+      queryClient.invalidateQueries({ queryKey: ['refund-status'] });
     },
+  });
+}
+
+// Get refund request status and eligibility
+export function useRefundStatus() {
+  const { user } = useAuth();
+
+  return useQuery({
+    queryKey: ['refund-status', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke('mollie-payments/get-refund-status');
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+      return data as {
+        requests: Array<{
+          id: string;
+          status: string;
+          reason: string;
+          created_at: string;
+          processed_at: string | null;
+          amount_cents: number;
+        }>;
+        eligibility: {
+          canRequest: boolean;
+          isWithinWindow: boolean;
+          hasPendingRequest: boolean;
+          hasRecentRefund: boolean;
+          daysSinceStart: number;
+          daysRemaining: number;
+        };
+      };
+    },
+    enabled: !!user,
   });
 }
 

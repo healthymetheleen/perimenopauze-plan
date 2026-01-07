@@ -742,7 +742,16 @@ serve(async (req) => {
           });
         }
 
-        const { reason } = body;
+        const { reason, reasonDetails } = body;
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const adminClient = createClient(supabaseUrl, serviceRoleKey);
+
+        if (!reason) {
+          return new Response(JSON.stringify({ error: 'Reden is verplicht' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
 
         // Get subscription info
         const { data: subData } = await supabase
@@ -750,6 +759,13 @@ serve(async (req) => {
           .select('mollie_customer_id, mollie_subscription_id, created_at')
           .eq('owner_id', user.id)
           .single();
+
+        if (!subData) {
+          return new Response(JSON.stringify({ error: 'Geen actief abonnement gevonden' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
 
         // Check if within 14-day refund window (EU consumer rights)
         const createdAt = subData?.created_at ? new Date(subData.created_at) : null;
@@ -760,14 +776,95 @@ serve(async (req) => {
         if (daysSinceStart > 14) {
           return new Response(JSON.stringify({ 
             error: 'Refund niet mogelijk. De 14-daagse bedenktijd is verstreken.',
-            eligible: false 
+            eligible: false,
+            daysSinceStart
           }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
-        // Send refund request to admin (we process manually for now)
+        // ABUSE PREVENTION: Check for existing pending/processing refund requests
+        const { data: existingPending } = await adminClient
+          .from('refund_requests')
+          .select('id')
+          .eq('owner_id', user.id)
+          .in('status', ['pending', 'processing'])
+          .limit(1);
+
+        if (existingPending && existingPending.length > 0) {
+          return new Response(JSON.stringify({ 
+            error: 'Je hebt al een lopende refund aanvraag. Wacht tot deze is verwerkt.',
+            existingRequest: true
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // ABUSE PREVENTION: Max 1 refund per 6 months
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+        const { data: recentRefunds } = await adminClient
+          .from('refund_requests')
+          .select('id, created_at')
+          .eq('owner_id', user.id)
+          .eq('status', 'refunded')
+          .gte('created_at', sixMonthsAgo.toISOString());
+
+        if (recentRefunds && recentRefunds.length > 0) {
+          const lastRefund = new Date(recentRefunds[0].created_at);
+          const nextEligible = new Date(lastRefund);
+          nextEligible.setMonth(nextEligible.getMonth() + 6);
+          
+          return new Response(JSON.stringify({ 
+            error: `Je hebt al een refund ontvangen. Nieuwe aanvraag mogelijk vanaf ${nextEligible.toLocaleDateString('nl-NL')}.`,
+            rateLimited: true,
+            nextEligibleDate: nextEligible.toISOString()
+          }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Create refund request in database
+        const amountCents = 750; // €7.50
+        const { data: refundRequest, error: insertError } = await adminClient
+          .from('refund_requests')
+          .insert({
+            owner_id: user.id,
+            amount_cents: amountCents,
+            reason,
+            reason_details: reasonDetails || null,
+            status: 'pending',
+          })
+          .select()
+          .single();
+
+        if (insertError) {
+          console.error('Failed to create refund request:', insertError);
+          return new Response(JSON.stringify({ error: 'Kon refund aanvraag niet aanmaken' }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Log to audit table
+        await adminClient.from('audit_logs').insert({
+          actor_id: user.id,
+          action: 'refund_requested',
+          target_type: 'refund_request',
+          target_id: refundRequest.id,
+          metadata: {
+            reason,
+            reason_details: reasonDetails,
+            days_since_start: daysSinceStart,
+            amount_cents: amountCents,
+          },
+        });
+
+        // Send notification email to admin
         const resendApiKey = Deno.env.get('RESEND_API_KEY');
         if (resendApiKey) {
           await fetch("https://api.resend.com/emails", {
@@ -779,27 +876,125 @@ serve(async (req) => {
             body: JSON.stringify({
               from: "Perimenopauze Plan <onboarding@resend.dev>",
               to: ["healthymetheleen@gmail.com"],
-              subject: "🔄 Refund aanvraag - Perimenopauze Plan",
+              subject: "🔄 Nieuwe refund aanvraag - Perimenopauze Plan",
               html: `
-                <h2>Refund aanvraag</h2>
-                <p><strong>Gebruiker:</strong> ${user.email}</p>
-                <p><strong>User ID:</strong> ${user.id}</p>
-                <p><strong>Abonnement gestart:</strong> ${createdAt?.toLocaleDateString('nl-NL') || 'Onbekend'}</p>
-                <p><strong>Dagen sinds start:</strong> ${daysSinceStart}</p>
-                <p><strong>Mollie Customer ID:</strong> ${subData?.mollie_customer_id || 'N/A'}</p>
-                <p><strong>Reden:</strong> ${reason || 'Geen reden opgegeven'}</p>
-                <hr>
-                <p>Verwerk de refund in het Mollie dashboard en update de subscription status in Supabase.</p>
+                <h2>Nieuwe refund aanvraag</h2>
+                <table style="border-collapse: collapse; width: 100%;">
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Aanvraag ID</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${refundRequest.id}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Gebruiker</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${user.email}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>User ID</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${user.id}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Bedrag</strong></td><td style="padding: 8px; border: 1px solid #ddd;">€${(amountCents / 100).toFixed(2)}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Abonnement gestart</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${createdAt?.toLocaleDateString('nl-NL') || 'Onbekend'}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Dagen sinds start</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${daysSinceStart}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Mollie Customer ID</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${subData?.mollie_customer_id || 'N/A'}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Reden</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${reason}</td></tr>
+                  <tr><td style="padding: 8px; border: 1px solid #ddd;"><strong>Toelichting</strong></td><td style="padding: 8px; border: 1px solid #ddd;">${reasonDetails || '-'}</td></tr>
+                </table>
+                <p style="margin-top: 20px;">
+                  <a href="https://my.mollie.com" style="background: #6366f1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px;">Open Mollie Dashboard</a>
+                </p>
               `,
             }),
           });
         }
 
-        console.log(`Refund request from user ${user.id}`);
+        // Send confirmation email to user
+        if (resendApiKey && user.email) {
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              "Authorization": `Bearer ${resendApiKey}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: "Perimenopauze Plan <onboarding@resend.dev>",
+              to: [user.email],
+              subject: "Je refund aanvraag is ontvangen",
+              html: `
+                <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 600px; margin: 0 auto;">
+                  <div style="text-align: center; padding: 20px;">
+                    <img src="https://healthymetheleen.nl/pwa-icon.svg" alt="Perimenopauze Plan" width="60" height="60" />
+                  </div>
+                  <h2 style="color: #1f2937;">We hebben je aanvraag ontvangen</h2>
+                  <p>Beste gebruiker,</p>
+                  <p>We hebben je refund aanvraag ontvangen en gaan deze zo snel mogelijk behandelen.</p>
+                  <div style="background: #f3f4f6; padding: 16px; border-radius: 8px; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>Aanvraag ID:</strong> ${refundRequest.id.slice(0, 8)}...</p>
+                    <p style="margin: 8px 0 0;"><strong>Bedrag:</strong> €${(amountCents / 100).toFixed(2)}</p>
+                    <p style="margin: 8px 0 0;"><strong>Status:</strong> In behandeling</p>
+                  </div>
+                  <p>We streven ernaar je aanvraag binnen 2 werkdagen te verwerken. Je ontvangt een e-mail zodra de refund is verwerkt.</p>
+                  <p style="color: #6b7280; font-size: 14px;">Afhankelijk van je bank kan het 5-10 werkdagen duren voordat het bedrag op je rekening staat.</p>
+                  <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;" />
+                  <p style="color: #6b7280; font-size: 12px;">
+                    Vragen? Neem contact op via het contactformulier in de app.
+                  </p>
+                </div>
+              `,
+            }),
+          });
+        }
+
+        console.log(`Refund request ${refundRequest.id} created for user ${user.id}`);
 
         return new Response(JSON.stringify({ 
           success: true, 
+          requestId: refundRequest.id,
+          status: 'pending',
           message: 'Je refund aanvraag is ontvangen. We nemen binnen 2 werkdagen contact op.' 
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      case 'get-refund-status': {
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Get user's refund requests
+        const { data: refundRequests } = await supabase
+          .from('refund_requests')
+          .select('id, status, reason, created_at, processed_at, amount_cents')
+          .eq('owner_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(5);
+
+        // Check eligibility for new request
+        const { data: subData } = await supabase
+          .from('subscriptions')
+          .select('created_at')
+          .eq('owner_id', user.id)
+          .single();
+
+        const createdAt = subData?.created_at ? new Date(subData.created_at) : null;
+        const daysSinceStart = createdAt 
+          ? Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24))
+          : 999;
+
+        const isWithinWindow = daysSinceStart <= 14;
+        const hasPendingRequest = refundRequests?.some(r => r.status === 'pending' || r.status === 'processing');
+
+        // Check rate limit (1 per 6 months)
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const hasRecentRefund = refundRequests?.some(
+          r => r.status === 'refunded' && new Date(r.created_at) > sixMonthsAgo
+        );
+
+        return new Response(JSON.stringify({
+          requests: refundRequests || [],
+          eligibility: {
+            canRequest: isWithinWindow && !hasPendingRequest && !hasRecentRefund && !!subData,
+            isWithinWindow,
+            hasPendingRequest,
+            hasRecentRefund,
+            daysSinceStart,
+            daysRemaining: Math.max(0, 14 - daysSinceStart),
+          }
         }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
@@ -832,14 +1027,73 @@ serve(async (req) => {
           });
         }
 
-        const { targetUserId, paymentId, amount } = body;
+        const { requestId, paymentId, amount, approve, adminNotes } = body;
 
-        if (!targetUserId || !paymentId || !amount) {
-          return new Response(JSON.stringify({ error: 'Missing required fields: targetUserId, paymentId, amount' }), {
+        if (!requestId) {
+          return new Response(JSON.stringify({ error: 'Missing required field: requestId' }), {
             status: 400,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
+
+        // Get refund request
+        const { data: refundRequest } = await adminClient
+          .from('refund_requests')
+          .select('*')
+          .eq('id', requestId)
+          .single();
+
+        if (!refundRequest) {
+          return new Response(JSON.stringify({ error: 'Refund aanvraag niet gevonden' }), {
+            status: 404,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const targetUserId = refundRequest.owner_id;
+        const refundAmount = amount || (refundRequest.amount_cents / 100);
+
+        // If rejecting
+        if (approve === false) {
+          await adminClient
+            .from('refund_requests')
+            .update({ 
+              status: 'rejected',
+              admin_notes: adminNotes,
+              processed_by: user.id,
+              processed_at: new Date().toISOString(),
+            })
+            .eq('id', requestId);
+
+          // Audit log
+          await adminClient.from('audit_logs').insert({
+            actor_id: user.id,
+            action: 'refund_rejected',
+            target_type: 'refund_request',
+            target_id: requestId,
+            metadata: { admin_notes: adminNotes, target_user_id: targetUserId },
+          });
+
+          console.log(`Refund request ${requestId} rejected by admin ${user.id}`);
+
+          return new Response(JSON.stringify({ success: true, status: 'rejected' }), {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Processing/approving - need paymentId
+        if (!paymentId) {
+          return new Response(JSON.stringify({ error: 'Missing paymentId for refund processing' }), {
+            status: 400,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        // Update status to processing
+        await adminClient
+          .from('refund_requests')
+          .update({ status: 'processing', processed_by: user.id })
+          .eq('id', requestId);
 
         // Create refund via Mollie
         const refundResponse = await fetch(`${MOLLIE_API_URL}/payments/${paymentId}/refunds`, {
@@ -851,13 +1105,19 @@ serve(async (req) => {
           body: JSON.stringify({
             amount: {
               currency: 'EUR',
-              value: amount.toFixed(2),
+              value: refundAmount.toFixed(2),
             },
           }),
         });
 
         if (!refundResponse.ok) {
           console.error('Mollie refund error:', refundResponse.status);
+          // Revert status
+          await adminClient
+            .from('refund_requests')
+            .update({ status: 'pending', admin_notes: 'Mollie refund mislukt' })
+            .eq('id', requestId);
+
           return new Response(JSON.stringify({ error: 'Refund kon niet worden verwerkt bij Mollie' }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -867,18 +1127,43 @@ serve(async (req) => {
         const refund = await refundResponse.json();
         console.log(`Refund created: ${refund.id}`);
 
+        // Update refund request status
+        await adminClient
+          .from('refund_requests')
+          .update({ 
+            status: 'refunded',
+            mollie_refund_id: refund.id,
+            admin_notes: adminNotes,
+            processed_at: new Date().toISOString(),
+          })
+          .eq('id', requestId);
+
         // Update subscription status
         await adminClient
           .from('subscriptions')
           .update({ status: 'refunded', plan: 'free' })
           .eq('owner_id', targetUserId);
 
+        // Audit log
+        await adminClient.from('audit_logs').insert({
+          actor_id: user.id,
+          action: 'refund_processed',
+          target_type: 'refund_request',
+          target_id: requestId,
+          metadata: { 
+            mollie_refund_id: refund.id, 
+            amount: refundAmount,
+            target_user_id: targetUserId,
+            payment_id: paymentId,
+          },
+        });
+
         // Send refund confirmation email
         const { data: targetUser } = await adminClient.auth.admin.getUserById(targetUserId);
         const resendApiKey = Deno.env.get('RESEND_API_KEY');
         
         if (resendApiKey && targetUser?.user?.email) {
-          const emailData = getRefundProcessedEmail('', amount.toFixed(2));
+          const emailData = getRefundProcessedEmail('', refundAmount.toFixed(2));
           await sendEmail(targetUser.user.email, emailData.subject, emailData.html, resendApiKey);
         }
 
