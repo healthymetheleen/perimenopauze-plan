@@ -168,7 +168,7 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
   onOpenChange: (open: boolean) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dateLocale = i18n.language?.startsWith('nl') ? nl : enUS;
   const daysUntilTransition = transitionKey ? 2 : null;
   
   const riskLevelLabel = (level: RiskLevel) => t(`lookAhead.riskLevels.${level}`);
@@ -249,7 +249,7 @@ function DayDetailDialog({ day, nextSeason, transitionKey, open, onOpenChange }:
 
 export function LookAheadWidget() {
   const { t, i18n } = useTranslation();
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dateLocale = i18n.language?.startsWith('nl') ? nl : enUS;
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);

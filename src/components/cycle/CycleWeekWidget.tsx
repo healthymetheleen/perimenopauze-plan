@@ -25,7 +25,7 @@ type SeasonKey = 'winter' | 'lente' | 'zomer' | 'herfst' | 'onbekend';
 
 export function CycleWeekWidget() {
   const { t, i18n } = useTranslation();
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dateLocale = i18n.language?.startsWith('nl') ? nl : enUS;
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);

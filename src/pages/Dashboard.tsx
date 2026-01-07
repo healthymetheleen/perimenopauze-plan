@@ -45,7 +45,7 @@ export default function DashboardPage() {
   const startSleep = useStartSleep();
   const endSleep = useEndSleep();
 
-  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const dateLocale = i18n.language?.startsWith('nl') ? nl : enUS;
   const today = new Date().toISOString().split('T')[0];
   const todayScore = scores?.find(s => s.day_date === today);
 
@@ -212,7 +212,7 @@ export default function DashboardPage() {
                           </div>
                           <div className="text-sm text-muted-foreground">
                             {session.duration_minutes 
-                              ? `${(session.duration_minutes / 60).toFixed(1)}${i18n.language === 'nl' ? 'u' : 'h'}`
+                              ? `${(session.duration_minutes / 60).toFixed(1)}${i18n.language?.startsWith('nl') ? 'u' : 'h'}`
                               : t('dashboard.in_progress')
                             }
                             {session.quality_score && (
