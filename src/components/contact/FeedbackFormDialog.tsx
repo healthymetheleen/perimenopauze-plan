@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Lightbulb, Send, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -21,6 +22,7 @@ interface FeedbackFormDialogProps {
 }
 
 export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [name, setName] = useState('');
@@ -38,7 +40,7 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
     
     if (!name.trim() || !message.trim()) {
       toast({
-        title: 'Vul alle velden in',
+        title: t('feedback.fill_all_fields'),
         variant: 'destructive',
       });
       return;
@@ -47,7 +49,7 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
     const emailToUse = email.trim() || userEmail;
     if (!emailToUse) {
       toast({
-        title: 'E-mailadres is verplicht',
+        title: t('feedback.email_required'),
         variant: 'destructive',
       });
       return;
@@ -69,8 +71,8 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
       if (error) throw error;
 
       toast({
-        title: 'Feedback verstuurd!',
-        description: 'Bedankt voor je suggestie, we waarderen je input!',
+        title: t('feedback.success_title'),
+        description: t('feedback.success_description'),
       });
 
       // Reset form
@@ -82,8 +84,8 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
     } catch (error: any) {
       console.error('Feedback form error:', error);
       toast({
-        title: 'Versturen mislukt',
-        description: error.message || 'Probeer het later opnieuw.',
+        title: t('feedback.error_title'),
+        description: error.message || t('feedback.error_description'),
         variant: 'destructive',
       });
     } finally {
@@ -97,7 +99,7 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
         {trigger || (
           <Button variant="outline" className="gap-2">
             <Lightbulb className="h-4 w-4" />
-            Feedback
+            {t('footer.feedback')}
           </Button>
         )}
       </DialogTrigger>
@@ -105,57 +107,57 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Lightbulb className="h-5 w-5 text-primary" />
-            Verbeterpunten & ideeën
+            {t('feedback.title')}
           </DialogTitle>
           <DialogDescription>
-            Welke functies zou je graag willen zien? Je feedback helpt ons de app beter te maken!
+            {t('feedback.description')}
           </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="feedback-name">Naam</Label>
+            <Label htmlFor="feedback-name">{t('feedback.name_label')}</Label>
             <Input
               id="feedback-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Je naam"
+              placeholder={t('feedback.name_placeholder')}
               maxLength={100}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="feedback-email">E-mailadres</Label>
+            <Label htmlFor="feedback-email">{t('feedback.email_label')}</Label>
             <Input
               id="feedback-email"
               type="email"
               value={email || userEmail}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="je@email.nl"
+              placeholder={t('feedback.email_placeholder')}
               maxLength={255}
               required
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="feedback-subject">Onderwerp (optioneel)</Label>
+            <Label htmlFor="feedback-subject">{t('feedback.subject_label')}</Label>
             <Input
               id="feedback-subject"
               value={subject}
               onChange={(e) => setSubject(e.target.value)}
-              placeholder="Bijv. 'Nieuwe functie idee'"
+              placeholder={t('feedback.subject_placeholder')}
               maxLength={200}
             />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="feedback-message">Je idee of suggestie</Label>
+            <Label htmlFor="feedback-message">{t('feedback.message_label')}</Label>
             <Textarea
               id="feedback-message"
               value={message}
               onChange={(e) => setMessage(e.target.value)}
-              placeholder="Beschrijf je idee, verbeterpunt of gewenste functie..."
+              placeholder={t('feedback.message_placeholder')}
               rows={4}
               maxLength={5000}
               required
@@ -168,7 +170,7 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
             ) : (
               <Send className="h-4 w-4 mr-2" />
             )}
-            Versturen
+            {t('feedback.submit')}
           </Button>
         </form>
       </DialogContent>
