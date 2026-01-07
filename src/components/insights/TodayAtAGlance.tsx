@@ -1,5 +1,6 @@
-import { format, isWithinInterval, parseISO, startOfDay, differenceInDays } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { format, isWithinInterval, parseISO, startOfDay } from 'date-fns';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { 
   Sparkles, Utensils, Dumbbell, Heart, AlertCircle,
   Snowflake, Leaf, Sun, Wind, ChevronRight, Check, X, Pill
@@ -7,7 +8,7 @@ import {
 import { Link } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useLatestPrediction, seasonLabels, useCyclePreferences, useCycles, phaseLabels, getSeasonForDate } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, useCycles, getSeasonForDate } from '@/hooks/useCycle';
 import { useDailyScores } from '@/hooks/useDiary';
 import { useNutritionCoach } from '@/hooks/useNutritionCoach';
 import { useDailyAnalysis } from '@/hooks/useDailyAnalysis';
@@ -48,33 +49,8 @@ const seasonTextColors: Record<string, string> = {
   onbekend: 'season-text-onbekend',
 };
 
-// Beweging tips per seizoen
-const seasonMovementTips: Record<string, string> = {
-  winter: 'Wandelen, zachte yoga, stretching',
-  lente: 'Krachttraining, HIIT, cardio',
-  zomer: 'Intensief: hardlopen, groepslessen',
-  herfst: 'Pilates, yoga, rustig joggen',
-};
-
-// Voeding tips per seizoen
-const seasonFoodTips: Record<string, string> = {
-  winter: 'IJzerrijk: spinazie, rode biet, peulvruchten',
-  lente: 'Eiwit voor spieropbouw (1.6-2g/kg)',
-  zomer: 'Licht maar voedzaam, extra hydratatie',
-  herfst: 'Stabiele maaltijdtijden, magnesiumrijk',
-  onbekend: 'Gevarieerd en voedzaam eten',
-};
-
-// Mogelijke klachten per seizoen
-const seasonSymptoms: Record<string, string[]> = {
-  winter: ['Vermoeidheid', 'Krampen', 'Lage energie'],
-  lente: ['Stijgende energie', 'Betere focus'],
-  zomer: ['Piek energie', 'Soms overstimulatie'],
-  herfst: ['PMS', 'Stemmingswisselingen', 'Cravings'],
-  onbekend: [],
-};
-
 export function TodayAtAGlance() {
+  const { t, i18n } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: cycles } = useCycles(1);
@@ -82,6 +58,7 @@ export function TodayAtAGlance() {
   const { data: coaching } = useNutritionCoach();
   const { data: dailyAnalysis } = useDailyAnalysis();
   
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
   const today = format(new Date(), 'yyyy-MM-dd');
   const todayDate = startOfDay(new Date());
   const todayScore = scores?.find(s => s.day_date === today);
@@ -102,9 +79,30 @@ export function TodayAtAGlance() {
   
   const currentPhase = prediction?.current_phase || 'onbekend';
   const workout = currentSeason !== 'onbekend' ? getWorkoutForSeason(currentSeason) : null;
-  const foodTip = seasonFoodTips[currentSeason] || seasonFoodTips.onbekend;
-  const movementTip = seasonMovementTips[currentSeason] || 'Beweeg op een manier die goed voelt';
-  const symptoms = seasonSymptoms[currentSeason] || [];
+  
+  // Get translated tips
+  const seasonLabelsTranslated: Record<string, string> = {
+    winter: t('seasons.winter'),
+    lente: t('seasons.lente'),
+    zomer: t('seasons.zomer'),
+    herfst: t('seasons.herfst'),
+    onbekend: t('seasons.onbekend'),
+  };
+  
+  const phaseLabelsTranslated: Record<string, string> = {
+    menstruation: t('phases.menstruation'),
+    follicular: t('phases.follicular'),
+    ovulation: t('phases.ovulation'),
+    luteal: t('phases.luteal'),
+    onbekend: t('phases.onbekend'),
+  };
+  
+  const foodTip = t(`season_food_tips.${currentSeason}`, { defaultValue: t('season_food_tips.onbekend') });
+  const movementTip = t(`season_movement_tips.${currentSeason}`, { defaultValue: t('season_movement_tips.onbekend') });
+  
+  // Get symptoms array from translations
+  const symptomsArray = t(`season_symptoms.${currentSeason}`, { returnObjects: true, defaultValue: [] });
+  const symptoms = Array.isArray(symptomsArray) ? symptomsArray : [];
   
   // Use AI coaching tips from backend
   const coachingTips = coaching?.tips?.slice(0, 3) || [];
@@ -134,16 +132,16 @@ export function TodayAtAGlance() {
               </div>
               <div>
                 <div className="flex items-center gap-1.5">
-                  <h2 className="text-lg font-bold">{seasonLabels[currentSeason]}</h2>
+                  <h2 className="text-lg font-bold">{seasonLabelsTranslated[currentSeason]}</h2>
                   {isFertileToday && (
                     <Badge className="bg-white/25 text-white border-0 text-xs px-2 py-0.5">
                       <Heart className="h-3 w-3 mr-1" />
-                      Vruchtbaar
+                      {t('today.fertile')}
                     </Badge>
                   )}
                 </div>
                 <p className="text-sm opacity-90">
-                  {format(new Date(), "EEEE d MMMM", { locale: nl })} · {phaseLabels[currentPhase]}
+                  {format(new Date(), "EEEE d MMMM", { locale: dateLocale })} · {phaseLabelsTranslated[currentPhase]}
                 </p>
               </div>
             </div>
@@ -155,7 +153,7 @@ export function TodayAtAGlance() {
           <div className="px-4 py-2 bg-white/40 dark:bg-black/10 border-b border-border/20">
             <div className="flex items-center gap-2 text-xs">
               <AlertCircle className="h-3 w-3 text-muted-foreground" />
-              <span className="text-muted-foreground">Mogelijk:</span>
+              <span className="text-muted-foreground">{t('today.possible')}</span>
               <span className="text-foreground">{symptoms.join(' · ')}</span>
             </div>
           </div>
@@ -166,7 +164,7 @@ export function TodayAtAGlance() {
           <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
             <div className="flex items-start gap-2 mb-2">
               <Pill className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm font-semibold text-foreground">Gisteren & Advies</span>
+              <span className="text-sm font-semibold text-foreground">{t('today.yesterday_advice')}</span>
             </div>
 
             {dailyAnalysis.yesterdaySummary && (
@@ -201,17 +199,17 @@ export function TodayAtAGlance() {
             {dailyAnalysis.orthomolecular && currentSeason !== 'onbekend' && (
               <div className="pt-2 border-t border-border/20">
                 <p className="text-xs font-medium text-foreground mb-1">
-                  Orthomoleculair voor {seasonLabels[currentSeason].toLowerCase()}:
+                  {t('today.ortho_for_season', { season: seasonLabelsTranslated[currentSeason].toLowerCase() })}
                 </p>
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   <div>
-                    <p className="text-muted-foreground font-medium">Mineralen:</p>
+                    <p className="text-muted-foreground font-medium">{t('today.minerals')}</p>
                     <p className={seasonTextColors[currentSeason]}>
                       {dailyAnalysis.orthomolecular.minerals.slice(0, 2).join(', ')}
                     </p>
                   </div>
                   <div>
-                    <p className="text-muted-foreground font-medium">Voeding:</p>
+                    <p className="text-muted-foreground font-medium">{t('today.nutrition')}</p>
                     <p className={seasonTextColors[currentSeason]}>
                       {dailyAnalysis.orthomolecular.foods[0]?.split(',')[0]}
                     </p>
@@ -219,7 +217,7 @@ export function TodayAtAGlance() {
                 </div>
                 {dailyAnalysis.orthomolecular.avoid.length > 0 && (
                   <p className="text-xs text-muted-foreground mt-1">
-                    Vermijd: {dailyAnalysis.orthomolecular.avoid[0]}
+                    {t('today.avoid')} {dailyAnalysis.orthomolecular.avoid[0]}
                   </p>
                 )}
               </div>
@@ -232,7 +230,7 @@ export function TodayAtAGlance() {
           <div className="p-4 border-b border-border/20 bg-white/30 dark:bg-black/10">
             <div className="flex items-start gap-2 mb-2">
               <Sparkles className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="text-sm font-semibold text-foreground">Persoonlijk advies</span>
+              <span className="text-sm font-semibold text-foreground">{t('today.personal_advice')}</span>
             </div>
             <ul className="space-y-1">
               {coachingTips.map((tip, i) => (
@@ -251,21 +249,23 @@ export function TodayAtAGlance() {
           <Link to="/diary" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
             <div className="flex items-center gap-2 mb-2">
               <Utensils className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold">Eten vandaag</span>
+              <span className="text-sm font-semibold">{t('today.food_today')}</span>
               <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
             {todayScore && todayScore.meals_count > 0 ? (
               <div className="space-y-1">
                 <p className="text-xl font-bold">{Math.round(todayScore.kcal_total || 0)} kcal</p>
                 <p className="text-xs text-muted-foreground">
-                  {Math.round(todayScore.protein_g || 0)}g eiwit · {Math.round(todayScore.fiber_g || 0)}g vezels
+                  {Math.round(todayScore.protein_g || 0)}g {t('today.protein')} · {Math.round(todayScore.fiber_g || 0)}g {t('today.fiber')}
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  {todayScore.meals_count} maaltijd{todayScore.meals_count !== 1 ? 'en' : ''} gelogd
+                  {todayScore.meals_count === 1 
+                    ? t('today.meals_logged', { count: todayScore.meals_count })
+                    : t('today.meals_logged_plural', { count: todayScore.meals_count })}
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Log je eerste maaltijd →</p>
+              <p className="text-sm text-muted-foreground">{t('today.log_first_meal')}</p>
             )}
             <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">💡 {foodTip}</p>
           </Link>
@@ -274,18 +274,18 @@ export function TodayAtAGlance() {
           <Link to="/bewegen" className="p-4 hover:bg-white/40 dark:hover:bg-black/10 transition-colors">
             <div className="flex items-center gap-2 mb-2">
               <Dumbbell className="h-4 w-4 text-muted-foreground" />
-              <span className="text-sm font-semibold">Bewegen</span>
+              <span className="text-sm font-semibold">{t('today.movement')}</span>
               <ChevronRight className="h-3 w-3 text-muted-foreground ml-auto" />
             </div>
             {workout ? (
               <div className="space-y-1">
-                <p className="text-sm font-medium">{workout.recommendedMinutes} min aanbevolen</p>
+                <p className="text-sm font-medium">{t('today.min_recommended', { minutes: workout.recommendedMinutes })}</p>
                 <p className="text-xs text-muted-foreground">
-                  {workout.exercises.length} oefeningen beschikbaar
+                  {t('today.exercises_available', { count: workout.exercises.length })}
                 </p>
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">Bekijk oefeningen →</p>
+              <p className="text-sm text-muted-foreground">{t('today.view_exercises')}</p>
             )}
             <p className="text-xs text-muted-foreground mt-2 pt-2 border-t border-border/20">💡 {movementTip}</p>
           </Link>

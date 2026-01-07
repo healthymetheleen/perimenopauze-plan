@@ -37,6 +37,75 @@
     "settings": "Settings",
     "premium": "Premium"
   },
+  "footer": {
+    "privacy_policy": "Privacy Policy",
+    "terms": "Terms",
+    "intended_use": "Intended Use",
+    "feedback": "Feedback",
+    "disclaimer": "No medical advice · Insight & self-observation",
+    "copyright": "© {{year}} Perimenopause Plan. All rights reserved."
+  },
+  "trial": {
+    "one_day_left": "1 day free trial left",
+    "days_left": "{{days}} days free trial left",
+    "until": "until {{date}}",
+    "after_trial": "Then €4.50/month via direct debit",
+    "premium_active": "Premium access active"
+  },
+  "today": {
+    "fertile": "Fertile",
+    "possible": "Possible:",
+    "yesterday_advice": "Yesterday & Advice",
+    "personal_advice": "Personal advice",
+    "food_today": "Food today",
+    "movement": "Movement",
+    "log_first_meal": "Log your first meal →",
+    "meals_logged": "{{count}} meal logged",
+    "meals_logged_plural": "{{count}} meals logged",
+    "protein": "protein",
+    "fiber": "fiber",
+    "view_exercises": "View exercises →",
+    "min_recommended": "{{minutes}} min recommended",
+    "exercises_available": "{{count}} exercises available",
+    "ortho_for_season": "Orthomolecular for {{season}}:",
+    "minerals": "Minerals:",
+    "nutrition": "Nutrition:",
+    "avoid": "Avoid:"
+  },
+  "seasons": {
+    "winter": "Winter",
+    "lente": "Spring",
+    "zomer": "Summer",
+    "herfst": "Autumn",
+    "onbekend": "Unknown"
+  },
+  "phases": {
+    "menstruation": "Menstruation",
+    "follicular": "Follicular",
+    "ovulation": "Ovulation",
+    "luteal": "Luteal",
+    "onbekend": "Unknown"
+  },
+  "season_symptoms": {
+    "winter": ["Fatigue", "Cramps", "Low energy"],
+    "lente": ["Rising energy", "Better focus"],
+    "zomer": ["Peak energy", "Sometimes overstimulation"],
+    "herfst": ["PMS", "Mood swings", "Cravings"]
+  },
+  "season_movement_tips": {
+    "winter": "Walking, gentle yoga, stretching",
+    "lente": "Strength training, HIIT, cardio",
+    "zomer": "Intensive: running, group classes",
+    "herfst": "Pilates, yoga, easy jogging",
+    "onbekend": "Move in a way that feels good"
+  },
+  "season_food_tips": {
+    "winter": "Iron-rich: spinach, beetroot, legumes",
+    "lente": "Protein for muscle building (1.6-2g/kg)",
+    "zomer": "Light but nutritious, extra hydration",
+    "herfst": "Stable meal times, magnesium-rich",
+    "onbekend": "Eat varied and nutritious"
+  },
   "settings": {
     "title": "Settings",
     "subtitle": "Manage your preferences and privacy",
