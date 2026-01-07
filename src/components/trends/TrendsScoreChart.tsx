@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { TrendingUp, Calendar } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,17 +33,11 @@ const seasonColors: Record<string, string> = {
   onbekend: 'hsl(0, 0%, 95%)',
 };
 
-const seasonAccentColors: Record<string, string> = {
-  winter: 'hsl(210, 80%, 50%)',
-  lente: 'hsl(140, 70%, 45%)',
-  zomer: 'hsl(45, 90%, 50%)',
-  herfst: 'hsl(25, 80%, 50%)',
-  onbekend: 'hsl(0, 0%, 60%)',
-};
-
 export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: TrendsScoreChartProps) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+
   const chartData = useMemo(() => {
-    // Calculate 7-day moving average
     return data.map((day, index) => {
       const start = Math.max(0, index - 6);
       const window = data.slice(start, index + 1).filter(d => d.score !== null);
@@ -51,7 +46,7 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
         : null;
       
       return {
-        date: format(new Date(day.date), 'd MMM', { locale: nl }),
+        date: format(new Date(day.date), 'd MMM', { locale: dateLocale }),
         fullDate: day.date,
         score: day.score,
         avg: avg ? Math.round(avg * 10) / 10 : null,
@@ -59,7 +54,7 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
         seasonBg: showSeasonOverlay ? 10 : 0,
       };
     });
-  }, [data, showSeasonOverlay]);
+  }, [data, showSeasonOverlay, dateLocale]);
 
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload?.length) return null;
@@ -69,14 +64,14 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
       <div className="bg-card border rounded-lg p-3 shadow-lg">
         <p className="font-medium">{label}</p>
         {dayData?.score !== null && (
-          <p className="text-sm text-primary">Score: {dayData.score}</p>
+          <p className="text-sm text-primary">{t('trends.score_label')}: {dayData.score}</p>
         )}
         {dayData?.avg !== null && (
-          <p className="text-sm text-muted-foreground">7-daags gem: {dayData.avg}</p>
+          <p className="text-sm text-muted-foreground">{t('trends.average_label')}: {dayData.avg}</p>
         )}
         {showSeasonOverlay && dayData?.season && (
           <Badge className="mt-1 text-xs capitalize" variant="outline">
-            {dayData.season}
+            {t(`seasons.${dayData.season}`)}
           </Badge>
         )}
       </div>
@@ -87,7 +82,7 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
     return (
       <Card className="rounded-2xl">
         <CardContent className="py-12 text-center text-muted-foreground">
-          Nog geen data beschikbaar
+          {t('common.no_data')}
         </CardContent>
       </Card>
     );
@@ -98,11 +93,11 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <TrendingUp className="h-5 w-5 text-primary" />
-          Dagscore
+          {t('trends.score_chart_title')}
           {showSeasonOverlay && (
             <Badge variant="outline" className="text-xs ml-2">
               <Calendar className="h-3 w-3 mr-1" />
-              Met seizoen
+              {t('trends.season_overlay')}
             </Badge>
           )}
         </CardTitle>
@@ -127,7 +122,6 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
               />
               <Tooltip content={<CustomTooltip />} />
               
-              {/* Season background bars */}
               {showSeasonOverlay && (
                 <Bar dataKey="seasonBg" stackId="bg" fill="transparent">
                   {chartData.map((entry, index) => (
@@ -140,10 +134,8 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
                 </Bar>
               )}
               
-              {/* Reference lines */}
               <ReferenceLine y={7} stroke="hsl(var(--success))" strokeDasharray="3 3" opacity={0.5} />
               
-              {/* Score points */}
               <Line
                 type="monotone"
                 dataKey="score"
@@ -153,7 +145,6 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
                 connectNulls={false}
               />
               
-              {/* 7-day average line */}
               <Line
                 type="monotone"
                 dataKey="avg"
@@ -167,15 +158,14 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
           </ResponsiveContainer>
         </div>
         
-        {/* Legend */}
         <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <div className="w-3 h-0.5 bg-primary" />
-            <span>Dagscore</span>
+            <span>{t('trends.score_label')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-0.5 bg-muted-foreground" style={{ borderStyle: 'dashed' }} />
-            <span>7-daags gemiddelde</span>
+            <span>{t('trends.average_label')}</span>
           </div>
         </div>
       </CardContent>

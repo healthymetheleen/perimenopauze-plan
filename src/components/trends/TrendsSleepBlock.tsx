@@ -1,7 +1,8 @@
 import { useMemo } from 'react';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
-import { Moon, Clock, Coffee } from 'lucide-react';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
+import { Moon, Clock } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -22,6 +23,10 @@ interface TrendsSleepBlockProps {
 }
 
 export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
+  const { t, i18n } = useTranslation();
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
+  const isEnglish = i18n.language === 'en';
+
   const chartData = useMemo(() => {
     return data.map(day => {
       const lastMealHour = day.lastMealTime 
@@ -29,7 +34,7 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
         : null;
       
       return {
-        date: format(new Date(day.date), 'd', { locale: nl }),
+        date: format(new Date(day.date), 'd', { locale: dateLocale }),
         fullDate: day.date,
         sleepHours: day.sleepDurationMin ? Math.round(day.sleepDurationMin / 6) / 10 : null,
         quality: day.sleepQuality,
@@ -37,14 +42,13 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
         isLateMeal: lastMealHour !== null && lastMealHour >= 21,
       };
     });
-  }, [data]);
+  }, [data, dateLocale]);
 
   const daysWithSleep = chartData.filter(d => d.sleepHours !== null);
   const avgSleep = daysWithSleep.length > 0
     ? daysWithSleep.reduce((sum, d) => sum + (d.sleepHours || 0), 0) / daysWithSleep.length
     : 0;
   
-  // Calculate insights
   const lateMealDays = chartData.filter(d => d.isLateMeal);
   const lateMealWithBadSleep = lateMealDays.filter(d => d.quality !== null && d.quality < 6);
   const showLateMealInsight = lateMealDays.length >= 2 && lateMealWithBadSleep.length > 0;
@@ -55,18 +59,18 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
     
     return (
       <div className="bg-card border rounded-lg p-3 shadow-lg">
-        <p className="font-medium">Dag {label}</p>
+        <p className="font-medium">{isEnglish ? 'Day' : 'Dag'} {label}</p>
         {dayData?.sleepHours && (
-          <p className="text-sm">Slaap: {dayData.sleepHours} uur</p>
+          <p className="text-sm">{t('trends.sleep_duration')}: {dayData.sleepHours} {isEnglish ? 'hrs' : 'uur'}</p>
         )}
         {dayData?.quality !== null && (
           <p className="text-sm text-muted-foreground">
-            Kwaliteit: {dayData.quality}/10
+            {t('trends.sleep_quality')}: {dayData.quality}/10
           </p>
         )}
         {dayData?.lastMealHour !== null && (
           <p className="text-xs text-muted-foreground">
-            Laatste maaltijd: {dayData.lastMealHour}:00
+            {t('trends.last_meal')}: {dayData.lastMealHour}:00
           </p>
         )}
       </div>
@@ -79,12 +83,11 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
         <CardHeader>
           <CardTitle className="text-base flex items-center gap-2">
             <Moon className="h-5 w-5 text-indigo-500" />
-            Slaap & Timing
+            {t('trends.sleep_chart_title')}
           </CardTitle>
         </CardHeader>
         <CardContent className="py-8 text-center text-muted-foreground">
-          <p>Nog geen slaapdata beschikbaar.</p>
-          <p className="text-sm mt-1">Log je slaap om inzichten te krijgen.</p>
+          <p>{t('common.no_data')}</p>
         </CardContent>
       </Card>
     );
@@ -95,15 +98,15 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
       <CardHeader className="pb-2">
         <CardTitle className="text-base flex items-center gap-2">
           <Moon className="h-5 w-5 text-indigo-500" />
-          Slaap & Timing
+          {t('trends.sleep_chart_title')}
         </CardTitle>
         <div className="flex gap-2 mt-1">
           <Badge variant="outline" className="text-xs">
-            Gem. {avgSleep.toFixed(1)} uur
+            {t('trends.sleep_avg', { hours: avgSleep.toFixed(1) })}
           </Badge>
           {avgSleep < 7 && (
             <Badge variant="outline" className="text-xs text-warning border-warning">
-              Onder 7 uur
+              {t('trends.sleep_warning')}
             </Badge>
           )}
         </div>
@@ -158,25 +161,23 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
           </ResponsiveContainer>
         </div>
         
-        {/* Legend */}
         <div className="flex items-center justify-center gap-4 mt-2 text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: 'hsl(225, 70%, 60%)' }} />
-            <span>Slaapduur</span>
+            <span>{t('trends.sleep_duration')}</span>
           </div>
           <div className="flex items-center gap-1">
             <div className="w-3 h-0.5" style={{ backgroundColor: 'hsl(280, 70%, 60%)' }} />
-            <span>Kwaliteit</span>
+            <span>{t('trends.sleep_quality')}</span>
           </div>
         </div>
         
-        {/* Insights */}
         <div className="mt-4 space-y-2">
           {showLateMealInsight && (
             <div className="flex items-start gap-2 p-2 rounded-lg bg-warning/10 text-sm">
               <Clock className="h-4 w-4 text-warning flex-shrink-0 mt-0.5" />
               <p className="text-muted-foreground">
-                <span className="font-medium text-foreground">Slaap slechter na laat eten:</span> Op {lateMealWithBadSleep.length} dag(en) met maaltijd na 21:00 was slaapkwaliteit lager.
+                {t('trends.late_meal_insight', { days: lateMealWithBadSleep.length })}
               </p>
             </div>
           )}

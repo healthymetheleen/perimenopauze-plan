@@ -1,4 +1,5 @@
 import { Calendar, Palette } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -11,19 +12,21 @@ interface TrendsFiltersProps {
   setShowSeasonOverlay: (v: boolean) => void;
 }
 
-const periods: { value: TrendPeriod; label: string }[] = [
-  { value: 7, label: '7 dagen' },
-  { value: 14, label: '14 dagen' },
-  { value: 28, label: '28 dagen' },
-  { value: 'cycle', label: 'Deze cyclus' },
-];
-
 export function TrendsFilters({
   period,
   setPeriod,
   showSeasonOverlay,
   setShowSeasonOverlay,
 }: TrendsFiltersProps) {
+  const { t } = useTranslation();
+
+  const periods: { value: TrendPeriod; labelKey: string }[] = [
+    { value: 7, labelKey: 'trends.period_7' },
+    { value: 14, labelKey: 'trends.period_14' },
+    { value: 28, labelKey: 'trends.period_28' },
+    { value: 'cycle', labelKey: 'trends.period_cycle' },
+  ];
+
   return (
     <div className="flex items-center justify-between flex-wrap gap-4">
       {/* Period selector */}
@@ -38,7 +41,7 @@ export function TrendsFilters({
               onClick={() => setPeriod(p.value)}
               className="text-xs"
             >
-              {p.label}
+              {t(p.labelKey)}
             </Button>
           ))}
         </div>
@@ -48,7 +51,7 @@ export function TrendsFilters({
       <div className="flex items-center gap-2">
         <Palette className="h-4 w-4 text-muted-foreground" />
         <Label htmlFor="season-overlay" className="text-sm cursor-pointer">
-          Seizoen overlay
+          {t('trends.season_overlay')}
         </Label>
         <Switch
           id="season-overlay"
