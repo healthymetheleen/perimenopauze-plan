@@ -1369,5 +1369,44 @@
         ]
       }
     }
+  },
+  "pricing": {
+    "title": "Perimenopause Plan",
+    "subtitle": "AI insights tailored to your cycle, symptoms and lifestyle. Try 7 days free.",
+    "recommended": "Recommended",
+    "active": "Active",
+    "start_free": "Start free",
+    "questions": "Questions? Contact us",
+    "suggestions": "Suggestions or feedback",
+    "ai_disclaimer": "* There is a fair-use limit on AI analyses to prevent misuse.",
+    "trial": {
+      "name": "Free Trial",
+      "price": "€0",
+      "period": "7 days",
+      "description": "Try all basic features for 7 days free.",
+      "features": [
+        "Food diary & symptom tracking",
+        "Cycle calendar & predictions",
+        "Trends & patterns view",
+        "Data export (GDPR)",
+        "After 7 days: upgrade or stop"
+      ],
+      "button": "Start free trial"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "€7.50",
+      "period": "per month",
+      "description": "For women in perimenopause who want personal insights.",
+      "features": [
+        "AI meal analyses*",
+        "Daily AI insights & reflections",
+        "Monthly total analysis",
+        "Tailored movement exercises",
+        "Sleep & symptom correlations",
+        "Data export (GDPR)"
+      ],
+      "button": "Upgrade to Premium"
+    }
   }
 }

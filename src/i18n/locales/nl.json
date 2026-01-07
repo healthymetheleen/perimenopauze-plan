@@ -1228,5 +1228,44 @@
         "planningTips": [{"action": "Structuur in week", "details": "Plan vooruit, minder spontaan"}, {"action": "Training steady, minder pieken", "details": "Wandelen, yoga, lichte kracht"}]
       }
     }
+  },
+  "pricing": {
+    "title": "Perimenopauze Plan",
+    "subtitle": "AI-inzichten afgestemd op jouw cyclus, symptomen en leefstijl. Probeer 7 dagen gratis.",
+    "recommended": "Aanbevolen",
+    "active": "Actief",
+    "start_free": "Start gratis",
+    "questions": "Vragen? Neem contact op",
+    "suggestions": "Suggesties of feedback",
+    "ai_disclaimer": "* Er geldt een fair-use limiet op AI-analyses om misbruik te voorkomen.",
+    "trial": {
+      "name": "Gratis proefperiode",
+      "price": "€0",
+      "period": "7 dagen",
+      "description": "Probeer alle basisfuncties 7 dagen gratis.",
+      "features": [
+        "Eetdagboek & symptoom tracking",
+        "Cycluskalender & voorspellingen",
+        "Trends & patronen bekijken",
+        "Data export (AVG)",
+        "Na 7 dagen: upgraden of stoppen"
+      ],
+      "button": "Start gratis proefperiode"
+    },
+    "premium": {
+      "name": "Premium",
+      "price": "€7,50",
+      "period": "per maand",
+      "description": "Voor vrouwen in de perimenopauze die persoonlijke inzichten willen.",
+      "features": [
+        "AI-maaltijdanalyses*",
+        "Dagelijkse AI-inzichten & reflecties",
+        "Maandelijkse totaalanalyse",
+        "Bewegingsoefeningen op maat",
+        "Slaap- en symptoomcorrelaties",
+        "Data export (AVG)"
+      ],
+      "button": "Upgrade naar Premium"
+    }
   }
 }
