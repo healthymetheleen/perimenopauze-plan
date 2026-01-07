@@ -10,7 +10,7 @@ import { useExportData, useDeleteAccount } from '@/hooks/useConsent';
 import { useToast } from '@/hooks/use-toast';
 import { 
   User, Download, Trash2, Crown, Loader2, AlertTriangle, 
-  Shield, Info, FileText, CheckCircle 
+  Shield, Info, FileText, CheckCircle, LogOut 
 } from 'lucide-react';
 import { 
   AlertDialog, 
@@ -129,13 +129,21 @@ export default function AccountPage() {
                 {isPremium && <Crown className="h-4 w-4 text-primary" />}
               </div>
             </div>
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/subscription')}
-              className="mt-2"
-            >
-              {isPremium ? t('account.manage_subscription') : t('account.start_trial')}
-            </Button>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <Button 
+                variant="outline" 
+                onClick={() => navigate('/subscription')}
+              >
+                {isPremium ? t('account.manage_subscription') : t('account.start_trial')}
+              </Button>
+              <Button 
+                variant="ghost" 
+                onClick={() => signOut()}
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                {t('settings.sign_out')}
+              </Button>
+            </div>
           </CardContent>
         </Card>
 
