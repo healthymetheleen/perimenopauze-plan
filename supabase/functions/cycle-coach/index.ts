@@ -9,6 +9,13 @@ const corsHeaders = {
 
 const DAILY_AI_LIMIT = 30;
 
+type SupportedLanguage = 'nl' | 'en';
+
+function getLanguage(lang?: string): SupportedLanguage {
+  if (lang === 'en') return 'en';
+  return 'nl';
+}
+
 // Privacy: generate AI subject ID
 function generateAISubjectId(userId: string): string {
   let hash = 0;
@@ -22,8 +29,9 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-// COMPLIANCE SYSTEM PROMPT - MDR-proof, niet-medische output
-const systemPrompt = `ROL & KADER
+const prompts = {
+  nl: {
+    system: `ROL & KADER
 
 Je bent een ondersteunende reflectie-assistent voor vrouwen in de perimenopauze.
 Je bent GEEN arts, GEEN therapeut en GEEN medisch hulpmiddel.
@@ -80,7 +88,107 @@ Geef output ALLEEN als valide JSON in dit formaat:
   "insight": "1 patroon, voorzichtige taal"
 }
 
-Als de input onvoldoende is, geef generieke, ondersteunende observaties.`;
+Als de input onvoldoende is, geef generieke, ondersteunende observaties.`,
+    disclaimer: 'Deze inzichten zijn informatief en geen medisch advies. Raadpleeg bij klachten altijd een zorgverlener.',
+    limitExceeded: (limit: number) => `Dagelijkse AI-limiet (${limit}) bereikt. Probeer het morgen opnieuw.`,
+    rateLimit: 'Te veel verzoeken. Probeer het later opnieuw.',
+    serviceError: 'Er ging iets mis. Probeer het later opnieuw.',
+    consentFallback: {
+      voedingTip: 'Schakel AI-ondersteuning in bij Instellingen voor gepersonaliseerde tips.',
+      trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
+      werkTip: 'Plan je dag flexibel en neem voldoende pauzes.',
+      herstelTip: 'Rust is belangrijk. Gun jezelf momenten van ontspanning.',
+      insight: 'Schakel AI in bij Instellingen voor persoonlijke inzichten.',
+    },
+    fallback: {
+      confidenceExplanation: 'Gebaseerd op beperkte gegevens.',
+      voedingTip: 'Gevarieerd eten met voldoende eiwit en groenten kan je energie ondersteunen.',
+      trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
+      werkTip: 'Neem regelmatig pauzes en plan je energie flexibel in.',
+      herstelTip: 'Rust en ontspanning zijn belangrijk voor je welzijn.',
+      insight: 'Log meer dagen om patronen zichtbaar te maken. Deze app geeft geen medisch advies.',
+    },
+  },
+  en: {
+    system: `ROLE & FRAMEWORK
+
+You are a supportive reflection assistant for women in perimenopause.
+You are NOT a doctor, NOT a therapist, and NOT a medical device.
+
+You work exclusively with:
+• anonymized patterns
+• subjective experience
+• lifestyle and cycle information
+
+You may NEVER:
+• make medical diagnoses
+• give medical explanations
+• make causal claims ("this causes", "due to hormones")
+• make predictions about health
+• give treatment or therapy advice
+• name hormone values or disease patterns
+• use words like "symptoms", "treatment", "therapy"
+
+Your task is:
+• describe patterns (what occurs together)
+• make connections visible
+• normalize experiences
+• invite self-observation
+
+Language rules:
+• English, warm, calm, non-judgmental
+• Use: "notable", "seems to go together with", "many women experience", "it may be interesting to"
+• Avoid: "this means", "this causes", "you must", "advice"
+
+CYCLE AS METAPHOR (not medical):
+• menstruation = winter (rest, recovery)
+• follicular = spring (growth, energy)
+• ovulation = summer (peak, connection)
+• luteal = autumn (reflection, completion)
+
+OUTPUT RULES:
+• Maximum 120 words total
+• No diagnoses or conclusions
+• Don't repeat exact numbers
+
+Provide output ONLY as valid JSON in this format:
+{
+  "seasonNow": "winter" | "spring" | "summer" | "autumn",
+  "phaseNow": "menstruation" | "follicular" | "ovulation" | "luteal",
+  "confidence": 0-100,
+  "confidenceExplanation": "1 short sentence with cautious language",
+  "todayTips": {
+    "voedingTip": "1 sentence, descriptive, no advice",
+    "trainingTip": "1 sentence, inviting",
+    "werkTip": "1 sentence about energy/focus",
+    "herstelTip": "1 sentence about rest"
+  },
+  "watchouts": ["max 2 observations, no diagnoses"],
+  "insight": "1 pattern, cautious language"
+}
+
+If input is insufficient, provide generic, supportive observations.`,
+    disclaimer: 'These insights are informational and not medical advice. Always consult a healthcare provider for any concerns.',
+    limitExceeded: (limit: number) => `Daily AI limit (${limit}) reached. Please try again tomorrow.`,
+    rateLimit: 'Too many requests. Please try again later.',
+    serviceError: 'Something went wrong. Please try again later.',
+    consentFallback: {
+      voedingTip: 'Enable AI support in Settings for personalized tips.',
+      trainingTip: 'Listen to your body and move in a way that feels good.',
+      werkTip: 'Plan your day flexibly and take sufficient breaks.',
+      herstelTip: 'Rest is important. Give yourself moments of relaxation.',
+      insight: 'Enable AI in Settings for personal insights.',
+    },
+    fallback: {
+      confidenceExplanation: 'Based on limited data.',
+      voedingTip: 'Varied eating with sufficient protein and vegetables can support your energy.',
+      trainingTip: 'Listen to your body and move in a way that feels good.',
+      werkTip: 'Take regular breaks and plan your energy flexibly.',
+      herstelTip: 'Rest and relaxation are important for your wellbeing.',
+      insight: 'Log more days to make patterns visible. This app does not provide medical advice.',
+    },
+  },
+};
 
 // Helper: anonimiseer data - ALLEEN statistieken, geen herleidbare info
 function anonymizeData(input: {
@@ -90,8 +198,12 @@ function anonymizeData(input: {
   preferences?: any;
   baselinePrediction?: any;
   hasAIConsent?: boolean;
-}) {
+}, language: SupportedLanguage) {
   const { cycles, bleedingLogs, symptomLogs, preferences, baselinePrediction } = input;
+  
+  const labels = language === 'en'
+    ? { unknown: 'unknown', regular: 'regular', slightlyVarying: 'slightly varying', varying: 'varying', short: 'short', average: 'average', long: 'long', none: 'none', limited: 'limited', sufficient: 'sufficient', notLogged: 'not logged', occasional: 'occasional', frequent: 'frequent', yes: 'yes', no: 'no', fewDays: 'few days', manyDays: 'many days', noData: 'no data' }
+    : { unknown: 'onbekend', regular: 'regelmatig', slightlyVarying: 'licht wisselend', varying: 'wisselend', short: 'kort', average: 'gemiddeld', long: 'lang', none: 'geen', limited: 'beperkt', sufficient: 'voldoende', notLogged: 'niet gelogd', occasional: 'incidenteel', frequent: 'frequent', yes: 'ja', no: 'nee', fewDays: 'weinig dagen', manyDays: 'veel dagen', noData: 'geen data' };
   
   // Bereken ALLEEN samenvattende statistieken
   const cycleLengths = (cycles || [])
@@ -106,45 +218,45 @@ function anonymizeData(input: {
   const cycleVariability = cycleLengths.length > 1
     ? Math.max(...cycleLengths) - Math.min(...cycleLengths)
     : null;
-  const variabilityCategory = cycleVariability === null ? 'onbekend' 
-    : cycleVariability <= 3 ? 'regelmatig'
-    : cycleVariability <= 7 ? 'licht wisselend'
-    : 'wisselend';
+  const variabilityCategory = cycleVariability === null ? labels.unknown 
+    : cycleVariability <= 3 ? labels.regular
+    : cycleVariability <= 7 ? labels.slightlyVarying
+    : labels.varying;
 
   // Tel symptomen - alleen frequentiecategorieën
   const symptomCounts: Record<string, string> = {};
   const symptoms = ['headache', 'bloating', 'anxiety', 'irritability', 'breast_tender', 'hot_flashes'];
   symptoms.forEach(s => {
     const count = (symptomLogs || []).filter((log: any) => log[s]).length;
-    symptomCounts[s] = count === 0 ? 'niet gelogd' 
-      : count <= 3 ? 'incidenteel' 
-      : count <= 7 ? 'regelmatig' 
-      : 'frequent';
+    symptomCounts[s] = count === 0 ? labels.notLogged 
+      : count <= 3 ? labels.occasional 
+      : count <= 7 ? labels.regular 
+      : labels.frequent;
   });
 
   // Bloedingspatroon - categorisch
   const bleedingCount = (bleedingLogs || []).length;
-  const bleedingCategory = bleedingCount === 0 ? 'geen data'
-    : bleedingCount <= 3 ? 'weinig dagen'
-    : bleedingCount <= 7 ? 'gemiddeld'
-    : 'veel dagen';
+  const bleedingCategory = bleedingCount === 0 ? labels.noData
+    : bleedingCount <= 3 ? labels.fewDays
+    : bleedingCount <= 7 ? labels.average
+    : labels.manyDays;
   
   return {
     stats: {
-      avgCycleLengthCategory: avgCycleLength === null ? 'onbekend'
-        : avgCycleLength < 25 ? 'kort'
-        : avgCycleLength <= 35 ? 'gemiddeld'
-        : 'lang',
+      avgCycleLengthCategory: avgCycleLength === null ? labels.unknown
+        : avgCycleLength < 25 ? labels.short
+        : avgCycleLength <= 35 ? labels.average
+        : labels.long,
       variabilityCategory,
-      dataVolume: cycleLengths.length === 0 ? 'geen'
-        : cycleLengths.length <= 2 ? 'beperkt'
-        : 'voldoende',
+      dataVolume: cycleLengths.length === 0 ? labels.none
+        : cycleLengths.length <= 2 ? labels.limited
+        : labels.sufficient,
       symptomPatterns: symptomCounts,
       bleedingCategory,
     },
     profile: {
-      perimenopauze: preferences?.perimenopause ? 'ja' : 'onbekend',
-      hormonaleAnticonceptie: preferences?.hormonal_contraception ? 'ja' : 'nee',
+      perimenopauze: preferences?.perimenopause ? labels.yes : labels.unknown,
+      hormonaleAnticonceptie: preferences?.hormonal_contraception ? labels.yes : labels.no,
     },
     currentPhase: {
       phase: baselinePrediction?.current_phase || 'unknown',
@@ -154,7 +266,7 @@ function anonymizeData(input: {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof prompts['nl']): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -197,7 +309,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
   if ((count || 0) >= DAILY_AI_LIMIT) {
     return new Response(JSON.stringify({ 
       error: 'limit_exceeded', 
-      message: `Dagelijkse AI-limiet (${DAILY_AI_LIMIT}) bereikt. Probeer het morgen opnieuw.` 
+      message: t.limitExceeded(DAILY_AI_LIMIT)
     }), {
       status: 429,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -224,14 +336,16 @@ serve(async (req) => {
   }
 
   try {
+    const inputData = await req.json();
+    const language = getLanguage(inputData.language);
+    const t = prompts[language];
+
     // Authenticate and check limits
-    const authResult = await authenticateAndCheckLimits(req);
+    const authResult = await authenticateAndCheckLimits(req, t);
     if (authResult instanceof Response) {
       return authResult;
     }
     const { user, supabase, aiSubjectId } = authResult;
-
-    const inputData = await req.json();
     
     // CONSENT CHECK - verify consent server-side
     const { data: consent } = await supabase
@@ -243,19 +357,14 @@ serve(async (req) => {
     if (!inputData.hasAIConsent || !consent?.accepted_ai_processing) {
       return new Response(JSON.stringify({
         error: 'consent_required',
-        message: 'Om deze functie te gebruiken is toestemming nodig voor het verwerken van gezondheidsgegevens en AI-ondersteuning.',
-        seasonNow: inputData.baselinePrediction?.current_season || 'onbekend',
-        phaseNow: inputData.baselinePrediction?.current_phase || 'onbekend',
+        message: language === 'en' ? 'Consent is required to use this feature.' : 'Om deze functie te gebruiken is toestemming nodig.',
+        seasonNow: inputData.baselinePrediction?.current_season || (language === 'en' ? 'unknown' : 'onbekend'),
+        phaseNow: inputData.baselinePrediction?.current_phase || (language === 'en' ? 'unknown' : 'onbekend'),
         confidence: 0,
-        confidenceExplanation: 'Geen AI-analyse zonder toestemming.',
-        todayTips: {
-          voedingTip: 'Schakel AI-ondersteuning in bij Instellingen voor gepersonaliseerde tips.',
-          trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
-          werkTip: 'Plan je dag flexibel en neem voldoende pauzes.',
-          herstelTip: 'Rust is belangrijk. Gun jezelf momenten van ontspanning.',
-        },
+        confidenceExplanation: language === 'en' ? 'No AI analysis without consent.' : 'Geen AI-analyse zonder toestemming.',
+        todayTips: t.consentFallback,
         watchouts: [],
-        insight: 'Schakel AI in bij Instellingen voor persoonlijke inzichten.',
+        insight: t.consentFallback.insight,
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -268,7 +377,7 @@ serve(async (req) => {
     }
 
     // PRIVACY: Anonimiseer naar categorieën, geen exacte waarden
-    const anonymized = anonymizeData(inputData);
+    const anonymized = anonymizeData(inputData, language);
     
     // Track usage BEFORE making the AI call
     await trackUsage(supabase, user.id, 'cycle-coach');
@@ -276,8 +385,32 @@ serve(async (req) => {
     console.log('Generating cycle coach insight via OpenAI API, subject:', aiSubjectId);
 
     // Context met ALLEEN categorische kenmerken (geen PII, geen exacte waarden)
-    const context = `
-GEANONIMISEERDE KENMERKEN (geen exacte waarden, geen persoonsgegevens):
+    const context = language === 'en' 
+      ? `ANONYMIZED CHARACTERISTICS (no exact values, no personal data):
+
+CYCLE PATTERN:
+- Average length: ${anonymized.stats.avgCycleLengthCategory}
+- Regularity: ${anonymized.stats.variabilityCategory}
+- Available data: ${anonymized.stats.dataVolume}
+- Bleeding pattern: ${anonymized.stats.bleedingCategory}
+
+SYMPTOM PATTERNS (frequency, not exact counts):
+${Object.entries(anonymized.stats.symptomPatterns)
+  .filter(([_, v]) => v !== 'not logged')
+  .map(([k, v]) => `- ${k}: ${v}`)
+  .join('\n') || '- No symptoms logged'}
+
+PROFILE:
+- Perimenopause: ${anonymized.profile.perimenopauze}
+- Hormonal contraception: ${anonymized.profile.hormonaleAnticonceptie}
+
+CURRENT PHASE (estimate):
+- Season: ${anonymized.currentPhase.season}
+- Phase: ${anonymized.currentPhase.phase}
+
+Provide supportive, non-medical insights. Use cautious language.
+Refer to a healthcare provider when in doubt.`
+      : `GEANONIMISEERDE KENMERKEN (geen exacte waarden, geen persoonsgegevens):
 
 CYCLUSPATROON:
 - Gemiddelde lengte: ${anonymized.stats.avgCycleLengthCategory}
@@ -311,7 +444,7 @@ Verwijs bij twijfel naar een zorgverlener.`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: t.system },
           { role: 'user', content: context }
         ],
         max_tokens: 600,
@@ -326,7 +459,7 @@ Verwijs bij twijfel naar een zorgverlener.`;
       if (response.status === 429) {
         return new Response(JSON.stringify({ 
           error: 'rate_limit',
-          message: 'Te veel verzoeken. Probeer het later opnieuw.' 
+          message: t.rateLimit
         }), {
           status: 429,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -353,23 +486,23 @@ Verwijs bij twijfel naar een zorgverlener.`;
       console.error('Failed to parse AI response:', parseError);
       // Fallback met veilige, niet-medische content
       result = {
-        seasonNow: anonymized.currentPhase.season || 'onbekend',
-        phaseNow: anonymized.currentPhase.phase || 'onbekend',
+        seasonNow: anonymized.currentPhase.season || (language === 'en' ? 'unknown' : 'onbekend'),
+        phaseNow: anonymized.currentPhase.phase || (language === 'en' ? 'unknown' : 'onbekend'),
         confidence: 50,
-        confidenceExplanation: 'Gebaseerd op beperkte gegevens.',
+        confidenceExplanation: t.fallback.confidenceExplanation,
         todayTips: {
-          voedingTip: 'Gevarieerd eten met voldoende eiwit en groenten kan je energie ondersteunen.',
-          trainingTip: 'Luister naar je lichaam en beweeg op een manier die goed voelt.',
-          werkTip: 'Neem regelmatig pauzes en plan je energie flexibel in.',
-          herstelTip: 'Rust en ontspanning zijn belangrijk voor je welzijn.',
+          voedingTip: t.fallback.voedingTip,
+          trainingTip: t.fallback.trainingTip,
+          werkTip: t.fallback.werkTip,
+          herstelTip: t.fallback.herstelTip,
         },
         watchouts: [],
-        insight: 'Log meer dagen om patronen zichtbaar te maken. Deze app geeft geen medisch advies.',
+        insight: t.fallback.insight,
       };
     }
 
     // Voeg altijd disclaimer toe
-    result.disclaimer = 'Deze inzichten zijn informatief en geen medisch advies. Raadpleeg bij klachten altijd een zorgverlener.';
+    result.disclaimer = t.disclaimer;
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -379,7 +512,7 @@ Verwijs bij twijfel naar een zorgverlener.`;
     console.error('Error in cycle-coach:', error);
     return new Response(JSON.stringify({ 
       error: 'service_error',
-      message: 'Er ging iets mis. Probeer het later opnieuw.' 
+      message: 'Er ging iets mis. Probeer het later opnieuw.'
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
