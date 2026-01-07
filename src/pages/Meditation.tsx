@@ -335,7 +335,7 @@ export default function MeditationPage() {
                   ) : (
                     <>
                       <Play className="h-5 w-5 mr-2" />
-                      {t('meditation.startMeditation')}
+                      {t('meditation.start_meditation')}
                     </>
                   )}
                 </Button>
@@ -344,7 +344,7 @@ export default function MeditationPage() {
               {isPlaying && (
                 <div className="mt-8 flex items-center gap-2 text-muted-foreground">
                   <Volume2 className="h-4 w-4" />
-                  <span className="text-sm">{t('meditation.audioPlaying')}</span>
+                  <span className="text-sm">{t('meditation.audio_playing')}</span>
                 </div>
               )}
             </div>

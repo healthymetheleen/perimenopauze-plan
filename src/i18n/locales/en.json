@@ -77,6 +77,19 @@
     "title": "Sleep insight",
     "not_available": "Sleep insight not available."
   },
+  "weekly_insight": {
+    "title": "Week Analysis",
+    "enable_ai": "Enable AI insights in Settings for weekly nutrition analysis.",
+    "error": "Could not load analysis",
+    "week_of": "Week of {{date}}",
+    "days": "days",
+    "avg_protein": "avg. protein",
+    "avg_fiber": "avg. fiber",
+    "well_done": "Well done",
+    "attention_points": "Attention points",
+    "weekly_goal": "Weekly goal",
+    "refreshed_weekly": "Analysis is refreshed every week"
+  },
   "trends": {
     "title": "Trends & Analyses",
     "subtitle": "Discover patterns in your data",

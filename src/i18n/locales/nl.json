@@ -77,6 +77,19 @@
     "title": "Slaap-inzicht",
     "not_available": "Slaap-inzicht niet beschikbaar."
   },
+  "weekly_insight": {
+    "title": "Weekanalyse",
+    "enable_ai": "Schakel AI-inzichten in bij Instellingen voor wekelijkse voedingsanalyse.",
+    "error": "Kon analyse niet laden",
+    "week_of": "Week van {{date}}",
+    "days": "dagen",
+    "avg_protein": "gem. eiwit",
+    "avg_fiber": "gem. vezels",
+    "well_done": "Goed gedaan",
+    "attention_points": "Aandachtspunten",
+    "weekly_goal": "Weekdoel",
+    "refreshed_weekly": "Analyse wordt elke week vernieuwd"
+  },
   "trends": {
     "title": "Trends & Analyses",
     "subtitle": "Ontdek patronen in jouw data",

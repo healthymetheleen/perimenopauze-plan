@@ -5,13 +5,16 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWeeklyNutritionInsight } from '@/hooks/useWeeklyNutritionInsight';
 import { useConsent } from '@/hooks/useConsent';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 
 export function WeeklyInsightCard() {
+  const { t, i18n } = useTranslation();
   const { consent } = useConsent();
   const { data, isLoading, error } = useWeeklyNutritionInsight();
   
   const hasAIConsent = consent?.accepted_ai_processing === true;
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
 
   if (!hasAIConsent) {
     return (
@@ -19,7 +22,7 @@ export function WeeklyInsightCard() {
         <CardContent className="pt-6 text-center">
           <Sparkles className="h-8 w-8 mx-auto text-muted-foreground mb-2" />
           <p className="text-sm text-muted-foreground">
-            Schakel AI-inzichten in bij Instellingen voor wekelijkse voedingsanalyse.
+            {t('weekly_insight.enable_ai')}
           </p>
         </CardContent>
       </Card>
@@ -32,7 +35,7 @@ export function WeeklyInsightCard() {
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Weekanalyse
+            {t('weekly_insight.title')}
             <Badge variant="secondary" className="text-xs">AI</Badge>
           </CardTitle>
         </CardHeader>
@@ -46,7 +49,7 @@ export function WeeklyInsightCard() {
   }
 
   if (error || data?.error) {
-    const errorMessage = data?.message || data?.error || 'Kon analyse niet laden';
+    const errorMessage = data?.message || data?.error || t('weekly_insight.error');
     return (
       <Card className="rounded-2xl bg-muted/30">
         <CardContent className="pt-6 text-center">
@@ -68,11 +71,11 @@ export function WeeklyInsightCard() {
         <div className="flex items-center justify-between">
           <CardTitle className="text-base flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-primary" />
-            Weekanalyse
+            {t('weekly_insight.title')}
             <Badge variant="secondary" className="text-xs">Ortho</Badge>
           </CardTitle>
           <span className="text-xs text-muted-foreground">
-            Week van {format(weekStartDate, 'd MMM', { locale: nl })}
+            {t('weekly_insight.week_of', { date: format(weekStartDate, 'd MMM', { locale: dateLocale }) })}
           </span>
         </div>
       </CardHeader>
@@ -84,15 +87,15 @@ export function WeeklyInsightCard() {
         <div className="grid grid-cols-3 gap-2 p-3 rounded-xl bg-muted/50">
           <div className="text-center">
             <p className="text-lg font-bold text-foreground">{insight.days_logged}</p>
-            <p className="text-xs text-muted-foreground">dagen</p>
+            <p className="text-xs text-muted-foreground">{t('weekly_insight.days')}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-foreground">{insight.avg_protein}g</p>
-            <p className="text-xs text-muted-foreground">gem. eiwit</p>
+            <p className="text-xs text-muted-foreground">{t('weekly_insight.avg_protein')}</p>
           </div>
           <div className="text-center">
             <p className="text-lg font-bold text-foreground">{insight.avg_fiber}g</p>
-            <p className="text-xs text-muted-foreground">gem. vezels</p>
+            <p className="text-xs text-muted-foreground">{t('weekly_insight.avg_fiber')}</p>
           </div>
         </div>
 
@@ -101,7 +104,7 @@ export function WeeklyInsightCard() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium text-primary">
               <TrendingUp className="h-4 w-4" />
-              Goed gedaan
+              {t('weekly_insight.well_done')}
             </div>
             <ul className="space-y-1">
               {insight.sterke_punten.map((punt, i) => (
@@ -119,7 +122,7 @@ export function WeeklyInsightCard() {
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
               <Target className="h-4 w-4" />
-              Aandachtspunten
+              {t('weekly_insight.attention_points')}
             </div>
             <ul className="space-y-1">
               {insight.aandachtspunten.map((punt, i) => (
@@ -156,7 +159,7 @@ export function WeeklyInsightCard() {
         {insight.weekdoel && (
           <div className="pt-3 border-t border-border/50">
             <p className="text-sm">
-              <span className="font-medium">🎯 Weekdoel:</span>{' '}
+              <span className="font-medium">🎯 {t('weekly_insight.weekly_goal')}:</span>{' '}
               <span className="text-muted-foreground">{insight.weekdoel}</span>
             </p>
           </div>
@@ -164,7 +167,7 @@ export function WeeklyInsightCard() {
 
         {data?.cached && (
           <p className="text-xs text-muted-foreground text-center pt-2">
-            Analyse wordt elke week vernieuwd
+            {t('weekly_insight.refreshed_weekly')}
           </p>
         )}
       </CardContent>
