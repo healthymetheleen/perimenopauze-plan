@@ -6,6 +6,80 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+type SupportedLanguage = 'nl' | 'en';
+
+function getLanguage(lang?: string): SupportedLanguage {
+  if (lang === 'en') return 'en';
+  return 'nl';
+}
+
+const translations = {
+  nl: {
+    unauthorized: 'Unauthorized',
+    startLogging: 'Start met het loggen van je maaltijden voor persoonlijke coaching',
+    proteinLow: (avg: number) => `Je gemiddelde eiwit is ${avg}g/dag. Probeer minimaal 50g voor energie en spieren.`,
+    proteinTip: 'Tip: voeg eieren, vis, peulvruchten of Griekse yoghurt toe aan je maaltijden.',
+    proteinGood: (avg: number) => `Goed bezig! Je eet gemiddeld ${avg}g eiwit per dag 💪`,
+    fiberLow: (avg: number) => `Je vezelintake (${avg}g/dag) is onder de aanbevolen 25g.`,
+    fiberTip: 'Tip: meer groenten, volkoren producten en fruit helpen je spijsvertering.',
+    fiberGood: (avg: number) => `Uitstekende vezels! ${avg}g/dag houdt je darmen gezond 🥗`,
+    fewMeals: 'Je logt weinig maaltijden. Regelmatig eten houdt je bloedsuiker stabiel.',
+    seasons: {
+      winter: {
+        main: 'Winter fase: kies voor warme, voedzame maaltijden',
+        proteinTip: 'Eiwit bij je maaltijden helpt bij herstel',
+      },
+      lente: {
+        main: 'Lente fase: je lichaam verwerkt koolhydraten nu optimaal',
+        secondary: 'Ideale tijd voor gevarieerde, verse maaltijden',
+      },
+      zomer: {
+        main: 'Zomer fase: licht maar voedzaam eten, extra hydratatie',
+        secondary: 'Je energie is op z\'n piek - geniet ervan!',
+      },
+      herfst: {
+        main: 'Herfst fase: stabiele maaltijdtijden zijn cruciaal',
+        secondary: 'Vermijd veel suiker en alcohol om PMS te verminderen',
+        fiberTip: 'Extra magnesium (noten, zaden) kan helpen bij spanning',
+      },
+    },
+    error: 'Er ging iets mis',
+    unknown: 'onbekend',
+  },
+  en: {
+    unauthorized: 'Unauthorized',
+    startLogging: 'Start logging your meals for personalized coaching',
+    proteinLow: (avg: number) => `Your average protein is ${avg}g/day. Try at least 50g for energy and muscles.`,
+    proteinTip: 'Tip: add eggs, fish, legumes or Greek yogurt to your meals.',
+    proteinGood: (avg: number) => `Great job! You eat an average of ${avg}g protein per day 💪`,
+    fiberLow: (avg: number) => `Your fiber intake (${avg}g/day) is below the recommended 25g.`,
+    fiberTip: 'Tip: more vegetables, whole grains and fruit help your digestion.',
+    fiberGood: (avg: number) => `Excellent fiber! ${avg}g/day keeps your gut healthy 🥗`,
+    fewMeals: 'You log few meals. Regular eating keeps your blood sugar stable.',
+    seasons: {
+      winter: {
+        main: 'Winter phase: choose warm, nutritious meals',
+        proteinTip: 'Protein with your meals helps with recovery',
+      },
+      lente: {
+        main: 'Spring phase: your body processes carbs optimally now',
+        secondary: 'Ideal time for varied, fresh meals',
+      },
+      zomer: {
+        main: 'Summer phase: light but nutritious eating, extra hydration',
+        secondary: 'Your energy is at its peak - enjoy it!',
+      },
+      herfst: {
+        main: 'Autumn phase: stable meal times are crucial',
+        secondary: 'Avoid excess sugar and alcohol to reduce PMS',
+        fiberTip: 'Extra magnesium (nuts, seeds) can help with tension',
+      },
+    },
+    error: 'Something went wrong',
+    unknown: 'unknown',
+  },
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -21,6 +95,18 @@ serve(async (req) => {
       });
     }
 
+    // Parse request body for language
+    let language = 'nl';
+    try {
+      const body = await req.json();
+      language = body.language || 'nl';
+    } catch {
+      // No body or invalid JSON, use default language
+    }
+    
+    const lang = getLanguage(language);
+    const t = translations[lang];
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
@@ -32,7 +118,7 @@ serve(async (req) => {
     const { data: { user }, error: authError } = await supabase.auth.getUser(jwt);
     if (authError || !user) {
       console.log('Auth error:', authError?.message);
-      return new Response(JSON.stringify({ error: 'Unauthorized', tips: [] }), {
+      return new Response(JSON.stringify({ error: t.unauthorized, tips: [] }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -78,7 +164,7 @@ serve(async (req) => {
 
     // Generate coaching tips based on data
     const tips: string[] = [];
-    const currentSeason = prediction?.current_season || 'onbekend';
+    const currentSeason = prediction?.current_season || t.unknown;
 
     // Check if nutrition focus is enabled (default true)
     const focusNutrition = coachingPrefs?.focus_nutrition ?? true;
@@ -87,7 +173,7 @@ serve(async (req) => {
     console.log('Scores found:', scores?.length || 0, 'Season:', currentSeason);
 
     if (!scores || scores.length === 0) {
-      tips.push('Start met het loggen van je maaltijden voor persoonlijke coaching');
+      tips.push(t.startLogging);
       return new Response(JSON.stringify({ tips, currentSeason }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
@@ -103,50 +189,42 @@ serve(async (req) => {
     if (focusNutrition) {
       // Protein coaching
       if (avgProtein < 40) {
-        tips.push(`Je gemiddelde eiwit is ${Math.round(avgProtein)}g/dag. Probeer minimaal 50g voor energie en spieren.`);
-        tips.push('Tip: voeg eieren, vis, peulvruchten of Griekse yoghurt toe aan je maaltijden.');
+        tips.push(t.proteinLow(Math.round(avgProtein)));
+        tips.push(t.proteinTip);
       } else if (avgProtein >= 50) {
-        tips.push(`Goed bezig! Je eet gemiddeld ${Math.round(avgProtein)}g eiwit per dag 💪`);
+        tips.push(t.proteinGood(Math.round(avgProtein)));
       }
 
       // Fiber coaching
       if (avgFiber < 20) {
-        tips.push(`Je vezelintake (${Math.round(avgFiber)}g/dag) is onder de aanbevolen 25g.`);
-        tips.push('Tip: meer groenten, volkoren producten en fruit helpen je spijsvertering.');
+        tips.push(t.fiberLow(Math.round(avgFiber)));
+        tips.push(t.fiberTip);
       } else if (avgFiber >= 25) {
-        tips.push(`Uitstekende vezels! ${Math.round(avgFiber)}g/dag houdt je darmen gezond 🥗`);
+        tips.push(t.fiberGood(Math.round(avgFiber)));
       }
 
       // Meal regularity
       if (avgMeals < 2) {
-        tips.push('Je logt weinig maaltijden. Regelmatig eten houdt je bloedsuiker stabiel.');
+        tips.push(t.fewMeals);
       }
     }
 
     // Season-specific tips (only if cycle focus is enabled)
     if (focusCycle) {
-      switch (currentSeason) {
-        case 'winter':
-          tips.push('Winter fase: kies voor warme, voedzame maaltijden');
-          if (focusNutrition && avgProtein < 50) {
-            tips.push('Eiwit bij je maaltijden helpt bij herstel');
-          }
-          break;
-        case 'lente':
-          tips.push('Lente fase: je lichaam verwerkt koolhydraten nu optimaal');
-          tips.push('Ideale tijd voor gevarieerde, verse maaltijden');
-          break;
-        case 'zomer':
-          tips.push('Zomer fase: licht maar voedzaam eten, extra hydratatie');
-          tips.push('Je energie is op z\'n piek - geniet ervan!');
-          break;
-        case 'herfst':
-          tips.push('Herfst fase: stabiele maaltijdtijden zijn cruciaal');
-          tips.push('Vermijd veel suiker en alcohol om PMS te verminderen');
-          if (focusNutrition && avgFiber < 20) {
-            tips.push('Extra magnesium (noten, zaden) kan helpen bij spanning');
-          }
-          break;
+      const seasonKey = currentSeason as keyof typeof t.seasons;
+      const seasonTips = t.seasons[seasonKey];
+      
+      if (seasonTips) {
+        tips.push(seasonTips.main);
+        if ('secondary' in seasonTips) {
+          tips.push(seasonTips.secondary);
+        }
+        if ('proteinTip' in seasonTips && focusNutrition && avgProtein < 50) {
+          tips.push(seasonTips.proteinTip);
+        }
+        if ('fiberTip' in seasonTips && focusNutrition && avgFiber < 20) {
+          tips.push(seasonTips.fiberTip);
+        }
       }
     }
 
@@ -168,9 +246,9 @@ serve(async (req) => {
   } catch (error) {
     console.error('Nutrition coach error:', error);
     return new Response(JSON.stringify({ 
-      error: 'Er ging iets mis',
+      error: 'Something went wrong',
       tips: [],
-      currentSeason: 'onbekend'
+      currentSeason: 'unknown'
     }), {
       status: 200, // Return 200 with empty tips instead of 500
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

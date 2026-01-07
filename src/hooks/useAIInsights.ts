@@ -4,6 +4,7 @@ import { useAuth } from '@/lib/auth';
 import { useConsent } from '@/hooks/useConsent';
 import { trackAIUsage } from '@/hooks/useAIUsage';
 import { useFeatureAccess } from '@/hooks/useEntitlements';
+import { useTranslation } from 'react-i18next';
 
 export interface DailyInsight {
   pattern: string;
@@ -64,23 +65,25 @@ export function useAIInsight<T>(type: InsightType, data: InsightData, enabled: b
   const { consent } = useConsent();
   const { hasAccess: hasPremiumAccess } = useFeatureAccess('ai');
   const hasAIConsent = consent?.accepted_ai_processing === true;
+  const { i18n } = useTranslation();
+  const language = i18n.language?.startsWith('en') ? 'en' : 'nl';
 
   // Generate a date-based cache key to ensure insights are only fetched once per day
   const today = new Date().toISOString().split('T')[0];
 
   return useQuery({
-    queryKey: ['ai-insight', type, user?.id, today],
+    queryKey: ['ai-insight', type, user?.id, today, language],
     queryFn: async (): Promise<T> => {
       if (!user) throw new Error('Not authenticated');
       
       // Track usage
       const canProceed = await trackAIUsage(`premium-insights-${type}`);
       if (!canProceed) {
-        throw new Error('Dagelijkse AI-limiet bereikt');
+        throw new Error(language === 'en' ? 'Daily AI limit reached' : 'Dagelijkse AI-limiet bereikt');
       }
 
       const { data: result, error } = await supabase.functions.invoke('premium-insights', {
-        body: { type, data, hasAIConsent }
+        body: { type, data, hasAIConsent, language }
       });
 
       if (error) throw error;
