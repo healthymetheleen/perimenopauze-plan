@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,12 +20,12 @@ import { sanitizeImageUrl } from '@/lib/sanitize';
 import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart, Heart } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
-// Time categories for filtering
+// Time categories will use translation keys
 const timeCategories = [
-  { value: 'supersnel', label: 'Supersnel (<15 min)', maxMinutes: 15 },
-  { value: 'snel', label: 'Snel (<30 min)', maxMinutes: 30 },
-  { value: 'normaal', label: 'Normaal (<60 min)', maxMinutes: 60 },
-  { value: 'uitgebreid', label: 'Uitgebreid (60+ min)', maxMinutes: Infinity },
+  { value: 'supersnel', labelKey: 'recipes.time_superfast', maxMinutes: 15 },
+  { value: 'snel', labelKey: 'recipes.time_fast', maxMinutes: 30 },
+  { value: 'normaal', labelKey: 'recipes.time_normal', maxMinutes: 60 },
+  { value: 'uitgebreid', labelKey: 'recipes.time_extended', maxMinutes: Infinity },
 ] as const;
 
 // Map cycle seasons to cycle phases
@@ -45,6 +46,7 @@ function getCurrentCalendarSeason(): string {
 }
 
 export default function RecipesPage() {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [search, setSearch] = useState('');
   const [mealType, setMealType] = useState<string>('');
@@ -171,9 +173,9 @@ export default function RecipesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="min-w-0">
-            <h1 className="text-2xl font-semibold text-foreground truncate">Recepten</h1>
+            <h1 className="text-2xl font-semibold text-foreground truncate">{t('recipes.title')}</h1>
             <p className="text-muted-foreground text-sm">
-              Gezonde recepten afgestemd op seizoen & cyclus
+              {t('recipes.subtitle')}
             </p>
           </div>
           <Button
@@ -182,7 +184,7 @@ export default function RecipesPage() {
             className="relative flex-shrink-0 w-full sm:w-auto"
           >
             <ShoppingCart className="h-4 w-4 mr-2" />
-            Boodschappen
+            {t('recipes.shopping')}
             {selectedCount > 0 && (
               <Badge
                 variant="secondary"
@@ -200,10 +202,10 @@ export default function RecipesPage() {
             <CardHeader className="pb-3">
               <CardTitle className="text-lg flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-primary" />
-                Aanbevolen voor {seasonLabels[currentCycleSeason]?.toLowerCase() || currentCyclePhase}
+                {t('recipes.recommended_for', { season: seasonLabels[currentCycleSeason]?.toLowerCase() || currentCyclePhase })}
               </CardTitle>
               <p className="text-sm text-muted-foreground">
-                Recepten die passen bij je huidige cyclusfase ({currentCyclePhase})
+                {t('recipes.recommended_desc', { phase: currentCyclePhase })}
               </p>
             </CardHeader>
             <CardContent>
@@ -270,7 +272,7 @@ export default function RecipesPage() {
                 className="gap-1 flex-shrink-0"
               >
                 <Heart className={`h-4 w-4 ${showFavoritesOnly ? 'fill-current' : ''}`} />
-                <span className="hidden sm:inline">Favorieten</span>
+                <span className="hidden sm:inline">{t('recipes.favorites')}</span>
                 {favoriteIds.length > 0 && (
                   <Badge variant="secondary" className="ml-1 h-5 px-1.5">
                     {favoriteIds.length}
@@ -281,10 +283,10 @@ export default function RecipesPage() {
 
             <Select value={mealType} onValueChange={setMealType}>
               <SelectTrigger className="w-[120px] sm:w-[140px] bg-background flex-shrink-0">
-                <SelectValue placeholder="Maaltijd" />
+                <SelectValue placeholder={t('recipes.meal_type')} />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
-                <SelectItem value="all">Alle maaltijden</SelectItem>
+                <SelectItem value="all">{t('recipes.all_meals')}</SelectItem>
                 {mealTypes.map((type) => (
                   <SelectItem key={type.value} value={type.value}>
                     {type.label}
@@ -295,13 +297,13 @@ export default function RecipesPage() {
 
             <Select value={timeCategory} onValueChange={setTimeCategory}>
               <SelectTrigger className="w-[100px] sm:w-[140px] bg-background flex-shrink-0">
-                <SelectValue placeholder="Tijd" />
+                <SelectValue placeholder={t('recipes.time')} />
               </SelectTrigger>
               <SelectContent className="bg-background z-50">
-                <SelectItem value="all">Alle tijden</SelectItem>
+                <SelectItem value="all">{t('recipes.all_times')}</SelectItem>
                 {timeCategories.map((cat) => (
                   <SelectItem key={cat.value} value={cat.value}>
-                    {cat.label}
+                    {t(cat.labelKey)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -314,7 +316,7 @@ export default function RecipesPage() {
                 onClick={() => { setMealType(''); setTimeCategory(''); }}
                 className="text-muted-foreground flex-shrink-0"
               >
-                Wissen
+                {t('recipes.clear')}
               </Button>
             )}
           </div>
@@ -324,7 +326,7 @@ export default function RecipesPage() {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Zoek recepten..."
+                placeholder={t('recipes.search_placeholder')}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="pl-9"
@@ -336,7 +338,7 @@ export default function RecipesPage() {
               className="relative"
             >
               <Filter className="h-4 w-4 mr-2" />
-              Meer
+              {t('recipes.more')}
               {activeFilterCount > 0 && (
                 <Badge
                   variant="secondary"
@@ -374,7 +376,7 @@ export default function RecipesPage() {
 
         {/* Recipe list */}
         {(showFavoritesOnly ? favoritesLoading : isLoading) ? (
-          <LoadingState message={showFavoritesOnly ? "Favorieten laden..." : "Recepten laden..."} />
+          <LoadingState message={showFavoritesOnly ? t('recipes.loading_favorites') : t('recipes.loading')} />
         ) : displayRecipes && displayRecipes.length > 0 ? (
           <div className="grid gap-4">
             {displayRecipes.map((recipe) => (
@@ -436,7 +438,7 @@ export default function RecipesPage() {
                           {recipe.servings && (
                             <span className="text-xs text-muted-foreground flex items-center gap-1">
                               <Users className="h-3 w-3" />
-                              {recipe.servings} pers.
+                              {t('recipes.persons', { count: recipe.servings })}
                             </span>
                           )}
                         </div>
@@ -459,8 +461,8 @@ export default function RecipesPage() {
         ) : (
           <EmptyState
             icon={showFavoritesOnly ? <Heart className="h-12 w-12" /> : <ChefHat className="h-12 w-12" />}
-            title={showFavoritesOnly ? "Nog geen favorieten" : "Geen recepten gevonden"}
-            description={showFavoritesOnly ? "Klik op het hartje bij een recept om het toe te voegen" : (hasManualFilters ? "Probeer andere filters" : "Er zijn nog geen recepten toegevoegd")}
+            title={showFavoritesOnly ? t('recipes.no_favorites') : t('recipes.no_recipes')}
+            description={showFavoritesOnly ? t('recipes.no_favorites_desc') : (hasManualFilters ? t('recipes.no_recipes_filter') : t('recipes.no_recipes_empty'))}
           />
         )}
       </div>
