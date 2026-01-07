@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { 
   FileText, Sparkles, Moon, Utensils, Activity, Heart, 
   Brain, AlertCircle, CheckCircle, Loader2, Info
@@ -8,12 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Separator } from '@/components/ui/separator';
 import { useGenerateMonthlyAnalysis, useCanGenerateMonthlyAnalysis, useSavedMonthlyAnalysis, useMonthlyAnalysisList, type MonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
 import { useConsent } from '@/hooks/useConsent';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
-import { nl } from 'date-fns/locale';
+import { nl, enUS } from 'date-fns/locale';
 
 const domainIcons: Record<string, React.ReactNode> = {
   sleep: <Moon className="h-4 w-4" />,
@@ -21,14 +21,6 @@ const domainIcons: Record<string, React.ReactNode> = {
   cycle: <Heart className="h-4 w-4" />,
   mood: <Brain className="h-4 w-4" />,
   energy: <Activity className="h-4 w-4" />,
-};
-
-const domainLabels: Record<string, string> = {
-  sleep: 'Slaap',
-  food: 'Voeding',
-  cycle: 'Cyclus',
-  mood: 'Stemming',
-  energy: 'Energie',
 };
 
 const domainColors: Record<string, string> = {
@@ -40,31 +32,35 @@ const domainColors: Record<string, string> = {
 };
 
 export default function MonthlyAnalysisPage() {
+  const { t, i18n } = useTranslation();
   const { toast } = useToast();
   const { consent } = useConsent();
   const { data: savedAnalysis, isLoading: loadingSaved } = useSavedMonthlyAnalysis();
-  const { data: analysisList } = useMonthlyAnalysisList();
   const { data: canGenerate, isLoading: checkingLimit } = useCanGenerateMonthlyAnalysis();
   const generateAnalysis = useGenerateMonthlyAnalysis();
   const [analysis, setAnalysis] = useState<MonthlyAnalysis | null>(null);
+
+  const dateLocale = i18n.language === 'nl' ? nl : enUS;
 
   // Use saved analysis if available, otherwise use generated one
   const displayAnalysis = analysis || savedAnalysis;
 
   const hasAIConsent = consent?.accepted_ai_processing === true;
 
+  const getDomainLabel = (domain: string) => t(`monthly_analysis.domains.${domain}`);
+
   const handleGenerate = async () => {
     try {
       const result = await generateAnalysis.mutateAsync();
       setAnalysis(result);
       toast({
-        title: 'Analyse gegenereerd!',
-        description: 'Je maandelijkse analyse is klaar.',
+        title: t('monthly_analysis.analysis_generated'),
+        description: t('monthly_analysis.analysis_ready'),
       });
     } catch (error) {
       toast({
-        title: 'Kon analyse niet genereren',
-        description: error instanceof Error ? error.message : 'Probeer het later opnieuw.',
+        title: t('monthly_analysis.could_not_generate'),
+        description: error instanceof Error ? error.message : t('diary.try_again'),
         variant: 'destructive',
       });
     }
@@ -77,10 +73,10 @@ export default function MonthlyAnalysisPage() {
         <div className="space-y-2">
           <h1 className="text-2xl font-bold flex items-center gap-2">
             <FileText className="h-6 w-6 text-primary" />
-            Maandelijkse Analyse
+            {t('monthly_analysis.title')}
           </h1>
           <p className="text-muted-foreground">
-            Een uitgebreide analyse van al je data met orthomoleculaire inzichten
+            {t('monthly_analysis.subtitle')}
           </p>
         </div>
 
@@ -92,15 +88,15 @@ export default function MonthlyAnalysisPage() {
                 <Sparkles className="h-5 w-5 text-primary" />
               </div>
               <div className="space-y-2">
-                <h3 className="font-semibold">Wat bevat deze analyse?</h3>
+                <h3 className="font-semibold">{t('monthly_analysis.what_contains')}</h3>
                 <ul className="text-sm text-muted-foreground space-y-1">
-                  <li>• Patronen in slaap, voeding, stemming en energie</li>
-                  <li>• Hormooncontext per cyclusfase (educatief)</li>
-                  <li>• Orthomoleculaire voedingsinzichten</li>
-                  <li>• Persoonlijke observaties en aandachtspunten</li>
+                  <li>• {t('monthly_analysis.contains_1')}</li>
+                  <li>• {t('monthly_analysis.contains_2')}</li>
+                  <li>• {t('monthly_analysis.contains_3')}</li>
+                  <li>• {t('monthly_analysis.contains_4')}</li>
                 </ul>
                 <p className="text-xs text-muted-foreground mt-2">
-                  Je kunt deze analyse 1x per maand genereren. Alle data wordt anoniem verwerkt.
+                  {t('monthly_analysis.once_per_month')}
                 </p>
               </div>
             </div>
@@ -111,10 +107,9 @@ export default function MonthlyAnalysisPage() {
         {!hasAIConsent && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertTitle>AI-toestemming vereist</AlertTitle>
+            <AlertTitle>{t('monthly_analysis.ai_consent_required')}</AlertTitle>
             <AlertDescription>
-              Om deze analyse te kunnen genereren is toestemming voor AI-verwerking nodig. 
-              Ga naar Instellingen {'>'} Privacy om dit aan te passen.
+              {t('monthly_analysis.ai_consent_desc')}
             </AlertDescription>
           </Alert>
         )}
@@ -131,9 +126,9 @@ export default function MonthlyAnalysisPage() {
                     <FileText className="h-8 w-8 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Klaar voor je maandanalyse?</h3>
+                    <h3 className="font-semibold text-lg">{t('monthly_analysis.ready_for_analysis')}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      We analyseren je data van de afgelopen 30 dagen
+                      {t('monthly_analysis.we_analyze_30_days')}
                     </p>
                   </div>
                   <Button
@@ -145,12 +140,12 @@ export default function MonthlyAnalysisPage() {
                     {generateAnalysis.isPending ? (
                       <>
                         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                        Analyseren...
+                        {t('monthly_analysis.analyzing')}
                       </>
                     ) : (
                       <>
                         <Sparkles className="h-4 w-4 mr-2" />
-                        Genereer Analyse
+                        {t('monthly_analysis.generate_analysis')}
                       </>
                     )}
                   </Button>
@@ -161,9 +156,9 @@ export default function MonthlyAnalysisPage() {
                     <CheckCircle className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-lg">Al gegenereerd deze maand</h3>
+                    <h3 className="font-semibold text-lg">{t('monthly_analysis.already_generated')}</h3>
                     <p className="text-sm text-muted-foreground mt-1">
-                      Je kunt volgende maand een nieuwe analyse maken
+                      {t('monthly_analysis.next_month_available')}
                     </p>
                   </div>
                 </>
@@ -181,10 +176,10 @@ export default function MonthlyAnalysisPage() {
                 <div className="flex items-center justify-between">
                   <CardTitle className="flex items-center gap-2">
                     <Sparkles className="h-5 w-5 text-primary" />
-                    Samenvatting
+                    {t('monthly_analysis.summary')}
                   </CardTitle>
                   <Badge variant="secondary" className="text-xs">
-                    {format(new Date(displayAnalysis.generatedAt), 'MMMM yyyy', { locale: nl })}
+                    {format(new Date(displayAnalysis.generatedAt), 'MMMM yyyy', { locale: dateLocale })}
                   </Badge>
                 </div>
               </CardHeader>
@@ -200,7 +195,7 @@ export default function MonthlyAnalysisPage() {
             {displayAnalysis.patterns && displayAnalysis.patterns.length > 0 && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg">Geobserveerde Patronen</CardTitle>
+                  <CardTitle className="text-lg">{t('monthly_analysis.observed_patterns')}</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   {displayAnalysis.patterns.map((pattern, index) => (
@@ -208,7 +203,7 @@ export default function MonthlyAnalysisPage() {
                       <div className="flex items-center gap-2">
                         <Badge className={domainColors[pattern.domain]}>
                           {domainIcons[pattern.domain]}
-                          <span className="ml-1">{domainLabels[pattern.domain]}</span>
+                          <span className="ml-1">{getDomainLabel(pattern.domain)}</span>
                         </Badge>
                       </div>
                       <p className="text-sm">{pattern.observation}</p>
@@ -229,9 +224,9 @@ export default function MonthlyAnalysisPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Heart className="h-5 w-5 text-rose-500" />
-                    Hormoonpatronen
+                    {t('monthly_analysis.hormone_patterns')}
                   </CardTitle>
-                  <CardDescription>Educatieve context over hormoonschommelingen</CardDescription>
+                  <CardDescription>{t('monthly_analysis.hormone_patterns_desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm">{displayAnalysis.hormoneAnalysis}</p>
@@ -245,9 +240,9 @@ export default function MonthlyAnalysisPage() {
                 <CardHeader>
                   <CardTitle className="text-lg flex items-center gap-2">
                     <Utensils className="h-5 w-5 text-emerald-500" />
-                    Voedingsinzichten
+                    {t('monthly_analysis.nutrition_insights')}
                   </CardTitle>
-                  <CardDescription>Orthomoleculaire observaties</CardDescription>
+                  <CardDescription>{t('monthly_analysis.nutrition_insights_desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm">{displayAnalysis.nutritionInsights}</p>
@@ -262,7 +257,7 @@ export default function MonthlyAnalysisPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Moon className="h-4 w-4 text-indigo-500" />
-                      Slaapanalyse
+                      {t('monthly_analysis.sleep_analysis')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -275,7 +270,7 @@ export default function MonthlyAnalysisPage() {
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base flex items-center gap-2">
                       <Activity className="h-4 w-4 text-amber-500" />
-                      Bewegingsanalyse
+                      {t('monthly_analysis.movement_analysis')}
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
@@ -289,8 +284,8 @@ export default function MonthlyAnalysisPage() {
             {displayAnalysis.recommendations && displayAnalysis.recommendations.length > 0 && (
               <Card className="glass rounded-2xl">
                 <CardHeader>
-                  <CardTitle className="text-lg">Aandachtspunten</CardTitle>
-                  <CardDescription>Observaties om over na te denken</CardDescription>
+                  <CardTitle className="text-lg">{t('monthly_analysis.attention_points')}</CardTitle>
+                  <CardDescription>{t('monthly_analysis.attention_points_desc')}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
@@ -309,7 +304,7 @@ export default function MonthlyAnalysisPage() {
             {displayAnalysis.talkToProvider && (
               <Alert>
                 <Info className="h-4 w-4" />
-                <AlertTitle>Bespreek met je zorgverlener</AlertTitle>
+                <AlertTitle>{t('monthly_analysis.talk_to_provider')}</AlertTitle>
                 <AlertDescription>{displayAnalysis.talkToProvider}</AlertDescription>
               </Alert>
             )}

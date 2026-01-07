@@ -1,72 +1,54 @@
 import { Dumbbell, ArrowRight, Heart, Users, Briefcase } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useLatestPrediction, seasonLabels } from '@/hooks/useCycle';
+import { useLatestPrediction } from '@/hooks/useCycle';
 import { getWorkoutForSeason } from '@/hooks/useMovement';
 
-const intensityLabels: Record<string, string> = {
-  low: 'Licht',
-  moderate: 'Matig',
-  high: 'Intensief',
-};
-
-const intensityColors: Record<string, string> = {
-  low: 'bg-primary/10 text-primary',
-  moderate: 'bg-muted text-foreground',
-  high: 'bg-primary/20 text-primary',
-};
-
-interface SeasonAdvice {
-  feeling: string[];
-  family: string[];
-  work: string[];
-}
-
-const seasonAdvice: Record<string, SeasonAdvice> = {
-  winter: {
-    feeling: ['Rust en herstel', 'Wees mild voor jezelf', 'Accepteer lage energie'],
-    family: ['Vraag om hulp', 'Delegeer taken', 'Neem tijd voor jezelf'],
-    work: ['Routine taken', 'Geen grote beslissingen', 'Korte werkblokken'],
-  },
-  lente: {
-    feeling: ['Energie stijgt', 'Nieuwe ideeën', 'Optimisme groeit'],
-    family: ['Start nieuwe projecten', 'Plan uitjes', 'Sociale activiteiten'],
-    work: ['Creatieve projecten', 'Brainstormen', 'Nieuwe initiatieven'],
-  },
-  zomer: {
-    feeling: ['Piek energie', 'Zelfverzekerd', 'Communicatief'],
-    family: ['Verbinding zoeken', 'Belangrijke gesprekken', 'Samen activiteiten'],
-    work: ['Presentaties', 'Onderhandelingen', 'Netwerken'],
-  },
-  herfst: {
-    feeling: ['Reflectie', 'Naar binnen keren', 'Gevoeliger'],
-    family: ['Grenzen stellen', 'Rust inbouwen', 'Me-time'],
-    work: ['Afronden', 'Organiseren', 'Evalueren'],
-  },
-};
-
 export function MovementWidget() {
+  const { t } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const currentSeason = prediction?.current_season || 'onbekend';
   
   const workout = currentSeason !== 'onbekend' ? getWorkoutForSeason(currentSeason) : null;
-  const advice = seasonAdvice[currentSeason];
+
+  // Get advice from translations
+  const getAdvice = (season: string, type: 'feeling' | 'family' | 'work') => {
+    const key = `movement_widget.advice.${season}.${type}`;
+    const result = t(key, { returnObjects: true });
+    return Array.isArray(result) ? result : [];
+  };
+
+  const intensityLabel = workout ? t(`movement.intensityLabels.${workout.intensity}`) : '';
+  const seasonLabel = t(`seasons.${currentSeason}`);
+
+  const intensityColors: Record<string, string> = {
+    low: 'bg-primary/10 text-primary',
+    moderate: 'bg-muted text-foreground',
+    high: 'bg-primary/20 text-primary',
+  };
 
   if (currentSeason === 'onbekend') {
     return null;
   }
+
+  const advice = {
+    feeling: getAdvice(currentSeason, 'feeling'),
+    family: getAdvice(currentSeason, 'family'),
+    work: getAdvice(currentSeason, 'work'),
+  };
 
   return (
     <Card className="glass-strong rounded-2xl">
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center gap-2">
           <Dumbbell className="h-5 w-5 text-primary" />
-          Beweging & Focus - {seasonLabels[currentSeason]}
+          {t('movement_widget.title')} - {seasonLabel}
           {workout && (
             <Badge className={intensityColors[workout.intensity]}>
-              {intensityLabels[workout.intensity]}
+              {intensityLabel}
             </Badge>
           )}
         </CardTitle>
@@ -74,10 +56,12 @@ export function MovementWidget() {
       <CardContent className="space-y-4">
         {workout && (
           <div className="space-y-3">
-            <p className="text-base text-muted-foreground">{workout.description}</p>
+            <p className="text-base text-muted-foreground">
+              {t(`movement.phaseWorkouts.${workout.phase}.description`)}
+            </p>
             
             <div className="flex items-center gap-2">
-              <span className="font-semibold">Aanbevolen:</span>
+              <span className="font-semibold">{t('movement_widget.recommended')}</span>
               <span className="text-muted-foreground">{workout.recommendedMinutes} min</span>
             </div>
 
@@ -90,19 +74,19 @@ export function MovementWidget() {
               ))}
               {workout.exercises.length > 3 && (
                 <Badge variant="outline" className="text-sm py-1 px-3">
-                  en {workout.exercises.length - 3} andere oefeningen
+                  {t('movement_widget.and_more', { count: workout.exercises.length - 3 })}
                 </Badge>
               )}
             </div>
           </div>
         )}
 
-        {advice && (
+        {advice.feeling.length > 0 && (
           <div className="grid grid-cols-3 gap-4 pt-3 border-t border-border/50">
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <Heart className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Gevoel</span>
+                <span className="text-sm font-semibold text-foreground">{t('movement_widget.feeling')}</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">
                 {advice.feeling.map((item, i) => (
@@ -113,7 +97,7 @@ export function MovementWidget() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <Users className="h-4 w-4 text-primary" />
-                <span className="text-sm font-semibold text-foreground">Gezin</span>
+                <span className="text-sm font-semibold text-foreground">{t('movement_widget.family')}</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">
                 {advice.family.map((item, i) => (
@@ -124,7 +108,7 @@ export function MovementWidget() {
             <div>
               <div className="flex items-center gap-1.5 mb-2">
                 <Briefcase className="h-4 w-4 text-foreground" />
-                <span className="text-sm font-semibold text-foreground">Werk</span>
+                <span className="text-sm font-semibold text-foreground">{t('movement_widget.work')}</span>
               </div>
               <ul className="text-sm text-muted-foreground space-y-1">
                 {advice.work.map((item, i) => (
@@ -137,7 +121,7 @@ export function MovementWidget() {
 
         <Button variant="ghost" size="sm" asChild className="w-full">
           <Link to="/bewegen">
-            Bekijk alle oefeningen
+            {t('movement_widget.view_all')}
             <ArrowRight className="h-4 w-4 ml-1" />
           </Link>
         </Button>

@@ -1492,5 +1492,236 @@
       ],
       "button": "Upgrade to Premium"
     }
+  },
+  "perimenopause_test": {
+    "title": "Perimenopause Self-Test",
+    "description": "Discover if your symptoms could be related to hormonal changes",
+    "login_required": "Login required",
+    "login_required_desc": "You need to be logged in to take the perimenopause test.",
+    "disclaimer": "This test is designed to give you insight into symptoms that could be related to hormonal changes during perimenopause. It is <strong>not a medical diagnosis</strong> and does not replace a doctor or healthcare provider.",
+    "what_to_expect": "What to expect?",
+    "expect_1": "17 questions across 4 themes",
+    "expect_2": "Takes about 5 minutes",
+    "expect_3": "Personal score with explanation per domain",
+    "expect_4": "You can review or delete your results later",
+    "consent_label": "I consent to processing my answers for personal insights within the app.",
+    "start_test": "Start the test",
+    "view_history": "View previous results",
+    "domain": "Domain",
+    "domain_of": "{{current}} of {{total}}",
+    "questions": "questions",
+    "previous": "Previous",
+    "next": "Next",
+    "view_result": "View result",
+    "saving": "Saving...",
+    "your_result": "Your Test Result",
+    "score_per_domain": "Score per domain",
+    "result_disclaimer": "This test does not provide a medical diagnosis. If symptoms persist or worsen, it's wise to discuss this with a doctor or healthcare provider.",
+    "read_more": "Read more about perimenopause",
+    "take_again": "Take the test again",
+    "back_to_home": "Back to home",
+    "test_history": "Previous Results",
+    "delete_confirm_title": "Delete test result?",
+    "delete_confirm_desc": "Are you sure you want to delete this result? This cannot be undone.",
+    "total": "Total",
+    "result_deleted": "Test result deleted",
+    "could_not_delete": "Could not delete result",
+    "save_error": "Something went wrong while saving",
+    "answer_never": "Never",
+    "answer_sometimes": "Sometimes",
+    "answer_often": "Often",
+    "answer_always": "Often / almost always",
+    "domains": {
+      "cycle": "Cycle & Hormones",
+      "energy": "Energy & Sleep",
+      "mental": "Mental & Emotional",
+      "body": "Body & Recovery"
+    },
+    "questions_list": {
+      "cycle_1": "My cycle has become more irregular",
+      "cycle_2": "My period is heavier or lighter than before",
+      "cycle_3": "I have more PMS-like symptoms",
+      "cycle_4": "I have hot flashes or heat waves",
+      "cycle_5": "Night sweats disrupt my sleep",
+      "energy_1": "I often feel tired despite enough sleep",
+      "energy_2": "I wake up at night and have trouble falling back asleep",
+      "energy_3": "I don't feel rested in the morning",
+      "energy_4": "My energy fluctuates strongly throughout the day",
+      "mental_1": "I experience more irritability or mood swings",
+      "mental_2": "I have more brain fog or concentration problems",
+      "mental_3": "I feel overwhelmed or stressed more easily",
+      "mental_4": "I don't recognize myself emotionally as well",
+      "body_1": "I gain weight more easily than before",
+      "body_2": "Recovery after exercise takes longer",
+      "body_3": "I have more joint or muscle pain",
+      "body_4": "My skin or hair has visibly changed"
+    },
+    "results": {
+      "low": {
+        "title": "Few signals",
+        "description": "Based on your answers, there are currently few indications of symptoms that fit perimenopause. Keep following your body, especially if symptoms change."
+      },
+      "moderate": {
+        "title": "Mild to moderate signals",
+        "description": "Your answers show that you are experiencing symptoms that could be related to hormonal changes. Many women experience this in the phase before menopause."
+      },
+      "high": {
+        "title": "Clear signals",
+        "description": "Your symptom pattern could fit perimenopause. This doesn't mean something is 'wrong', but it does mean your body may respond differently than you're used to."
+      }
+    }
+  },
+  "monthly_analysis": {
+    "title": "Monthly Analysis",
+    "subtitle": "A comprehensive analysis of all your data with orthomolecular insights",
+    "what_contains": "What does this analysis contain?",
+    "contains_1": "Patterns in sleep, nutrition, mood, and energy",
+    "contains_2": "Hormone context per cycle phase (educational)",
+    "contains_3": "Orthomolecular nutrition insights",
+    "contains_4": "Personal observations and attention points",
+    "once_per_month": "You can generate this analysis once per month. All data is processed anonymously.",
+    "ai_consent_required": "AI consent required",
+    "ai_consent_desc": "To generate this analysis, consent for AI processing is required. Go to Settings > Privacy to adjust this.",
+    "ready_for_analysis": "Ready for your monthly analysis?",
+    "we_analyze_30_days": "We analyze your data from the last 30 days",
+    "generate_analysis": "Generate Analysis",
+    "analyzing": "Analyzing...",
+    "already_generated": "Already generated this month",
+    "next_month_available": "You can create a new analysis next month",
+    "summary": "Summary",
+    "observed_patterns": "Observed Patterns",
+    "hormone_patterns": "Hormone Patterns",
+    "hormone_patterns_desc": "Educational context about hormone fluctuations",
+    "nutrition_insights": "Nutrition Insights",
+    "nutrition_insights_desc": "Orthomolecular observations",
+    "sleep_analysis": "Sleep Analysis",
+    "movement_analysis": "Movement Analysis",
+    "attention_points": "Attention Points",
+    "attention_points_desc": "Observations to think about",
+    "talk_to_provider": "Discuss with your healthcare provider",
+    "analysis_generated": "Analysis generated!",
+    "analysis_ready": "Your monthly analysis is ready.",
+    "could_not_generate": "Could not generate analysis",
+    "domains": {
+      "sleep": "Sleep",
+      "food": "Food",
+      "cycle": "Cycle",
+      "mood": "Mood",
+      "energy": "Energy"
+    }
+  },
+  "movement": {
+    "title": "Movement",
+    "subtitle": "Exercises tailored to your cycle phase",
+    "trainingPreferences": "Training Preferences",
+    "daysPerWeek": "Days per week",
+    "minutesPerSession": "Minutes per session",
+    "excludeDays": "Exclude days",
+    "excludedDaysNote": "Days you don't want to train",
+    "save": "Save",
+    "exercises": "exercises",
+    "yourSchedule": "Your Schedule",
+    "adjustedToPhase": "Adjusted to phase",
+    "excluded": "Excluded",
+    "restDay": "Rest day",
+    "perWeek": "per week",
+    "total": "Total",
+    "execution": "Execution",
+    "benefits": "Benefits",
+    "startExercise": "Start exercise",
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday",
+    "intensityLabels": {
+      "low": "Easy",
+      "moderate": "Moderate",
+      "high": "Intensive"
+    },
+    "phaseWorkouts": {
+      "menstrual": {
+        "name": "Menstruation",
+        "description": "Rest and recovery are central. Gentle, restorative exercises that help you relax."
+      },
+      "follicular": {
+        "name": "Follicular phase",
+        "description": "Your energy is growing! Time for dynamic exercises that build strength and flexibility."
+      },
+      "ovulatory": {
+        "name": "Ovulation",
+        "description": "Peak energy and strength. Challenging exercises that push your limits."
+      },
+      "luteal": {
+        "name": "Luteal phase",
+        "description": "Time to slow down. Focus on stretching, breathing, and stress relief."
+      }
+    }
+  },
+  "movement_widget": {
+    "title": "Movement & Focus",
+    "recommended": "Recommended:",
+    "and_more": "and {{count}} other exercises",
+    "feeling": "Feeling",
+    "family": "Family",
+    "work": "Work",
+    "view_all": "View all exercises",
+    "advice": {
+      "winter": {
+        "feeling": ["Rest and recovery", "Be gentle with yourself", "Accept low energy"],
+        "family": ["Ask for help", "Delegate tasks", "Take time for yourself"],
+        "work": ["Routine tasks", "No big decisions", "Short work blocks"]
+      },
+      "lente": {
+        "feeling": ["Energy rising", "New ideas", "Optimism growing"],
+        "family": ["Start new projects", "Plan outings", "Social activities"],
+        "work": ["Creative projects", "Brainstorming", "New initiatives"]
+      },
+      "zomer": {
+        "feeling": ["Peak energy", "Confident", "Communicative"],
+        "family": ["Seek connection", "Important conversations", "Activities together"],
+        "work": ["Presentations", "Negotiations", "Networking"]
+      },
+      "herfst": {
+        "feeling": ["Reflection", "Turning inward", "More sensitive"],
+        "family": ["Set boundaries", "Build in rest", "Me-time"],
+        "work": ["Finishing up", "Organizing", "Evaluating"]
+      }
+    }
+  },
+  "sleep_advice": {
+    "start_tracking": "Start tracking your sleep to get personal advice.",
+    "avg_within_range": "Great job! You sleep an average of {{hours}} hours, which falls within the optimal range.",
+    "avg_too_low": "You sleep an average of {{hours}} hours. Aim for 7-9 hours for optimal recovery, hormone balance, and mood.",
+    "avg_too_high": "You sleep an average of {{hours}} hours. Excessive sleep may indicate underlying fatigue or sleep quality issues.",
+    "consistency_low": "Your sleep times vary a lot. Try going to bed and waking up at the same time every day, even on weekends.",
+    "consistency_high": "You have a consistent sleep rhythm. This supports your circadian rhythm and hormone balance.",
+    "quality_low": "Your sleep quality could be better. Consider: no screens 1 hour before bed, cool bedroom (60-65°F / 16-18°C), dark room.",
+    "bedtime_late": "You often go to bed after midnight. This can disrupt your melatonin production. Try to be in bed before 11pm.",
+    "bedtime_early": "You go to bed quite early. If you have trouble staying asleep, try going to bed a bit later.",
+    "general_tip": "Avoid caffeine after 2pm and alcohol close to bedtime - both disrupt your sleep architecture."
+  },
+  "calendar": {
+    "loading": "Loading calendar...",
+    "previous_month": "Previous month",
+    "next_month": "Next month",
+    "go_to_today": "Go to today",
+    "seasons": "Seasons",
+    "menstruation": "Menstruation",
+    "fertility": "Fertility",
+    "expected": "Expected",
+    "fertile": "Fertile",
+    "ovulation": "Ovulation",
+    "weekdays": {
+      "mon": "Mon",
+      "tue": "Tue",
+      "wed": "Wed",
+      "thu": "Thu",
+      "fri": "Fri",
+      "sat": "Sat",
+      "sun": "Sun"
+    }
   }
 }
