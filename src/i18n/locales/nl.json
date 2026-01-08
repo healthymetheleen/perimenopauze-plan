@@ -1169,6 +1169,7 @@
     "voiceRecordAgain": "Opnieuw opnemen",
     "voiceTapToStop": "Tap om te stoppen",
     "voiceTapToSpeak": "Tap om in te spreken",
+    "voiceMicPermissionHint": "Bij de eerste keer vraagt je browser om toegang tot de microfoon. Klik op 'Toestaan' om spraak te gebruiken.",
     "confidenceHigh": "zeker",
     "confidenceMedium": "onzeker",
     "confidenceLow": "schatting",
