@@ -12,9 +12,10 @@ import { Button } from '@/components/ui/button';
 import { DailyReflectionCard, TodayAtAGlance, LookAheadWidget } from '@/components/insights';
 import { TrialCountdown } from '@/components/subscription/TrialCountdown';
 import { CycleWeekWidget } from '@/components/cycle/CycleWeekWidget';
+import { BleedingReminderBanner } from '@/components/cycle/BleedingReminderBanner';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useDailyScores } from '@/hooks/useDiary';
-import { useLatestPrediction, useCyclePreferences } from '@/hooks/useCycle';
+import { useLatestPrediction, useCyclePreferences, useCycles, useBleedingLogs } from '@/hooks/useCycle';
 import { useSleepSessions, useActiveSleepSession, useStartSleep, useEndSleep, calculateSleepScore, calculateSleepStats } from '@/hooks/useSleep';
 import { useToast } from '@/hooks/use-toast';
 import { useCanGenerateMonthlyAnalysis } from '@/hooks/useMonthlyAnalysis';
@@ -40,6 +41,8 @@ export default function DashboardPage() {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   const { data: canGenerateMonthly } = useCanGenerateMonthlyAnalysis();
+  const { data: cycles } = useCycles(1);
+  const { data: bleedingLogs } = useBleedingLogs(7);
   const { data: sleepSessions } = useSleepSessions(7);
   const { data: activeSession } = useActiveSleepSession();
   const startSleep = useStartSleep();
@@ -95,6 +98,15 @@ export default function DashboardPage() {
   return (
     <AppLayout>
       <div className="grid gap-4">
+        {/* Bleeding reminder for early cycle days */}
+        {cycles && cycles[0] && preferences?.onboarding_completed && (
+          <BleedingReminderBanner
+            cycleStartDate={cycles[0].start_date}
+            hasBleedingToday={!!(bleedingLogs?.find(l => l.log_date === today && l.intensity !== 'geen'))}
+            onLogBleeding={() => navigate('/cycle')}
+          />
+        )}
+
         {/* TODAY AT A GLANCE - Main widget with everything */}
         <TodayAtAGlance />
 
