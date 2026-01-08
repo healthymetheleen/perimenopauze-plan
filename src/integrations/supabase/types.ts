@@ -92,6 +92,45 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_prompts: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_system_prompt: boolean
+          name: string
+          prompt_en: string
+          prompt_key: string
+          prompt_nl: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system_prompt?: boolean
+          name: string
+          prompt_en: string
+          prompt_key: string
+          prompt_nl: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_system_prompt?: boolean
+          name?: string
+          prompt_en?: string
+          prompt_key?: string
+          prompt_nl?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ai_usage: {
         Row: {
           created_at: string
