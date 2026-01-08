@@ -930,7 +930,8 @@
     "thursday": "Donderdag",
     "friday": "Vrijdag",
     "saturday": "Zaterdag",
-    "sunday": "Zondag"
+    "sunday": "Zondag",
+    "noExercises": "Nog geen oefeningen voor deze fase."
   },
   "meditation": {
     "title": "Meditatie",

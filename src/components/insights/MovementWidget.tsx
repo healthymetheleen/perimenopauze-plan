@@ -5,14 +5,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useLatestPrediction } from '@/hooks/useCycle';
-import { getWorkoutForSeason } from '@/hooks/useMovement';
+import { usePhaseWorkouts, getWorkoutForSeasonFromWorkouts } from '@/hooks/useMovement';
 
 export function MovementWidget() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { data: prediction } = useLatestPrediction();
+  const { phaseWorkouts } = usePhaseWorkouts();
   const currentSeason = prediction?.current_season || 'onbekend';
   
-  const workout = currentSeason !== 'onbekend' ? getWorkoutForSeason(currentSeason) : null;
+  const workout = currentSeason !== 'onbekend' ? getWorkoutForSeasonFromWorkouts(phaseWorkouts, currentSeason) : null;
 
   // Get advice from translations
   const getAdvice = (season: string, type: 'feeling' | 'family' | 'work') => {
@@ -69,7 +70,7 @@ export function MovementWidget() {
             <div className="flex flex-wrap gap-2">
               {workout.exercises.slice(0, 3).map((exercise) => (
                 <Badge key={exercise.id} variant="secondary" className="text-sm py-1 px-3">
-                  {t(exercise.nameKey)}
+                  {i18n.language === 'nl' ? exercise.name_dutch : exercise.name}
                 </Badge>
               ))}
               {workout.exercises.length > 3 && (

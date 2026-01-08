@@ -21,12 +21,13 @@ import {
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useLatestPrediction, useCyclePreferences, seasonColors } from '@/hooks/useCycle';
 import { 
-  phaseWorkouts, 
-  getWorkoutForSeason, 
+  usePhaseWorkouts,
+  getWorkoutForSeasonFromWorkouts,
   type PhaseWorkout,
-  type YogaExercise,
+  type DbExercise,
   type TrainingPreferences
 } from '@/hooks/useMovement';
 
@@ -43,6 +44,12 @@ const intensityColors = {
   high: 'bg-destructive/20 text-destructive-foreground',
 };
 
+const difficultyLabels = {
+  beginner: { nl: 'Beginner', en: 'Beginner' },
+  intermediate: { nl: 'Gemiddeld', en: 'Intermediate' },
+  advanced: { nl: 'Gevorderd', en: 'Advanced' },
+};
+
 // Day keys for translation - these are internal keys used for storage
 const dayKeys = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'] as const;
 
@@ -50,6 +57,7 @@ export default function MovementPage() {
   const { t, i18n } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const { data: cyclePrefs } = useCyclePreferences();
+  const { phaseWorkouts, isLoading: exercisesLoading } = usePhaseWorkouts();
   
   // Translated labels
   const seasonLabelsTranslated = useMemo(() => ({
@@ -77,16 +85,24 @@ export default function MovementPage() {
     goals: ['flexibiliteit', 'ontspanning'],
   });
   
-  const [selectedExercise, setSelectedExercise] = useState<YogaExercise | null>(null);
+  const [selectedExercise, setSelectedExercise] = useState<DbExercise | null>(null);
   const [prefsDialogOpen, setPrefsDialogOpen] = useState(false);
 
   const currentSeason = prediction?.current_season || 'onbekend';
   const colors = seasonColors[currentSeason] || seasonColors.onbekend;
-  const currentWorkout = getWorkoutForSeason(currentSeason);
+  const currentWorkout = getWorkoutForSeasonFromWorkouts(phaseWorkouts, currentSeason);
+  
+  // Get exercise name based on language
+  const getExerciseName = (exercise: DbExercise) => 
+    i18n.language === 'nl' ? exercise.name_dutch : exercise.name;
+  
+  // Get difficulty label based on language
+  const getDifficultyLabel = (difficulty: DbExercise['difficulty']) =>
+    i18n.language === 'nl' ? difficultyLabels[difficulty].nl : difficultyLabels[difficulty].en;
   
   // Generate personalized weekly schedule
   const weeklySchedule = useMemo(() => {
-    const workout = getWorkoutForSeason(currentSeason);
+    const workout = getWorkoutForSeasonFromWorkouts(phaseWorkouts, currentSeason);
     const availableDayKeys = dayKeys.filter(key => !trainingPrefs.excludedDays?.includes(key));
     
     const sessionsPerWeek = Math.min(trainingPrefs.sessionsPerWeek, availableDayKeys.length);
@@ -104,8 +120,8 @@ export default function MovementPage() {
       const isWorkoutDay = workoutDayKeys.includes(key);
       const isExcluded = trainingPrefs.excludedDays?.includes(key);
       
-      const dayExercises: YogaExercise[] = [];
-      if (isWorkoutDay && workout) {
+      const dayExercises: DbExercise[] = [];
+      if (isWorkoutDay && workout && workout.exercises.length > 0) {
         const exerciseCount = Math.min(3, workout.exercises.length);
         for (let i = 0; i < exerciseCount; i++) {
           const exerciseIndex = (index + i) % workout.exercises.length;
@@ -122,7 +138,7 @@ export default function MovementPage() {
         isExcluded,
       };
     });
-  }, [currentSeason, trainingPrefs, dayLabels]);
+  }, [currentSeason, trainingPrefs, dayLabels, phaseWorkouts]);
   
   const workoutDays = weeklySchedule.filter(d => d.workout).length;
   const totalMinutes = workoutDays * trainingPrefs.minutesPerSession;
@@ -134,6 +150,22 @@ export default function MovementPage() {
         ? prev.excludedDays.filter(d => d !== key)
         : [...(prev.excludedDays || []), key]
     }));
+  };
+
+  // Parse markdown-style description for display
+  const parseDescription = (description: string | null) => {
+    if (!description) return { intro: '', steps: [] as string[] };
+    
+    const parts = description.split('**Uitvoering:**');
+    const intro = parts[0]?.trim() || '';
+    const stepsText = parts[1] || '';
+    const steps = stepsText
+      .split('\n')
+      .map(s => s.trim())
+      .filter(s => s.match(/^\d+\./))
+      .map(s => s.replace(/^\d+\.\s*/, ''));
+    
+    return { intro, steps };
   };
 
   return (
@@ -261,64 +293,76 @@ export default function MovementPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {weeklySchedule.map((day) => (
-              <div 
-                key={day.key}
-                className={`p-3 rounded-xl ${
-                  day.workout 
-                    ? 'bg-primary/10 border border-primary/20' 
-                    : day.isExcluded
-                    ? 'bg-muted/30 opacity-50'
-                    : 'bg-muted/50'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <span className="font-medium">{day.label}</span>
-                  {day.workout ? (
-                    <Badge className="bg-primary/20 text-primary">
-                      <Clock className="h-3 w-3 mr-1" />
-                      {day.duration} min
-                    </Badge>
-                  ) : day.isExcluded ? (
-                    <Badge variant="outline" className="text-muted-foreground">
-                      {t('movement.excluded')}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline" className="text-muted-foreground">
-                      <Heart className="h-3 w-3 mr-1" />
-                      {t('movement.restDay')}
-                    </Badge>
-                  )}
-                </div>
-                
-                {day.exercises && day.exercises.length > 0 && (
-                  <div className="space-y-2">
-                    {day.exercises.map(exercise => (
-                      <div 
-                        key={exercise.id}
-                        className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors"
-                        onClick={() => setSelectedExercise(exercise)}
-                      >
-                        <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0">
-                          <img 
-                            src={exercise.imageUrl} 
-                            alt={t(exercise.nameKey)}
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <span>{t(exercise.nameKey)}</span>
-                        <span className="text-muted-foreground text-xs ml-auto">{t(exercise.durationKey)}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+            {exercisesLoading ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map(i => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
               </div>
-            ))}
-            
-            <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t">
-              <span>{workoutDays}x {t('movement.perWeek')}</span>
-              <span>{t('movement.total')}: {totalMinutes} min</span>
-            </div>
+            ) : (
+              <>
+                {weeklySchedule.map((day) => (
+                  <div 
+                    key={day.key}
+                    className={`p-3 rounded-xl ${
+                      day.workout 
+                        ? 'bg-primary/10 border border-primary/20' 
+                        : day.isExcluded
+                        ? 'bg-muted/30 opacity-50'
+                        : 'bg-muted/50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="font-medium">{day.label}</span>
+                      {day.workout ? (
+                        <Badge className="bg-primary/20 text-primary">
+                          <Clock className="h-3 w-3 mr-1" />
+                          {day.duration} min
+                        </Badge>
+                      ) : day.isExcluded ? (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          {t('movement.excluded')}
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-muted-foreground">
+                          <Heart className="h-3 w-3 mr-1" />
+                          {t('movement.restDay')}
+                        </Badge>
+                      )}
+                    </div>
+                    
+                    {day.exercises && day.exercises.length > 0 && (
+                      <div className="space-y-2">
+                        {day.exercises.map(exercise => (
+                          <div 
+                            key={exercise.id}
+                            className="flex items-center gap-2 text-sm cursor-pointer hover:text-primary transition-colors"
+                            onClick={() => setSelectedExercise(exercise)}
+                          >
+                            <div className="w-8 h-8 rounded overflow-hidden flex-shrink-0 bg-muted">
+                              {exercise.image_url && (
+                                <img 
+                                  src={exercise.image_url} 
+                                  alt={getExerciseName(exercise)}
+                                  className="w-full h-full object-cover"
+                                />
+                              )}
+                            </div>
+                            <span>{getExerciseName(exercise)}</span>
+                            <span className="text-muted-foreground text-xs ml-auto">{exercise.duration}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                
+                <div className="flex justify-between text-sm text-muted-foreground pt-2 border-t">
+                  <span>{workoutDays}x {t('movement.perWeek')}</span>
+                  <span>{t('movement.total')}: {totalMinutes} min</span>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
 
@@ -350,42 +394,58 @@ export default function MovementPage() {
                 </Badge>
               </div>
 
-              <div className="grid gap-4">
-                {workout.exercises.map(exercise => (
-                  <Card 
-                    key={exercise.id} 
-                    className="glass rounded-xl overflow-hidden cursor-pointer hover:shadow-soft transition-all"
-                    onClick={() => setSelectedExercise(exercise)}
-                  >
-                    <div className="flex">
-                      <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
-                        <img 
-                          src={exercise.imageUrl} 
-                          alt={t(exercise.nameKey)}
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <CardContent className="flex-1 p-3 sm:p-4">
-                        <div className="flex items-start justify-between">
-                          <div>
-                            <h4 className="font-medium text-sm sm:text-base">{t(exercise.nameKey)}</h4>
+              {exercisesLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <Skeleton key={i} className="h-32 w-full" />
+                  ))}
+                </div>
+              ) : workout.exercises.length === 0 ? (
+                <Card className="glass rounded-xl">
+                  <CardContent className="py-8 text-center text-muted-foreground">
+                    {t('movement.noExercises')}
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="grid gap-4">
+                  {workout.exercises.map(exercise => (
+                    <Card 
+                      key={exercise.id} 
+                      className="glass rounded-xl overflow-hidden cursor-pointer hover:shadow-soft transition-all"
+                      onClick={() => setSelectedExercise(exercise)}
+                    >
+                      <div className="flex">
+                        <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-muted">
+                          {exercise.image_url && (
+                            <img 
+                              src={exercise.image_url} 
+                              alt={getExerciseName(exercise)}
+                              className="w-full h-full object-cover"
+                            />
+                          )}
+                        </div>
+                        <CardContent className="flex-1 p-3 sm:p-4">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              <h4 className="font-medium text-sm sm:text-base">{getExerciseName(exercise)}</h4>
+                            </div>
+                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                           </div>
-                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                        </div>
-                        <div className="flex items-center gap-2 mt-2">
-                          <Badge variant="outline" className="text-xs">
-                            <Clock className="h-3 w-3 mr-1" />
-                            {t(exercise.durationKey)}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs capitalize">
-                            {exercise.difficulty}
-                          </Badge>
-                        </div>
-                      </CardContent>
-                    </div>
-                  </Card>
-                ))}
-              </div>
+                          <div className="flex items-center gap-2 mt-2">
+                            <Badge variant="outline" className="text-xs">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {exercise.duration}
+                            </Badge>
+                            <Badge variant="outline" className="text-xs capitalize">
+                              {getDifficultyLabel(exercise.difficulty)}
+                            </Badge>
+                          </div>
+                        </CardContent>
+                      </div>
+                    </Card>
+                  ))}
+                </div>
+              )}
             </TabsContent>
           ))}
         </Tabs>
@@ -395,45 +455,58 @@ export default function MovementPage() {
           <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
             {selectedExercise && (
               <>
-                <div className="aspect-video w-full overflow-hidden rounded-lg -mt-2 mb-4">
-                  <img 
-                    src={selectedExercise.imageUrl} 
-                    alt={t(selectedExercise.nameKey)}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+                {selectedExercise.image_url && (
+                  <div className="aspect-video w-full overflow-hidden rounded-lg -mt-2 mb-4">
+                    <img 
+                      src={selectedExercise.image_url} 
+                      alt={getExerciseName(selectedExercise)}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
                 <DialogHeader>
-                  <DialogTitle className="text-xl">{t(selectedExercise.nameKey)}</DialogTitle>
+                  <DialogTitle className="text-xl">{getExerciseName(selectedExercise)}</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 py-4">
                   <div className="flex gap-2">
                     <Badge variant="outline">
                       <Clock className="h-3 w-3 mr-1" />
-                      {t(selectedExercise.durationKey)}
+                      {selectedExercise.duration}
                     </Badge>
                     <Badge variant="outline" className="capitalize">
-                      {t(`exercises.difficulty.${selectedExercise.difficulty}`)}
+                      {getDifficultyLabel(selectedExercise.difficulty)}
                     </Badge>
                   </div>
                   
-                  <div>
-                    <h4 className="font-medium mb-2">{t('movement.execution')}</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {t(selectedExercise.descriptionKey)}
-                    </p>
-                  </div>
+                  {selectedExercise.description && (
+                    <div>
+                      <h4 className="font-medium mb-2">{t('movement.execution')}</h4>
+                      <div className="text-sm text-muted-foreground space-y-2">
+                        <p>{parseDescription(selectedExercise.description).intro}</p>
+                        {parseDescription(selectedExercise.description).steps.length > 0 && (
+                          <ol className="list-decimal list-inside space-y-1 ml-2">
+                            {parseDescription(selectedExercise.description).steps.map((step, i) => (
+                              <li key={i}>{step}</li>
+                            ))}
+                          </ol>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
-                  <div>
-                    <h4 className="font-medium mb-2">{t('movement.benefits')}</h4>
-                    <ul className="space-y-1">
-                      {(t(selectedExercise.benefitsKey, { returnObjects: true }) as string[]).map((benefit, i) => (
-                        <li key={i} className="flex items-center gap-2 text-sm">
-                          <Check className="h-4 w-4 text-success" />
-                          <span className="text-muted-foreground">{benefit}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                  {selectedExercise.benefits && selectedExercise.benefits.length > 0 && (
+                    <div>
+                      <h4 className="font-medium mb-2">{t('movement.benefits')}</h4>
+                      <ul className="space-y-1">
+                        {selectedExercise.benefits.map((benefit, i) => (
+                          <li key={i} className="flex items-center gap-2 text-sm">
+                            <Check className="h-4 w-4 text-success" />
+                            <span className="text-muted-foreground">{benefit}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
 
                   <Button
                     className="w-full btn-gradient" 
