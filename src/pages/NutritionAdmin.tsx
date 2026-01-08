@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,11 +12,12 @@ import { Separator } from '@/components/ui/separator';
 import { LoadingState } from '@/components/ui/loading-state';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { useNutritionSettings, useUpdateNutritionSettings } from '@/hooks/useNutritionSettings';
+import { useNutritionSettings, useUpdateNutritionSettings, NutritionSettings } from '@/hooks/useNutritionSettings';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useDebouncedCallback } from '@/hooks/useDebounce';
 import { 
   Target, AlertTriangle, Check, Minus, Plus, X, Save, FileText,
-  Heart, Moon, Clock, Sparkles, Apple, MessageCircle, Info
+  Heart, Moon, Clock, Sparkles, Apple, MessageCircle, Info, Loader2, CheckCircle2
 } from 'lucide-react';
 
 const COACHING_STYLES = [
@@ -85,10 +86,14 @@ export default function NutritionAdminPage() {
   const [newPrefer, setNewPrefer] = useState('');
   const [newAvoid, setNewAvoid] = useState('');
   
+  // Auto-save state
+  const [autoSaveStatus, setAutoSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const isInitialMount = useRef(true);
+  const hasInitialized = useRef(false);
 
   // Load settings into form
   useEffect(() => {
-    if (settings) {
+    if (settings && !hasInitialized.current) {
       setTargetKcal(settings.target_kcal);
       setTargetProtein(settings.target_protein_g);
       setTargetCarbs(settings.target_carbs_g);
@@ -109,33 +114,82 @@ export default function NutritionAdminPage() {
       setCoachingContext(settings.coaching_context || '');
       setDietVision(settings.diet_vision || '');
       setAppPhilosophy(settings.app_philosophy || '');
+      
+      hasInitialized.current = true;
+      // Mark initial mount complete after a short delay
+      setTimeout(() => {
+        isInitialMount.current = false;
+      }, 100);
     }
   }, [settings]);
 
+  // Auto-save function
+  const performAutoSave = useCallback(async (settingsToSave: Partial<NutritionSettings>) => {
+    if (isInitialMount.current) return;
+    
+    setAutoSaveStatus('saving');
+    try {
+      await updateSettings.mutateAsync(settingsToSave);
+      setAutoSaveStatus('saved');
+      // Reset to idle after 2 seconds
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    } catch {
+      setAutoSaveStatus('idle');
+      toast({ title: 'Auto-save mislukt', variant: 'destructive' });
+    }
+  }, [updateSettings, toast]);
+
+  // Debounced auto-save for text fields (1 second delay)
+  const debouncedAutoSave = useDebouncedCallback(performAutoSave, 1000);
+
+  // Get current settings object
+  const getCurrentSettings = useCallback((): Partial<NutritionSettings> => ({
+    target_kcal: targetKcal,
+    target_protein_g: targetProtein,
+    target_carbs_g: targetCarbs,
+    target_fat_g: targetFat,
+    target_fiber_g: targetFiber,
+    target_protein_per_kg: targetProteinPerKg,
+    target_sleep_hours: targetSleepHours,
+    target_eating_window_hours: targetEatingWindow,
+    important_points: importantPoints,
+    less_important_points: lessImportantPoints,
+    no_go_items: noGoItems,
+    prefer_ingredients: preferIngredients,
+    avoid_ingredients: avoidIngredients,
+    perimenopause_focus: perimenopauseFocus,
+    coaching_style: coachingStyle,
+    coaching_tone: coachingTone,
+    coaching_context: coachingContext || null,
+    diet_vision: dietVision,
+    app_philosophy: appPhilosophy,
+  }), [
+    targetKcal, targetProtein, targetCarbs, targetFat, targetFiber,
+    targetProteinPerKg, targetSleepHours, targetEatingWindow,
+    importantPoints, lessImportantPoints, noGoItems, preferIngredients, avoidIngredients,
+    perimenopauseFocus, coachingStyle, coachingTone, coachingContext, dietVision, appPhilosophy
+  ]);
+
+  // Auto-save effect for immediate fields (numbers, selects, lists)
+  useEffect(() => {
+    if (isInitialMount.current || !hasInitialized.current) return;
+    performAutoSave(getCurrentSettings());
+  }, [
+    targetKcal, targetProtein, targetCarbs, targetFat, targetFiber,
+    targetProteinPerKg, targetSleepHours, targetEatingWindow,
+    importantPoints, lessImportantPoints, noGoItems, preferIngredients, avoidIngredients,
+    perimenopauseFocus, coachingStyle, coachingTone
+  ]);
+
+  // Debounced auto-save effect for text fields
+  useEffect(() => {
+    if (isInitialMount.current || !hasInitialized.current) return;
+    debouncedAutoSave(getCurrentSettings());
+  }, [dietVision, appPhilosophy, coachingContext]);
+
   const handleSave = async () => {
     try {
-      await updateSettings.mutateAsync({
-        target_kcal: targetKcal,
-        target_protein_g: targetProtein,
-        target_carbs_g: targetCarbs,
-        target_fat_g: targetFat,
-        target_fiber_g: targetFiber,
-        target_protein_per_kg: targetProteinPerKg,
-        target_sleep_hours: targetSleepHours,
-        target_eating_window_hours: targetEatingWindow,
-        important_points: importantPoints,
-        less_important_points: lessImportantPoints,
-        no_go_items: noGoItems,
-        prefer_ingredients: preferIngredients,
-        avoid_ingredients: avoidIngredients,
-        
-        perimenopause_focus: perimenopauseFocus,
-        coaching_style: coachingStyle,
-        coaching_tone: coachingTone,
-        coaching_context: coachingContext || null,
-        diet_vision: dietVision,
-        app_philosophy: appPhilosophy,
-      });
+      await updateSettings.mutateAsync(getCurrentSettings());
       toast({ title: 'Coaching instellingen opgeslagen! ✓' });
     } catch {
       toast({ title: 'Kon niet opslaan', variant: 'destructive' });
@@ -617,17 +671,44 @@ export default function NutritionAdminPage() {
           </CardContent>
         </Card>
 
+        {/* Auto-save status indicator */}
+        <div className="fixed bottom-20 left-0 right-0 px-4 z-50">
+          <div className="max-w-2xl mx-auto flex justify-center">
+            {autoSaveStatus === 'saving' && (
+              <div className="flex items-center gap-2 bg-background/95 backdrop-blur px-4 py-2 rounded-full shadow-lg border">
+                <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">Opslaan...</span>
+              </div>
+            )}
+            {autoSaveStatus === 'saved' && (
+              <div className="flex items-center gap-2 bg-background/95 backdrop-blur px-4 py-2 rounded-full shadow-lg border border-green-500/30">
+                <CheckCircle2 className="h-4 w-4 text-green-500" />
+                <span className="text-sm text-green-600">Opgeslagen</span>
+              </div>
+            )}
+          </div>
+        </div>
+
         {/* Sticky Save Button */}
         <div className="fixed bottom-4 left-0 right-0 px-4 z-50">
           <div className="max-w-2xl mx-auto">
             <Button
               onClick={handleSave}
-              disabled={updateSettings.isPending}
+              disabled={updateSettings.isPending || autoSaveStatus === 'saving'}
               className="w-full btn-gradient shadow-lg"
               size="lg"
             >
-              <Save className="h-4 w-4 mr-2" />
-              {updateSettings.isPending ? 'Opslaan...' : 'Alle instellingen opslaan'}
+              {updateSettings.isPending || autoSaveStatus === 'saving' ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Opslaan...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Alle instellingen opslaan
+                </>
+              )}
             </Button>
           </div>
         </div>
