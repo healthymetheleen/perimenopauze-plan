@@ -1,18 +1,18 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-type SupportedLanguage = 'nl' | 'en';
-
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
   return 'nl';
 }
 
-const systemPrompts = {
+// Fallback system prompts (used if database fetch fails)
+const fallbackSystemPrompts = {
   nl: (count: number) => `Je bent een orthomoleculair voedingsexpert gespecialiseerd in KPNI (Klinische PsychoNeuroImmunologie) en functional medicine voor vrouwen in de perimenopauze.
 
 BELANGRIJKE TAALREGEL: Genereer ALLES in het Nederlands. Geen Engelse termen.
@@ -38,80 +38,7 @@ VOEDINGSFILOSOFIE (ALTIJD TOEPASSEN):
 - 100% suikervrij - GEEN toegevoegde suiker en GEEN suikeralternatieven (geen honing, agave, stevia, etc.)
 - Geen bewerkte voeding, geen E-nummers
 
-WEER/KALENDER SEIZOENEN ("seasons" veld):
-- lente = maart-mei
-- zomer = juni-augustus  
-- herfst = september-november
-- winter = december-februari
-
-CYCLUSFASEN ("cycle_phases" veld - APART van seasons):
-- menstruatie = rustfase, ijzerrijk, verwarmend, comfort
-- folliculair = energie opbouwen, lichte maaltijden, verse groenten
-- ovulatie = piek energie, sociale maaltijden, lichte eiwitten
-- luteaal = comfort, bloedsuikerstabiel, magnesiumrijk, anti-craving
-
-SEIZOENSPRODUCTEN NEDERLAND:
-- Lente (maart-mei): asperges, rabarber, spinazie, prei, radijs, nieuwe aardappelen
-- Zomer (juni-aug): courgette, tomaten, komkommer, paprika, bonen, aardbeien, bessen
-- Herfst (sep-nov): pompoen, kool, pastinaak, peren, appels, paddenstoelen
-- Winter (dec-feb): boerenkool, spruitjes, witlof, knolselderij, rode kool, wortel
-
-ALLERGENEN & DIËTEN (BELANGRIJK - LOGICA):
-- Als "veganistisch" dan OOK "vegetarisch" toevoegen
-- Als "lactosevrij" dan OOK "zuivelvrij" toevoegen
-- Detecteer automatisch allergenen in ingrediënten
-- Markeer recepten voor zwangerschap/kinderwens waar van toepassing
-
-Genereer ${count} recepten in JSON format met deze exacte structuur:
-{
-  "title": "string",
-  "description": "string (1-2 zinnen, noem functional medicine voordeel)",
-  "instructions": "string (GESTRUCTUREERD stappenplan met Markdown formatting:
-    - Gebruik ## kopjes voor onderdelen (bijv. ## Deeg, ## Saus, ## Afwerking, ## Bereiding)
-    - Gebruik genummerde stappen onder elk kopje (1. Doe dit... 2. Dan dit...)
-    - Gebruik ALLEEN onderdeel-kopjes als het recept meerdere componenten heeft
-    - Voor simpele recepten: direct genummerde stappen zonder kopjes
-    - Voeg timing toe waar relevant (bijv. 'Bak 5 minuten' of 'Laat 10 min rusten')
-    - Voorbeeld met onderdelen:
-      ## Deeg
-      1. Meng de bloem met het zout
-      2. Voeg het water toe en kneed 5 minuten
-      
-      ## Vulling
-      1. Fruit de ui glazig
-      2. Voeg de groenten toe
-      
-      ## Afwerking
-      1. Vul het deeg met de vulling
-      2. Bak af in de oven op 180°C, 25 minuten
-    - Voorbeeld simpel recept:
-      1. Snijd de groenten in blokjes
-      2. Verhit de olie in een pan
-      3. Bak de groenten 5-7 minuten
-      4. Breng op smaak met kruiden
-  )",
-  "prep_time_minutes": number,
-  "cook_time_minutes": number,
-  "servings": number,
-  "meal_type": "ontbijt" | "lunch" | "diner" | "snack" | "tussendoortje" | "drankje" | "smoothie",
-  "seasons": ["lente" | "zomer" | "herfst" | "winter"],
-  "cycle_phases": ["menstruatie" | "folliculair" | "ovulatie" | "luteaal"],
-  "diet_tags": [
-    "vegetarisch" | "veganistisch" | "pescotarisch" |
-    "glutenvrij" | "zuivelvrij" | "lactosevrij" | "eivrij" | "notenvrij" | "pindavrij" | "sojavrij" |
-    "keto" | "low-carb" | "eiwitrijk" | "vezelrijk" | "anti-inflammatoir" | "bloedsuikerstabiel" |
-    "zwangerschapsveilig" | "kinderwensvriendelijk" | "foliumzuurrijk" | "ijzerrijk" |
-    "simpel" | "snel" | "meal-prep" | "one-pot" | "rauw" | "gefermenteerd"
-  ],
-  "ingredients": [
-    { "name": "string (specificeer biologisch/grasgevoerd waar relevant)", "amount": "string", "unit": "string" }
-  ],
-  "kcal": number,
-  "protein_g": number (streef naar 25-40g),
-  "carbs_g": number (houd laag),
-  "fat_g": number,
-  "fiber_g": number (streef naar 8-12g)
-}
+Genereer ${count} recepten in JSON format.
 
 Retourneer ALLEEN een JSON array met de recepten, geen extra tekst.`,
 
@@ -136,80 +63,7 @@ NUTRITION PHILOSOPHY (ALWAYS APPLY):
 - 100% sugar-free - NO added sugar and NO sugar alternatives (no honey, agave, stevia, etc.)
 - No processed foods, no E-numbers
 
-WEATHER/CALENDAR SEASONS ("seasons" field):
-- spring = March-May
-- summer = June-August
-- autumn = September-November
-- winter = December-February
-
-CYCLE PHASES ("cycle_phases" field - SEPARATE from seasons):
-- menstruation = rest phase, iron-rich, warming, comfort
-- follicular = building energy, light meals, fresh vegetables
-- ovulation = peak energy, social meals, light proteins
-- luteal = comfort, blood sugar stable, magnesium-rich, anti-craving
-
-SEASONAL PRODUCE:
-- Spring (Mar-May): asparagus, rhubarb, spinach, leeks, radishes, new potatoes
-- Summer (Jun-Aug): zucchini, tomatoes, cucumber, bell peppers, beans, strawberries, berries
-- Autumn (Sep-Nov): pumpkin, cabbage, parsnips, pears, apples, mushrooms
-- Winter (Dec-Feb): kale, Brussels sprouts, endive, celeriac, red cabbage, carrots
-
-ALLERGENS & DIETS (IMPORTANT - LOGIC):
-- If "vegan" then ALSO add "vegetarian"
-- If "lactose-free" then ALSO add "dairy-free"
-- Automatically detect allergens in ingredients
-- Mark recipes for pregnancy/fertility where applicable
-
-Generate ${count} recipes in JSON format with this exact structure:
-{
-  "title": "string",
-  "description": "string (1-2 sentences, mention functional medicine benefit)",
-  "instructions": "string (STRUCTURED step-by-step with Markdown formatting:
-    - Use ## headings for sections (e.g. ## Dough, ## Sauce, ## Finishing, ## Preparation)
-    - Use numbered steps under each heading (1. Do this... 2. Then this...)
-    - Only use section headings if the recipe has multiple components
-    - For simple recipes: direct numbered steps without headings
-    - Add timing where relevant (e.g. 'Cook 5 minutes' or 'Let rest 10 min')
-    - Example with sections:
-      ## Dough
-      1. Mix the flour with the salt
-      2. Add the water and knead for 5 minutes
-      
-      ## Filling
-      1. Sauté the onion until translucent
-      2. Add the vegetables
-      
-      ## Finishing
-      1. Fill the dough with the filling
-      2. Bake in the oven at 350°F, 25 minutes
-    - Example simple recipe:
-      1. Cut the vegetables into cubes
-      2. Heat the oil in a pan
-      3. Cook the vegetables 5-7 minutes
-      4. Season with herbs
-  )",
-  "prep_time_minutes": number,
-  "cook_time_minutes": number,
-  "servings": number,
-  "meal_type": "breakfast" | "lunch" | "dinner" | "snack" | "treat" | "beverage" | "smoothie",
-  "seasons": ["spring" | "summer" | "autumn" | "winter"],
-  "cycle_phases": ["menstruation" | "follicular" | "ovulation" | "luteal"],
-  "diet_tags": [
-    "vegetarian" | "vegan" | "pescatarian" |
-    "gluten-free" | "dairy-free" | "lactose-free" | "egg-free" | "nut-free" | "peanut-free" | "soy-free" |
-    "keto" | "low-carb" | "protein-rich" | "fiber-rich" | "anti-inflammatory" | "blood-sugar-stable" |
-    "pregnancy-safe" | "fertility-friendly" | "folate-rich" | "iron-rich" |
-    "simple" | "quick" | "meal-prep" | "one-pot" | "raw" | "fermented"
-  ],
-  "ingredients": [
-    { "name": "string (specify organic/grass-fed where relevant)", "amount": "string", "unit": "string" }
-  ],
-  "kcal": number,
-  "protein_g": number (aim for 25-40g),
-  "carbs_g": number (keep low),
-  "fat_g": number,
-  "fiber_g": number (aim for 8-12g)
-}
+Generate ${count} recipes in JSON format.
 
 Return ONLY a JSON array with the recipes, no extra text.`,
 };
@@ -260,7 +114,12 @@ serve(async (req) => {
 
     console.log(`Generating ${count} recipes with prompt: ${prompt}, language: ${lang}`);
 
-    const systemPrompt = systemPrompts[lang](count);
+    // Fetch dynamic system prompt from database
+    const fallbackPrompt = fallbackSystemPrompts[lang](count);
+    let systemPrompt = await getPrompt('generate_recipes_system', lang, fallbackPrompt);
+    
+    // Replace {{count}} placeholder if present
+    systemPrompt = systemPrompt.replace(/\{\{count\}\}/g, String(count));
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",

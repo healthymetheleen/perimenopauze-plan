@@ -1,13 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
-
-type SupportedLanguage = 'nl' | 'en';
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -40,7 +39,8 @@ function toRelativeDay(dateStr: string): string {
   return `D${diffDays}`;
 }
 
-const prompts = {
+// Fallback prompts (used if database fetch fails)
+const fallbackPrompts = {
   nl: {
     system: `Je bent een voedingscoach die vrouwen helpt met leefstijl en voeding. 
 Je geeft warme, persoonlijke adviezen gebaseerd op voedingspatronen.
@@ -60,9 +60,9 @@ Focus op:
 - Vezels en gevarieerde voeding
 
 Geef concrete, haalbare tips. Vermijd medisch jargon. Schrijf in het Nederlands.`,
-    userPrompt: (nutritionSummary: string) => `Analyseer deze weekelijkse voedingsdata en geef een persoonlijk weekadvies:
+    userPrompt: `Analyseer deze weekelijkse voedingsdata en geef een persoonlijk weekadvies:
 
-${nutritionSummary}
+{{nutritionSummary}}
 
 Geef je analyse in dit exact JSON format. BELANGRIJK: Gebruik NOOIT technische day-codes (D-1, D-2, etc.) in je tekst - schrijf in normale taal.
 {
@@ -79,13 +79,6 @@ Geef je analyse in dit exact JSON format. BELANGRIJK: Gebruik NOOIT technische d
     notEnoughData: "Log minimaal 3 dagen met maaltijden om een weekanalyse te krijgen.",
     disclaimer: "Deze inzichten zijn informatief en geen medisch advies.",
     rateLimit: "Te veel verzoeken, probeer het later opnieuw.",
-    weekOverview: (daysLogged: number, totalMeals: number, avgKcal: number, avgProtein: number, avgFiber: number, avgCarbs: number, reasonCounts: Record<string, number>, dailyPatterns: { relDay: string; meals: number; proteinCategory: string }[]) => `
-WEEKOVERZICHT VOEDING (${daysLogged} dagen gelogd):
-- Totaal maaltijden: ${totalMeals}
-- Gemiddeld per dag: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g eiwit, ~${Math.round(avgFiber)}g vezels, ~${Math.round(avgCarbs)}g koolhydraten
-- Patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
-- Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
-    `.trim(),
   },
   en: {
     system: `You are a nutrition coach helping women with lifestyle and nutrition.
@@ -106,9 +99,9 @@ Focus on:
 - Fiber and varied nutrition
 
 Give concrete, achievable tips. Avoid medical jargon. Write in English.`,
-    userPrompt: (nutritionSummary: string) => `Analyze this weekly nutrition data and provide personal weekly advice:
+    userPrompt: `Analyze this weekly nutrition data and provide personal weekly advice:
 
-${nutritionSummary}
+{{nutritionSummary}}
 
 Provide your analysis in this exact JSON format. IMPORTANT: NEVER use technical day-codes (D-1, D-2, etc.) in your text - write in normal language.
 {
@@ -125,15 +118,38 @@ Provide your analysis in this exact JSON format. IMPORTANT: NEVER use technical 
     notEnoughData: "Log at least 3 days with meals to get a weekly analysis.",
     disclaimer: "These insights are informational and not medical advice.",
     rateLimit: "Too many requests, please try again later.",
-    weekOverview: (daysLogged: number, totalMeals: number, avgKcal: number, avgProtein: number, avgFiber: number, avgCarbs: number, reasonCounts: Record<string, number>, dailyPatterns: { relDay: string; meals: number; proteinCategory: string }[]) => `
+  },
+};
+
+// Build week overview summary
+function buildWeekOverview(
+  lang: SupportedLanguage,
+  daysLogged: number,
+  totalMeals: number,
+  avgKcal: number,
+  avgProtein: number,
+  avgFiber: number,
+  avgCarbs: number,
+  reasonCounts: Record<string, number>,
+  dailyPatterns: { relDay: string; meals: number; proteinCategory: string }[]
+): string {
+  if (lang === 'en') {
+    return `
 WEEKLY NUTRITION OVERVIEW (${daysLogged} days logged):
 - Total meals: ${totalMeals}
 - Daily average: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g protein, ~${Math.round(avgFiber)}g fiber, ~${Math.round(avgCarbs)}g carbs
 - Patterns: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
 - Daily patterns: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} meals, protein ${d.proteinCategory}`).join('; ')}
-    `.trim(),
-  },
-};
+    `.trim();
+  }
+  return `
+WEEKOVERZICHT VOEDING (${daysLogged} dagen gelogd):
+- Totaal maaltijden: ${totalMeals}
+- Gemiddeld per dag: ~${Math.round(avgKcal)} kcal, ~${Math.round(avgProtein)}g eiwit, ~${Math.round(avgFiber)}g vezels, ~${Math.round(avgCarbs)}g koolhydraten
+- Patronen: ${Object.entries(reasonCounts).sort((a, b) => b[1] - a[1]).slice(0, 4).map(([r, c]) => `${r} (${c}x)`).join(', ')}
+- Dagpatronen: ${dailyPatterns.map(d => `${d.relDay}: ${d.meals} maaltijden, eiwit ${d.proteinCategory}`).join('; ')}
+  `.trim();
+}
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -158,7 +174,13 @@ serve(async (req) => {
       // No body or invalid JSON, use default language
     }
 
-    const t = prompts[language];
+    const fallback = fallbackPrompts[language];
+
+    // Fetch dynamic prompts from database
+    const [systemPrompt, userPromptTemplate] = await Promise.all([
+      getPrompt('weekly_nutrition_system', language, fallback.system),
+      getPrompt('weekly_nutrition_user', language, fallback.userPrompt),
+    ]);
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -221,7 +243,7 @@ serve(async (req) => {
     if (!dailyScores || dailyScores.length < 3) {
       return new Response(JSON.stringify({ 
         error: language === 'en' ? "Not enough data" : "Niet genoeg data", 
-        message: t.notEnoughData
+        message: fallback.notEnoughData
       }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -262,7 +284,12 @@ serve(async (req) => {
       proteinCategory: (d.protein_g || 0) < 40 ? proteinLabels.low : (d.protein_g || 0) < 60 ? proteinLabels.medium : proteinLabels.good,
     }));
 
-    const nutritionSummary = t.weekOverview(daysWithMeals.length, totalMeals, avgKcal, avgProtein, avgFiber, avgCarbs, reasonCounts, dailyPatterns);
+    const nutritionSummary = buildWeekOverview(
+      language, daysWithMeals.length, totalMeals, avgKcal, avgProtein, avgFiber, avgCarbs, reasonCounts, dailyPatterns
+    );
+
+    // Replace placeholder in user prompt template
+    const userPrompt = userPromptTemplate.replace('{{nutritionSummary}}', nutritionSummary);
 
     // Use direct OpenAI API for full control and GDPR compliance
     const OPENAI_API_KEY = Deno.env.get("ChatGPT");
@@ -281,8 +308,8 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "gpt-4o-mini",
         messages: [
-          { role: "system", content: t.system },
-          { role: "user", content: t.userPrompt(nutritionSummary) },
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userPrompt },
         ],
         max_tokens: 1000,
         temperature: 0.7,
@@ -294,7 +321,7 @@ serve(async (req) => {
       console.error("OpenAI API error:", aiResponse.status, errorText);
       
       if (aiResponse.status === 429) {
-        return new Response(JSON.stringify({ error: t.rateLimit }), {
+        return new Response(JSON.stringify({ error: fallback.rateLimit }), {
           status: 429,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
@@ -328,7 +355,7 @@ serve(async (req) => {
     insight.avg_protein = Math.round(avgProtein);
     insight.avg_fiber = Math.round(avgFiber);
     insight.avg_kcal = Math.round(avgKcal);
-    insight.disclaimer = t.disclaimer;
+    insight.disclaimer = fallback.disclaimer;
 
     // Cache the insight (linked to real user_id in our DB only)
     const { error: cacheError } = await supabaseClient
