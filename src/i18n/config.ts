@@ -30,31 +30,35 @@ languageDetector.addDetector(domainDetector);
 i18n
   .use(languageDetector)
   .use(initReactI18next)
-  .init({
+.init({
     resources: {
       nl: { translation: nl },
       en: { translation: en },
     },
     fallbackLng: 'nl',
+
+    // Make nl-NL/en-US resolve to nl/en
     supportedLngs: ['nl', 'en'],
-    
+    nonExplicitSupportedLngs: true,
+    load: 'languageOnly',
+
     // Detection order: domain first, then localStorage, then browser
     detection: {
       order: ['domainDetector', 'localStorage', 'navigator'],
       caches: ['localStorage'],
     },
-    
+
     interpolation: {
       escapeValue: false, // React already escapes values
     },
-    
+
     // React-specific settings
     react: {
       useSuspense: false, // Disable suspense for SSR compatibility
     },
-    
-    // Ensure translations are ready immediately
-    initImmediate: true,
+
+    // Init synchronously since resources are bundled
+    initImmediate: false,
   });
 
 export default i18n;
