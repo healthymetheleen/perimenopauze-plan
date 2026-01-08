@@ -1169,6 +1169,7 @@
     "voiceRecordAgain": "Record again",
     "voiceTapToStop": "Tap to stop",
     "voiceTapToSpeak": "Tap to speak",
+    "voiceMicPermissionHint": "The first time, your browser will ask for microphone access. Click 'Allow' to use voice input.",
     "confidenceHigh": "confident",
     "confidenceMedium": "uncertain",
     "confidenceLow": "estimate",

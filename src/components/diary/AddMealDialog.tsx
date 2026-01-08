@@ -6,6 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -572,12 +573,19 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
               <TabsContent value="text" className="space-y-4 mt-4">
                 <div className="space-y-2">
                   <Label htmlFor="description">{t('addMeal.describeLabel')}</Label>
-                  <Input
+                  <Textarea
                     id="description"
                     placeholder={t('addMeal.describePlaceholder')}
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleTextSubmit()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        handleTextSubmit();
+                      }
+                    }}
+                    rows={2}
+                    className="min-h-[60px] resize-none"
                   />
                 </div>
                 <Button 
@@ -833,7 +841,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                       </div>
                     </div>
                   ) : (
-                    <>
+                    <div className="flex flex-col items-center gap-4">
                       <Button
                         size="lg"
                         variant={isRecording ? 'destructive' : 'default'}
@@ -842,10 +850,18 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                       >
                         <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
                       </Button>
-                      <p className="text-sm text-muted-foreground">
+                      <p className="text-sm text-muted-foreground text-center">
                         {isRecording ? t('addMeal.voiceTapToStop') : t('addMeal.voiceTapToSpeak')}
                       </p>
-                    </>
+                      {!isRecording && (
+                        <Alert className="bg-muted/50 border-muted">
+                          <Info className="h-4 w-4" />
+                          <AlertDescription className="text-xs">
+                            {t('addMeal.voiceMicPermissionHint')}
+                          </AlertDescription>
+                        </Alert>
+                      )}
+                    </div>
                   )}
                 </div>
               </TabsContent>
