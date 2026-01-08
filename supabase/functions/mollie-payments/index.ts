@@ -126,6 +126,7 @@ serve(async (req) => {
 
       case 'get-methods': {
         // Get available payment methods
+        console.log('Fetching Mollie payment methods...');
         const response = await fetch(`${MOLLIE_API_URL}/methods?include=issuers`, {
           headers: {
             'Authorization': `Bearer ${mollieApiKey}`,
@@ -133,13 +134,16 @@ serve(async (req) => {
         });
 
         if (!response.ok) {
-          return new Response(JSON.stringify({ error: 'Failed to fetch methods' }), {
+          const errorText = await response.text();
+          console.error('Mollie get-methods error:', { status: response.status, error: errorText });
+          return new Response(JSON.stringify({ error: 'Failed to fetch methods', details: response.status }), {
             status: 500,
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
           });
         }
 
         const data = await response.json();
+        console.log('Mollie methods fetched successfully:', data._embedded?.methods?.length || 0, 'methods');
         const methods = data._embedded?.methods?.map((m: any) => ({
           id: m.id,
           description: m.description,
