@@ -52,6 +52,9 @@ i18n
     react: {
       useSuspense: false, // Disable suspense for SSR compatibility
     },
+    
+    // Ensure translations are ready immediately
+    initImmediate: true,
   });
 
 export default i18n;
