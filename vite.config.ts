@@ -3,6 +3,18 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 import { VitePWA } from "vite-plugin-pwa";
+import Sitemap from "vite-plugin-sitemap";
+
+// Public routes for sitemap (no auth required)
+const publicRoutes = [
+  "/",
+  "/pricing",
+  "/login",
+  "/privacy",
+  "/terms",
+  "/intended-use",
+  "/install",
+];
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => ({
@@ -44,6 +56,15 @@ export default defineConfig(({ mode }) => ({
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
       },
+    }),
+    Sitemap({
+      hostname: "https://www.perimenopauzeplan.nl",
+      dynamicRoutes: publicRoutes,
+      exclude: ["/404"],
+      changefreq: "weekly",
+      priority: 0.8,
+      lastmod: new Date(),
+      generateRobotsTxt: false, // We already have a robots.txt
     }),
   ].filter(Boolean),
   resolve: {
