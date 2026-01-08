@@ -646,6 +646,11 @@ export default function ContentAdminPage() {
                           <span>•</span>
                           <span>{difficultyLabels[exercise.difficulty]}</span>
                         </div>
+                        {exercise.description && (
+                          <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
+                            {exercise.description.split('\n')[0]}
+                          </p>
+                        )}
                       </div>
                       <div className="flex gap-2">
                         <Button 
