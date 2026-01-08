@@ -36,7 +36,7 @@ export const HeroSection = () => {
               <span className="text-primary">{t('landing.hero_title_highlight')}</span>
             </h1>
             
-            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0 font-semibold">
+            <p className="text-lg md:text-xl text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0">
               <Trans 
                 i18nKey="landing.hero_description"
                 components={{ strong: <strong className="text-foreground" /> }}
