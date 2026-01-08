@@ -1,13 +1,12 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
-
-type SupportedLanguage = 'nl' | 'en';
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -27,7 +26,8 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-const prompts = {
+// Fallback prompts (used if database is unavailable)
+const fallbackPrompts = {
   nl: {
     system: `ROL & KADER
 
@@ -47,48 +47,18 @@ Je mag NOOIT:
 • garanties geven over resultaten
 • medisch advies geven
 
-Je taak is:
-• maandpatronen analyseren op basis van voeding, slaap en beweging
-• verbanden zichtbaar maken tussen leefstijl en beleving
-• uitnodigen tot zelfobservatie en gesprek met zorgverlener
-
-HORMOONCONTEXT (alleen algemeen, educatief):
-• Hormonen fluctueren gedurende de cyclus en kunnen energie en stemming beïnvloeden
-• Dit is normaal en onderdeel van het lichaam
-
-STRUCTUUR OUTPUT (JSON):
+OUTPUT STRUCTURE (JSON):
 {
   "summary": "Korte samenvatting van de maand (max 3 zinnen)",
-  "patterns": [
-    {
-      "domain": "sleep|food|cycle|mood|energy",
-      "observation": "wat je ziet in de data (max 2 zinnen)",
-      "context": "algemene context zonder medische claims (max 1 zin)"
-    }
-  ],
-  "lifestyleAnalysis": "Analyse van leefstijlpatronen gedurende de maand (max 4 zinnen)",
-  "nutritionInsights": "Observaties over voedingspatronen en mogelijke verbanden met beleving (max 3 zinnen, geen supplementadvies)",
+  "patterns": [{"domain": "sleep|food|cycle|mood|energy", "observation": "wat je ziet", "context": "algemene context"}],
+  "lifestyleAnalysis": "Analyse van leefstijlpatronen (max 4 zinnen)",
+  "nutritionInsights": "Observaties over voedingspatronen (max 3 zinnen)",
   "sleepAnalysis": "Analyse van slaappatronen (max 3 zinnen)",
-  "movementAnalysis": "Analyse van beweging/energie patronen (max 2 zinnen)",
-  "recommendations": [
-    "Leefstijl observatie of aandachtspunt (geen medisch advies, max 5 items)"
-  ],
-  "talkToProvider": "Suggestie om met zorgverlener te bespreken indien relevant (max 1 zin)",
-  "positiveNote": "Positieve observatie of bemoediging (max 1 zin)"
-}
-
-REGELS:
-• Max 600 woorden totaal
-• Altijd disclaimer toevoegen
-• Nooit supplementen, vitamines of mineralen noemen
-• Geen doseringen
-• Focus op patronen en observaties
-• Moedig gesprek met zorgverlener aan`,
-    disclaimer: "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.",
-    consentRequired: 'AI-toestemming is vereist voor deze analyse.',
-    aiNotConfigured: 'AI-service is niet geconfigureerd.',
-    aiError: 'Er ging iets mis bij het genereren van de analyse.',
-    serviceError: 'Er ging iets mis. Probeer het later opnieuw.',
+  "movementAnalysis": "Analyse van beweging/energie (max 2 zinnen)",
+  "recommendations": ["Leefstijl observaties (max 5 items)"],
+  "talkToProvider": "Suggestie om met zorgverlener te bespreken (max 1 zin)",
+  "positiveNote": "Positieve observatie (max 1 zin)"
+}`,
   },
   en: {
     system: `ROLE & FRAMEWORK
@@ -109,43 +79,30 @@ You may NEVER:
 • give guarantees about results
 • give medical advice
 
-Your task is:
-• analyze monthly patterns based on nutrition, sleep and movement
-• make connections visible between lifestyle and experience
-• invite self-observation and conversation with healthcare provider
-
-HORMONE CONTEXT (general, educational only):
-• Hormones fluctuate throughout the cycle and can influence energy and mood
-• This is normal and part of the body
-
 OUTPUT STRUCTURE (JSON):
 {
   "summary": "Short summary of the month (max 3 sentences)",
-  "patterns": [
-    {
-      "domain": "sleep|food|cycle|mood|energy",
-      "observation": "what you see in the data (max 2 sentences)",
-      "context": "general context without medical claims (max 1 sentence)"
-    }
-  ],
-  "lifestyleAnalysis": "Analysis of lifestyle patterns during the month (max 4 sentences)",
-  "nutritionInsights": "Observations about nutrition patterns and possible connections with experience (max 3 sentences, no supplement advice)",
+  "patterns": [{"domain": "sleep|food|cycle|mood|energy", "observation": "what you see", "context": "general context"}],
+  "lifestyleAnalysis": "Analysis of lifestyle patterns (max 4 sentences)",
+  "nutritionInsights": "Observations about nutrition patterns (max 3 sentences)",
   "sleepAnalysis": "Analysis of sleep patterns (max 3 sentences)",
-  "movementAnalysis": "Analysis of movement/energy patterns (max 2 sentences)",
-  "recommendations": [
-    "Lifestyle observation or point of attention (no medical advice, max 5 items)"
-  ],
-  "talkToProvider": "Suggestion to discuss with healthcare provider if relevant (max 1 sentence)",
-  "positiveNote": "Positive observation or encouragement (max 1 sentence)"
-}
+  "movementAnalysis": "Analysis of movement/energy (max 2 sentences)",
+  "recommendations": ["Lifestyle observations (max 5 items)"],
+  "talkToProvider": "Suggestion to discuss with healthcare provider (max 1 sentence)",
+  "positiveNote": "Positive observation (max 1 sentence)"
+}`,
+  },
+};
 
-RULES:
-• Max 600 words total
-• Always add disclaimer
-• Never mention supplements, vitamins or minerals
-• No dosages
-• Focus on patterns and observations
-• Encourage conversation with healthcare provider`,
+const translations = {
+  nl: {
+    disclaimer: "Deze analyse is puur informatief en gebaseerd op orthomoleculaire voedingsleer. Het is geen medisch advies. Bespreek eventuele zorgen altijd met je huisarts of een gekwalificeerde zorgverlener.",
+    consentRequired: 'AI-toestemming is vereist voor deze analyse.',
+    aiNotConfigured: 'AI-service is niet geconfigureerd.',
+    aiError: 'Er ging iets mis bij het genereren van de analyse.',
+    serviceError: 'Er ging iets mis. Probeer het later opnieuw.',
+  },
+  en: {
     disclaimer: "This analysis is purely informational and based on orthomolecular nutrition. It is not medical advice. Always discuss any concerns with your doctor or a qualified healthcare provider.",
     consentRequired: 'AI consent is required for this analysis.',
     aiNotConfigured: 'AI service is not configured.',
@@ -177,7 +134,7 @@ serve(async (req) => {
       // No body or invalid JSON, use default language
     }
 
-    const t = prompts[language];
+    const t = translations[language];
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
@@ -368,6 +325,9 @@ Genereer een uitgebreide maandanalyse met focus op leefstijlpatronen en hormoonp
 
     console.log('Generating monthly analysis via OpenAI API, subject:', aiSubjectId);
 
+    // Fetch dynamic system prompt from database
+    const systemPrompt = await getPrompt('monthly_analysis_system', language, fallbackPrompts[language].system);
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -377,7 +337,7 @@ Genereer een uitgebreide maandanalyse met focus op leefstijlpatronen en hormoonp
       body: JSON.stringify({
         model: 'gpt-4o',
         messages: [
-          { role: 'system', content: t.system },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
         ],
         max_tokens: 1500,
