@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPrompts, type SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,8 +9,6 @@ const corsHeaders = {
 };
 
 const DAILY_AI_LIMIT = 30;
-
-type SupportedLanguage = 'nl' | 'en';
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -29,8 +28,8 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-// GLOBAL AI GUARDRAIL - MDR-compliant system prompts
-const systemPrompts = {
+// GLOBAL AI GUARDRAIL - MDR-compliant system prompts (fallbacks)
+const fallbackSystemPrompts = {
   nl: {
     base: `ROL & KADER
 
@@ -265,6 +264,30 @@ RULES:
   },
 };
 
+// Helper to get fallback prompt for type
+function getFallbackPrompt(type: string, lang: SupportedLanguage): string {
+  const prompts = fallbackSystemPrompts[lang];
+  switch (type) {
+    case 'daily': return `${prompts.base}\n\n${prompts.daily}`;
+    case 'weekly': return `${prompts.base}\n\n${prompts.weekly}`;
+    case 'sleep': return `${prompts.base}\n\n${prompts.sleep}`;
+    case 'cycle': return `${prompts.base}\n\n${prompts.cycle}`;
+    default: return `${prompts.base}\n\n${prompts.daily}`;
+  }
+}
+
+// Dynamic prompt fetcher for type
+async function getDynamicPromptForType(type: string, lang: SupportedLanguage): Promise<string> {
+  const promptKeys = ['premium_insights_base', `premium_insights_${type}`];
+  const fallbacks: Record<string, string> = {
+    'premium_insights_base': fallbackSystemPrompts[lang].base,
+    [`premium_insights_${type}`]: fallbackSystemPrompts[lang][type as keyof typeof fallbackSystemPrompts.nl] || fallbackSystemPrompts[lang].daily,
+  };
+  
+  const prompts = await getPrompts(promptKeys, lang, fallbacks);
+  return `${prompts['premium_insights_base']}\n\n${prompts[`premium_insights_${type}`]}`;
+}
+
 const translations = {
   nl: {
     disclaimer: 'Deze inzichten zijn informatief en geen medisch advies.',
@@ -372,15 +395,9 @@ const translations = {
   },
 };
 
+// Kept for backwards compatibility, but getDynamicPromptForType is preferred
 function getPromptForType(type: string, lang: SupportedLanguage): string {
-  const prompts = systemPrompts[lang];
-  switch (type) {
-    case 'daily': return `${prompts.base}\n\n${prompts.daily}`;
-    case 'weekly': return `${prompts.base}\n\n${prompts.weekly}`;
-    case 'sleep': return `${prompts.base}\n\n${prompts.sleep}`;
-    case 'cycle': return `${prompts.base}\n\n${prompts.cycle}`;
-    default: return `${prompts.base}\n\n${prompts.daily}`;
-  }
+  return getFallbackPrompt(type, lang);
 }
 
 function getDefaultResponse(type: string, lang: SupportedLanguage): object {
@@ -535,7 +552,8 @@ serve(async (req) => {
       });
     }
 
-    const systemPromptForType = getPromptForType(type, lang);
+    // Fetch dynamic system prompt from database
+    const systemPromptForType = await getDynamicPromptForType(type, lang);
     
     // Build MINIMAL context - only categorical data, no PII
     let context = '';
