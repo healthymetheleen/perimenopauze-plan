@@ -177,19 +177,18 @@ serve(async (req) => {
     // Generate pseudonymous subject ID (never send real user_id to AI)
     const aiSubjectId = generateAISubjectId(user.id);
 
-    // Check if we have a cached insight from this week
+    // Check if we have a cached insight from the last 3 days
     const today = new Date();
-    const dayOfWeek = today.getDay();
-    const weekStart = new Date(today);
-    weekStart.setDate(today.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1));
-    const weekStartStr = weekStart.toISOString().split('T')[0];
+    const threeDaysAgo = new Date(today);
+    threeDaysAgo.setDate(today.getDate() - 3);
+    const cacheStartStr = threeDaysAgo.toISOString().split('T')[0];
 
     const { data: cachedInsight } = await supabaseClient
       .from('ai_insights_cache')
       .select('*')
       .eq('owner_id', user.id)
       .eq('insight_type', 'weekly_nutrition')
-      .gte('insight_date', weekStartStr)
+      .gte('insight_date', cacheStartStr)
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -324,7 +323,7 @@ serve(async (req) => {
     }
 
     // Add metadata (no PII)
-    insight.week_start = weekStartStr;
+    insight.cache_date = today.toISOString().split('T')[0];
     insight.days_logged = daysWithMeals.length;
     insight.avg_protein = Math.round(avgProtein);
     insight.avg_fiber = Math.round(avgFiber);
