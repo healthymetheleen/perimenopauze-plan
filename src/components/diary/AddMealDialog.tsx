@@ -103,6 +103,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   const [rawImage, setRawImage] = useState<string | null>(null); // Original image before crop
   const [showCropper, setShowCropper] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [audioLevel, setAudioLevel] = useState(0);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [transcription, setTranscription] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -122,6 +123,9 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
   // Media recorder ref
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
+  const audioContextRef = useRef<AudioContext | null>(null);
+  const analyserRef = useRef<AnalyserNode | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
 
   // Update currentDayId when initialDayId changes
   useEffect(() => {
@@ -371,7 +375,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     analyzeMeal(photoDescription || undefined, imagePreview);
   };
 
-  // Handle voice recording
+  // Handle voice recording with audio level metering
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -379,11 +383,44 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
       mediaRecorderRef.current = mediaRecorder;
       audioChunksRef.current = [];
 
+      // Set up audio level metering
+      const audioContext = new AudioContext();
+      const analyser = audioContext.createAnalyser();
+      const source = audioContext.createMediaStreamSource(stream);
+      analyser.fftSize = 256;
+      source.connect(analyser);
+      audioContextRef.current = audioContext;
+      analyserRef.current = analyser;
+
+      // Start level monitoring
+      const updateLevel = () => {
+        if (!analyserRef.current) return;
+        const dataArray = new Uint8Array(analyserRef.current.frequencyBinCount);
+        analyserRef.current.getByteFrequencyData(dataArray);
+        const average = dataArray.reduce((a, b) => a + b, 0) / dataArray.length;
+        const normalizedLevel = Math.min(100, (average / 128) * 100);
+        setAudioLevel(normalizedLevel);
+        animationFrameRef.current = requestAnimationFrame(updateLevel);
+      };
+      updateLevel();
+
       mediaRecorder.ondataavailable = (e) => {
         audioChunksRef.current.push(e.data);
       };
 
       mediaRecorder.onstop = async () => {
+        // Clean up audio level monitoring
+        if (animationFrameRef.current) {
+          cancelAnimationFrame(animationFrameRef.current);
+          animationFrameRef.current = null;
+        }
+        if (audioContextRef.current) {
+          audioContextRef.current.close();
+          audioContextRef.current = null;
+        }
+        analyserRef.current = null;
+        setAudioLevel(0);
+
         const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
         stream.getTracks().forEach(track => track.stop());
         
@@ -444,8 +481,21 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      // Cleanup will happen in onstop handler
     }
   };
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      if (audioContextRef.current) {
+        audioContextRef.current.close();
+      }
+    };
+  }, []);
 
   // Save meal to database
   const saveMeal = useMutation({
@@ -842,14 +892,50 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
                     </div>
                   ) : (
                     <div className="flex flex-col items-center gap-4">
-                      <Button
-                        size="lg"
-                        variant={isRecording ? 'destructive' : 'default'}
-                        className="h-20 w-20 rounded-full"
-                        onClick={isRecording ? stopRecording : startRecording}
-                      >
-                        <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
-                      </Button>
+                      <div className="relative">
+                        <Button
+                          size="lg"
+                          variant={isRecording ? 'destructive' : 'default'}
+                          className="h-20 w-20 rounded-full relative z-10"
+                          onClick={isRecording ? stopRecording : startRecording}
+                        >
+                          <Mic className={`h-8 w-8 ${isRecording ? 'animate-pulse' : ''}`} />
+                        </Button>
+                        {/* Audio level ring indicator */}
+                        {isRecording && (
+                          <div 
+                            className="absolute inset-0 rounded-full border-4 border-destructive/50 transition-transform duration-75"
+                            style={{
+                              transform: `scale(${1 + (audioLevel / 100) * 0.4})`,
+                              opacity: 0.3 + (audioLevel / 100) * 0.7,
+                            }}
+                          />
+                        )}
+                      </div>
+                      
+                      {/* Audio level bars */}
+                      {isRecording && (
+                        <div className="flex items-end gap-1 h-8 w-32">
+                          {[...Array(8)].map((_, i) => {
+                            const threshold = (i + 1) * 12.5;
+                            const isActive = audioLevel >= threshold;
+                            return (
+                              <div
+                                key={i}
+                                className={`flex-1 rounded-full transition-all duration-75 ${
+                                  isActive 
+                                    ? i < 3 ? 'bg-green-500' : i < 6 ? 'bg-yellow-500' : 'bg-red-500'
+                                    : 'bg-muted'
+                                }`}
+                                style={{
+                                  height: `${20 + i * 10}%`,
+                                }}
+                              />
+                            );
+                          })}
+                        </div>
+                      )}
+
                       <p className="text-sm text-muted-foreground text-center">
                         {isRecording ? t('addMeal.voiceTapToStop') : t('addMeal.voiceTapToSpeak')}
                       </p>
