@@ -70,6 +70,7 @@ export function useNutritionSettings() {
         coaching_style: data.coaching_style ?? 'empathisch',
         coaching_tone: data.coaching_tone ?? 'vriendelijk',
         coaching_context: data.coaching_context ?? null,
+        diet_vision: data.diet_vision ?? '',
         app_philosophy: data.app_philosophy ?? '',
         important_points: parseJsonArray(data.important_points),
         less_important_points: parseJsonArray(data.less_important_points),
