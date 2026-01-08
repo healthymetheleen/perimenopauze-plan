@@ -947,6 +947,7 @@
     "start_meditation": "Start meditation",
     "audio_playing": "Audio playing...",
     "close": "Close",
+    "no_meditations": "No meditations in this category yet.",
     "items": {
       "sleep_body_scan": {
         "title": "Body Scan for the Night",

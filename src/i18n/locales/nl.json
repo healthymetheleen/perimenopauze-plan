@@ -947,6 +947,7 @@
     "start_meditation": "Start meditatie",
     "audio_playing": "Audio speelt af...",
     "close": "Sluiten",
+    "no_meditations": "Nog geen meditaties in deze categorie.",
     "items": {
       "sleep_body_scan": {
         "title": "Bodyscan voor de nacht",
