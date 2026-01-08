@@ -2,7 +2,7 @@ import { useState, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { 
   Mic, Play, Pause, Download, Loader2, 
-  Volume2, Wand2, RefreshCw 
+  Volume2, Wand2, RefreshCw, Save, Link2
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
+import { useAdminMeditations } from '@/hooks/useContent';
 
 const VOICE_OPTIONS = [
   { id: 'laura', name: 'Laura Peeters', description: 'Nederlands, rustig en enthousiast' },
@@ -51,6 +52,7 @@ export function MeditationAudioGenerator() {
   const { t } = useTranslation();
   const { toast } = useToast();
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { data: meditations, refetch: refetchMeditations } = useAdminMeditations();
   
   const [text, setText] = useState('');
   const [voice, setVoice] = useState('laura');
@@ -58,8 +60,10 @@ export function MeditationAudioGenerator() {
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
+  const [selectedMeditationId, setSelectedMeditationId] = useState<string>('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  const estimatedDuration = Math.ceil(text.split(/\s+/).length / 2.5); // ~150 words per minute for slow meditation
+  const estimatedDuration = Math.ceil(text.split(/\s+/).length / 2.5);
   const characterCount = text.length;
 
   const handleGenerate = async () => {
@@ -77,7 +81,6 @@ export function MeditationAudioGenerator() {
     setAudioBlob(null);
 
     try {
-      // Use fetch instead of supabase.functions.invoke for binary response
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-meditation-audio`,
         {
@@ -114,6 +117,64 @@ export function MeditationAudioGenerator() {
       });
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleSaveToMeditation = async () => {
+    if (!audioBlob || !selectedMeditationId) {
+      toast({
+        title: 'Selecteer een meditatie',
+        description: 'Kies eerst een meditatie om de audio aan te koppelen.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const selectedMeditation = meditations?.find(m => m.id === selectedMeditationId);
+      
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-meditation-audio`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          },
+          body: JSON.stringify({ 
+            text, 
+            voice, 
+            meditationId: selectedMeditationId,
+            title: selectedMeditation?.title || 'Meditatie'
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Opslaan mislukt');
+      }
+
+      const result = await response.json();
+      
+      await refetchMeditations();
+
+      toast({
+        title: 'Audio opgeslagen!',
+        description: `Audio gekoppeld aan "${selectedMeditation?.title}".`,
+      });
+      
+      setSelectedMeditationId('');
+    } catch (error) {
+      console.error('Save error:', error);
+      toast({
+        title: 'Opslaan mislukt',
+        description: error instanceof Error ? error.message : 'Onbekende fout',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -304,6 +365,57 @@ Tip: Gebruik lege regels voor pauzes in de audio."
                 Bestandsgrootte: {Math.round(audioBlob.size / 1024)} KB
               </p>
             )}
+
+            {/* Save to Meditation */}
+            <div className="pt-3 border-t space-y-3">
+              <div className="flex items-center gap-2 text-sm font-medium">
+                <Link2 className="h-4 w-4" />
+                Koppelen aan meditatie
+              </div>
+              
+              <div className="flex gap-2">
+                <Select value={selectedMeditationId} onValueChange={setSelectedMeditationId}>
+                  <SelectTrigger className="flex-1">
+                    <SelectValue placeholder="Selecteer een meditatie..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {meditations?.map((m) => (
+                      <SelectItem key={m.id} value={m.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{m.title}</span>
+                          {m.audio_url && (
+                            <Badge variant="secondary" className="text-xs">
+                              heeft audio
+                            </Badge>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Button
+                  onClick={handleSaveToMeditation}
+                  disabled={isSaving || !selectedMeditationId}
+                  variant="secondary"
+                >
+                  {isSaving ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-1" />
+                      Opslaan
+                    </>
+                  )}
+                </Button>
+              </div>
+              
+              {selectedMeditationId && meditations?.find(m => m.id === selectedMeditationId)?.audio_url && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  Let op: deze meditatie heeft al audio. Opslaan vervangt de bestaande audio.
+                </p>
+              )}
+            </div>
           </div>
         )}
       </CardContent>
