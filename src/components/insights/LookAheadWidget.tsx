@@ -265,7 +265,7 @@ export function LookAheadWidget() {
   const periodLength = preferences.avg_period_length || 5;
   const lutealLength = preferences.luteal_phase_length || 13;
   
-  // Use the actual cycle start date from cycles table (same as CycleWeekWidget)
+  // Use the actual cycle start date from cycles table
   const today = startOfDay(new Date());
   const latestCycleStart = cycles?.[0]?.start_date 
     ? startOfDay(parseISO(cycles[0].start_date)) 
@@ -279,8 +279,9 @@ export function LookAheadWidget() {
   // Calculate current day in cycle using actual cycle start
   const currentDayInCycle = differenceInDays(today, latestCycleStart) + 1;
   
-  // Calculate current season based on actual cycle start (consistent with CycleWeekWidget)
-  const currentSeason = getSeasonForDate(today, latestCycleStart, avgCycleLength, periodLength, lutealLength);
+  // Use prediction.current_season consistently across all pages
+  // This comes from calculatePhaseAndPredictions() which uses actual bleeding logs
+  const currentSeason: Season = (prediction.current_season as Season) || 'onbekend';
   
   // Generate 5-day forecast
   const forecast: DayForecast[] = [];
