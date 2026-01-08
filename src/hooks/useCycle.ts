@@ -271,12 +271,23 @@ export function useCycleSymptomLogs(days = 90) {
 
 export function useLatestPrediction() {
   const { user } = useAuth();
-  const { data: cycles } = useCycles(6);
-  const { data: bleedingLogs } = useBleedingLogs(90);
-  const { data: preferences } = useCyclePreferences();
+  const { data: cycles, dataUpdatedAt: cyclesUpdatedAt } = useCycles(6);
+  const { data: bleedingLogs, dataUpdatedAt: bleedingUpdatedAt } = useBleedingLogs(90);
+  const { data: preferences, dataUpdatedAt: prefsUpdatedAt } = useCyclePreferences();
 
+  // Use dataUpdatedAt timestamps to force recalculation when underlying data changes
+  // This ensures the prediction updates immediately when cycles are added/modified
   return useQuery({
-    queryKey: ['cycle-prediction', user?.id, cycles?.length, bleedingLogs?.length],
+    queryKey: [
+      'cycle-prediction', 
+      user?.id, 
+      cycles?.[0]?.start_date, // Use actual start date, not just length
+      cycles?.length, 
+      bleedingLogs?.length,
+      cyclesUpdatedAt,  // Force recalculation when cycles query updates
+      bleedingUpdatedAt, // Force recalculation when bleeding logs update
+      prefsUpdatedAt, // Force recalculation when preferences update
+    ],
     queryFn: async (): Promise<CyclePrediction | null> => {
       if (!user) return null;
       
@@ -311,6 +322,8 @@ export function useLatestPrediction() {
       return stored;
     },
     enabled: !!user,
+    // Ensure stale data is refetched quickly after navigation
+    staleTime: 0,
   });
 }
 
