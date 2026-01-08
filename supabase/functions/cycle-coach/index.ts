@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPrompt, type SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,8 +9,6 @@ const corsHeaders = {
 };
 
 const DAILY_AI_LIMIT = 30;
-
-type SupportedLanguage = 'nl' | 'en';
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -29,7 +28,8 @@ function generateAISubjectId(userId: string): string {
   return `subj_${Math.abs(hash).toString(16).padStart(8, '0')}`;
 }
 
-const prompts = {
+// Fallback prompts for when database is unavailable
+const fallbackPrompts = {
   nl: {
     system: `ROL & KADER
 
@@ -190,6 +190,11 @@ If input is insufficient, provide generic, supportive observations.`,
   },
 };
 
+// Helper function to get localized texts (non-AI prompts remain hardcoded)
+function getLocalizedTexts(language: SupportedLanguage) {
+  return fallbackPrompts[language];
+}
+
 // Helper: anonimiseer data - ALLEEN statistieken, geen herleidbare info
 function anonymizeData(input: {
   cycles?: any[];
@@ -266,7 +271,7 @@ function anonymizeData(input: {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request, t: typeof prompts['nl']): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof fallbackPrompts['nl']): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -338,7 +343,7 @@ serve(async (req) => {
   try {
     const inputData = await req.json();
     const language = getLanguage(inputData.language);
-    const t = prompts[language];
+    const t = getLocalizedTexts(language);
 
     // Authenticate and check limits
     const authResult = await authenticateAndCheckLimits(req, t);
@@ -435,6 +440,9 @@ HUIDIGE FASE (inschatting):
 Geef ondersteunende, niet-medische inzichten. Gebruik voorzichtige taal.
 Verwijs bij twijfel naar een zorgverlener.`;
 
+    // Fetch dynamic system prompt from database
+    const systemPrompt = await getPrompt('cycle_coach_system', language, fallbackPrompts[language].system);
+
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -444,7 +452,7 @@ Verwijs bij twijfel naar een zorgverlener.`;
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          { role: 'system', content: t.system },
+          { role: 'system', content: systemPrompt },
           { role: 'user', content: context }
         ],
         max_tokens: 600,
