@@ -514,11 +514,11 @@ export default function MovementPage() {
                   )}
 
                   <Button
-                    className="w-full btn-gradient" 
+                    variant="outline"
+                    className="w-full" 
                     onClick={() => setSelectedExercise(null)}
                   >
-                    <Play className="h-4 w-4 mr-2" />
-                    {t('movement.startExercise')}
+                    {t('common.back')}
                   </Button>
                 </div>
               </>
