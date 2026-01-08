@@ -21,7 +21,7 @@ export default function PrivacyPolicy() {
             </div>
             <CardTitle className="text-2xl text-gradient">Privacybeleid</CardTitle>
             <p className="text-muted-foreground mt-2">Perimenopauze Plan</p>
-            <p className="text-sm text-muted-foreground">Laatst bijgewerkt: januari 2026 · Versie 1.0</p>
+            <p className="text-sm text-muted-foreground">Laatst bijgewerkt: januari 2026 · Versie 1.1</p>
           </CardHeader>
 
           <CardContent className="prose prose-sm max-w-none pt-6 space-y-8">
@@ -116,13 +116,13 @@ export default function PrivacyPolicy() {
               <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
                 <li><strong>Wat we versturen:</strong> Alleen geanonimiseerde, geaggregeerde statistieken (bijv. "cycluslengte: gemiddeld", "hoofdpijn: regelmatig")</li>
                 <li><strong>Wat we NIET versturen:</strong> Naam, e-mailadres, exacte datums, of andere herleidbare persoonsgegevens</li>
-                <li><strong>AI-verwerker:</strong> OpenAI (VS) en Google Gemini, via beveiligde API-verbindingen</li>
+                <li><strong>AI-gateway:</strong> AI-verzoeken worden gerouteerd via de Lovable AI Gateway naar OpenAI of Google Gemini. Data wordt altijd eerst geanonimiseerd voordat het naar AI-diensten wordt verzonden.</li>
                 <li><strong>Dataretentie:</strong> OpenAI kan API-verzoeken tot 30 dagen bewaren voor misbruikdetectie. Data wordt niet gebruikt voor modeltraining.</li>
                 <li><strong>Doorgifte EU→VS:</strong> Via Standard Contractual Clauses (SCC's) conform AVG Art. 46</li>
                 <li><strong>Intrekken:</strong> Je kunt AI-toestemming op elk moment intrekken via Instellingen</li>
               </ul>
               <p className="text-muted-foreground mt-2">
-                Met OpenAI is een verwerkersovereenkomst (DPA) afgesloten conform AVG-vereisten.
+                Met alle AI-verwerkers zijn verwerkersovereenkomsten (DPA's) afgesloten conform AVG-vereisten.
               </p>
             </section>
 
@@ -192,17 +192,57 @@ export default function PrivacyPolicy() {
             {/* 10. Subverwerkers */}
             <section>
               <h2 className="text-lg font-semibold text-foreground">10. Subverwerkers</h2>
-              <p className="text-muted-foreground">We gebruiken de volgende dienstverleners:</p>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1 mt-2">
-                <li><strong>Supabase (EU)</strong> – Database, authenticatie, backend functies</li>
-                <li><strong>Lovable (EU)</strong> – Frontend hosting, AI-gateway</li>
-                <li><strong>OpenAI (VS)</strong> – AI-analyse voor gepersonaliseerde inzichten (alleen met toestemming, geanonimiseerde data, via SCC's)</li>
-                <li><strong>Google Cloud (EU/VS)</strong> – Gemini AI voor inzichten (alleen met toestemming, via SCC's)</li>
-                <li><strong>Sentry (EU)</strong> – Foutrapportage (geen gezondheidsdata)</li>
-              </ul>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground">
+                We maken gebruik van de volgende dienstverleners (subverwerkers) voor het leveren van onze diensten:
+              </p>
+              
+              <div className="mt-4 space-y-4">
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">Supabase Inc. (EU - Frankfurt)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Database hosting, authenticatie, file storage, backend functies</p>
+                  <p className="text-xs text-muted-foreground mt-1">✅ DPA beschikbaar · EU data residency · <a href="https://supabase.com/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">Lovable / GPT Engineer (EU)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Frontend hosting, AI-gateway voor externe AI-diensten</p>
+                  <p className="text-xs text-muted-foreground mt-1">Alle AI-verzoeken worden gerouteerd via de Lovable AI Gateway</p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">OpenAI LLC (VS)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">AI-analyse voor gepersonaliseerde inzichten (alleen met toestemming)</p>
+                  <ul className="text-xs text-muted-foreground mt-1 space-y-0.5">
+                    <li>✅ DPA + Standard Contractual Clauses (SCCs)</li>
+                    <li>✅ Data wordt NIET gebruikt voor model training</li>
+                    <li>⚠️ Max 30 dagen retentie voor misbruikmonitoring</li>
+                    <li>🔒 Alleen geanonimiseerde data verzonden</li>
+                  </ul>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">Google LLC (EU/VS)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Gemini AI modellen via Lovable AI Gateway (alleen met toestemming)</p>
+                  <p className="text-xs text-muted-foreground mt-1">✅ DPA + SCCs beschikbaar · EU data processing options</p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">Mollie B.V. (Nederland)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Betalingsverwerking voor abonnementen</p>
+                  <p className="text-xs text-muted-foreground mt-1">✅ EU-gebaseerd · Alleen betalingsgegevens (naam, email, IBAN) · <a href="https://www.mollie.com/privacy" className="text-primary hover:underline" target="_blank" rel="noopener noreferrer">Privacy Policy</a></p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-4">
+                  <h4 className="font-medium text-foreground">Sentry (EU)</h4>
+                  <p className="text-sm text-muted-foreground mt-1">Foutrapportage en performance monitoring</p>
+                  <p className="text-xs text-muted-foreground mt-1">✅ Geen gezondheidsdata · Alleen technische errors en geanonimiseerde crash reports</p>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground mt-4">
                 Met alle subverwerkers zijn verwerkersovereenkomsten (DPA's) afgesloten conform AVG-vereisten. 
-                Doorgifte naar VS gebeurt via Standard Contractual Clauses.
+                Doorgifte naar de VS gebeurt via EU Standard Contractual Clauses (SCCs). 
+                DPA's zijn beschikbaar op aanvraag.
               </p>
             </section>
 
