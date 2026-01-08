@@ -168,7 +168,7 @@ export function CycleWeekWidget() {
                   relative min-h-[44px] rounded
                   flex flex-col items-center justify-center text-center
                   ${seasonTileClass[d.predictedSeason]}
-                  ${d.isToday ? 'ring-[3px] ring-primary ring-offset-2 ring-offset-background' : ''}
+                  ${d.isToday ? 'outline outline-[3px] outline-offset-2 outline-primary' : ''}
                   ${d.isFertile ? 'ring-2 ring-green-500 ring-inset' : ''}
                 `}
               >
