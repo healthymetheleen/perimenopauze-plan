@@ -130,7 +130,7 @@ export function CycleWeekWidget() {
           </div>
 
           {/* Legend chips - horizontally scrollable on mobile */}
-          <div className="flex gap-2 text-xs overflow-x-auto scrollbar-hide -mx-1 px-1 pb-1">
+          <div className="flex gap-2 text-xs overflow-x-auto scrollbar-hide -mx-1 px-1 py-2">
             {prediction?.next_period_start_min && (
               <Badge 
                 variant="outline" 
