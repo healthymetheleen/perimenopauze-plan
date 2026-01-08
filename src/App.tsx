@@ -40,6 +40,7 @@ const IntendedUse = lazy(() => import("./pages/IntendedUse"));
 const MonthlyAnalysisPage = lazy(() => import("./pages/MonthlyAnalysis"));
 const SubscriptionPage = lazy(() => import("./pages/Subscription"));
 const NutritionAdminPage = lazy(() => import("./pages/NutritionAdmin"));
+const AISettingsPage = lazy(() => import("./pages/AISettings"));
 const AdminDashboardPage = lazy(() => import("./pages/AdminDashboard"));
 const ProductsPage = lazy(() => import("./pages/Products"));
 const EducationPage = lazy(() => import("./pages/Education"));
@@ -266,6 +267,11 @@ function AppRoutes() {
       <Route path="/voeding-beheer" element={
         <ProtectedRoute>
           <NutritionAdminPage />
+        </ProtectedRoute>
+      } />
+      <Route path="/ai-instellingen" element={
+        <ProtectedRoute>
+          <AISettingsPage />
         </ProtectedRoute>
       } />
       <Route path="/admin" element={
