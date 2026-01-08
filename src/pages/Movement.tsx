@@ -414,8 +414,8 @@ export default function MovementPage() {
                       className="glass rounded-xl overflow-hidden cursor-pointer hover:shadow-soft transition-all"
                       onClick={() => setSelectedExercise(exercise)}
                     >
-                      <div className="flex">
-                        <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0 bg-muted">
+                      <div className="flex flex-col sm:flex-row">
+                        <div className="w-full sm:w-32 h-32 sm:h-32 flex-shrink-0 bg-muted">
                           {exercise.image_url && (
                             <img 
                               src={exercise.image_url} 
@@ -424,14 +424,19 @@ export default function MovementPage() {
                             />
                           )}
                         </div>
-                        <CardContent className="flex-1 p-3 sm:p-4">
+                        <CardContent className="flex-1 p-4">
                           <div className="flex items-start justify-between">
-                            <div>
-                              <h4 className="font-medium text-sm sm:text-base">{getExerciseName(exercise)}</h4>
+                            <div className="flex-1">
+                              <h4 className="font-medium text-base">{getExerciseName(exercise)}</h4>
+                              {exercise.description && (
+                                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                  {exercise.description.split('**Uitvoering:**')[0].trim()}
+                                </p>
+                              )}
                             </div>
-                            <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <ChevronRight className="h-5 w-5 text-muted-foreground flex-shrink-0 ml-2" />
                           </div>
-                          <div className="flex items-center gap-2 mt-2">
+                          <div className="flex items-center gap-2 mt-3">
                             <Badge variant="outline" className="text-xs">
                               <Clock className="h-3 w-3 mr-1" />
                               {exercise.duration}
