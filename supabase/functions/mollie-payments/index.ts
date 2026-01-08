@@ -32,16 +32,168 @@ serve(async (req) => {
       });
     }
     
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+    
     console.log('Mollie config:', { hasApiKey: !!mollieApiKey, hasProfileId: !!mollieProfileId });
 
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
+    
+    // Handle webhook separately - it sends form data, not JSON
+    if (path === 'webhook' && req.method === 'POST') {
+      console.log('Webhook received from Mollie');
+      
+      const formData = await req.formData();
+      const paymentId = formData.get('id');
+
+      if (!paymentId) {
+        console.log('Webhook: No payment ID received');
+        return new Response('OK', { status: 200 });
+      }
+
+      console.log(`Webhook: Processing payment ${paymentId}`);
+
+      // Fetch payment details from Mollie
+      const paymentResponse = await fetch(`${MOLLIE_API_URL}/payments/${paymentId}`, {
+        headers: {
+          'Authorization': `Bearer ${mollieApiKey}`,
+        },
+      });
+
+      if (!paymentResponse.ok) {
+        console.error('Webhook: Failed to fetch payment details');
+        return new Response('OK', { status: 200 });
+      }
+
+      const payment = await paymentResponse.json();
+      console.log(`Webhook: Payment ${paymentId} status: ${payment.status}`);
+
+      const resendApiKey = Deno.env.get('RESEND_API_KEY');
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+
+      const metadata = payment.metadata || {};
+      const userId = metadata.user_id;
+      const customerId = metadata.customer_id;
+      const plan = metadata.plan;
+      const isTest = metadata.is_test;
+
+      // For test payments, just log success
+      if (isTest) {
+        console.log(`Webhook: Test payment ${paymentId} completed with status ${payment.status}`);
+        return new Response('OK', { status: 200 });
+      }
+
+      if (payment.status === 'paid' && userId) {
+        console.log(`Webhook: Payment successful for user ${userId}`);
+
+        // Fetch user email for notifications
+        const { data: userData } = await adminClient.auth.admin.getUserById(userId);
+        const userEmail = userData?.user?.email;
+
+        // Check if this is a first payment that needs recurring subscription setup
+        if (metadata.is_first_payment && customerId) {
+          console.log(`Webhook: Setting up recurring subscription for customer ${customerId}`);
+          
+          // Create recurring subscription via Mollie
+          const subscriptionResponse = await fetch(`${MOLLIE_API_URL}/customers/${customerId}/subscriptions`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${mollieApiKey}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              amount: payment.amount,
+              description: `Perimenopause Plan App - Premium Maandelijks`,
+              interval: '1 month',
+              webhookUrl: `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+              metadata: {
+                user_id: userId,
+                plan: plan || 'premium_monthly',
+              },
+            }),
+          });
+
+          if (subscriptionResponse.ok) {
+            const mollieSubscription = await subscriptionResponse.json();
+            console.log(`Webhook: Mollie subscription created: ${mollieSubscription.id}`);
+
+            // Calculate trial end date (7 days from now)
+            const trialEndsAt = new Date();
+            trialEndsAt.setDate(trialEndsAt.getDate() + 7);
+            
+            // Store subscription with Mollie IDs in database
+            await adminClient
+              .from('subscriptions')
+              .upsert({
+                owner_id: userId,
+                plan: 'premium_monthly',
+                status: 'active',
+                mollie_customer_id: customerId,
+                mollie_subscription_id: mollieSubscription.id,
+                trial_ends_at: trialEndsAt.toISOString(),
+              }, {
+                onConflict: 'owner_id'
+              });
+
+            // Send welcome email
+            if (resendApiKey && userEmail) {
+              const emailData = getSubscriptionWelcomeEmail('');
+              await sendEmail(userEmail, emailData.subject, emailData.html, resendApiKey);
+              console.log(`Webhook: Welcome email sent to ${userEmail}`);
+            }
+          } else {
+            console.error('Webhook: Failed to create Mollie subscription', { status: subscriptionResponse.status });
+          }
+        } else {
+          // Regular recurring payment
+          await adminClient
+            .from('subscriptions')
+            .upsert({
+              owner_id: userId,
+              plan: plan || 'premium',
+              status: 'active',
+            }, {
+              onConflict: 'owner_id'
+            });
+        }
+
+        console.log(`Webhook: Subscription activated for user ${userId}`);
+
+        // Update entitlements
+        await adminClient
+          .from('entitlements')
+          .upsert({
+            owner_id: userId,
+            can_use_trends: true,
+            can_use_patterns: true,
+            can_export: true,
+          }, {
+            onConflict: 'owner_id'
+          });
+      } else if (payment.status === 'failed' || payment.status === 'expired') {
+        console.log(`Webhook: Payment ${payment.status} for user ${userId || 'unknown'}`);
+        
+        if (userId) {
+          const { data: userData } = await adminClient.auth.admin.getUserById(userId);
+          const userEmail = userData?.user?.email;
+          
+          if (resendApiKey && userEmail) {
+            const emailData = getPaymentFailedEmail('', payment.amount?.value || '0.00');
+            await sendEmail(userEmail, emailData.subject, emailData.html, resendApiKey);
+            console.log(`Webhook: Payment failed email sent to ${userEmail}`);
+          }
+        }
+      }
+
+      return new Response('OK', { status: 200 });
+    }
+    
     const body = req.method !== 'GET' ? await req.json().catch(() => ({})) : {};
 
     // Create Supabase client for auth
     const authHeader = req.headers.get('authorization');
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
     
     const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader || '' } }
