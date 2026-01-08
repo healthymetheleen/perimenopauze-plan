@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
+import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,8 +9,6 @@ const corsHeaders = {
 };
 
 const DAILY_AI_LIMIT = 30;
-
-type SupportedLanguage = 'nl' | 'en';
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -157,8 +156,8 @@ function stripExifFromBase64(base64Image: string): string {
   }
 }
 
-// Bilingual food parsing prompts
-const foodParsingPrompts = {
+// Fallback food parsing prompts (used if database is unavailable)
+const fallbackFoodParsingPrompts = {
   nl: `Je bent een voedingsexpert die Nederlandse maaltijdbeschrijvingen analyseert.
 
 BELANGRIJKE RICHTLIJNEN:
@@ -193,53 +192,15 @@ BEWERKINGSNIVEAU (ultra_processed_level 0-3):
 
 Antwoord ALLEEN met een JSON object:
 {
-  "description": "gedetailleerde beschrijving met portie en bereiding (bijv. '2 sneetjes volkoren brood met 2 plakjes belegen kaas (40g) en een gekookt ei')",
-  "items": [
-    {
-      "name": "item naam",
-      "grams": number,
-      "kcal": number,
-      "protein_g": number,
-      "carbs_g": number,
-      "fat_g": number,
-      "fiber_g": number,
-      "processing_level": 0-3
-    }
-  ],
-  "totals": {
-    "kcal_min": number,
-    "kcal_max": number,
-    "kcal": number,
-    "protein_g": number,
-    "carbs_g": number,
-    "fat_g": number,
-    "fiber_g": number,
-    "alcohol_g": number | null,
-    "caffeine_mg": number | null
-  },
+  "description": "gedetailleerde beschrijving met portie en bereiding",
+  "items": [{"name": "item naam", "grams": number, "kcal": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number, "processing_level": 0-3}],
+  "totals": {"kcal_min": number, "kcal_max": number, "kcal": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number, "alcohol_g": number | null, "caffeine_mg": number | null},
   "ultra_processed_level": 0-3,
   "confidence": 0.0-1.0,
-  "missing_info": ["portie onbekend", "saus onbekend"],
-  "clarification_question": "string of null - vraag om verduidelijking als confidence < 0.5",
-  "quality_flags": {
-    "has_protein": boolean,
-    "has_fiber": boolean,
-    "has_vegetables": boolean,
-    "is_ultra_processed": boolean,
-    "is_late_meal": false
-  }
-}
-
-BELANGRIJK:
-- **description** moet GEDETAILLEERD zijn: noem exact welke producten, hoeveel (grammen of stuks), en hoe bereid
-- confidence is een getal tussen 0.0 en 1.0 (bijv. 0.62, 0.85)
-- kcal_min en kcal_max geven de range aan (bijv. 520-720)
-- kcal is het gemiddelde van de range
-- missing_info bevat ALLE ontbrekende informatie die de schatting beïnvloedt
-- **clarification_question**: Als confidence < 0.5, stel EEN duidelijke vraag om de maaltijd beter te begrijpen. Bijv: "Hoeveel sneetjes brood waren het?" of "Welke saus zat erbij?"
-- Bij informele beschrijvingen, gebruik standaard portiegroottes
-- alcohol_g en caffeine_mg alleen invullen indien relevant (anders null)
-- Hoe meer info ontbreekt, hoe breder de range en lager de confidence`,
+  "missing_info": ["portie onbekend"],
+  "clarification_question": "string of null",
+  "quality_flags": {"has_protein": boolean, "has_fiber": boolean, "has_vegetables": boolean, "is_ultra_processed": boolean, "is_late_meal": false}
+}`,
 
   en: `You are a nutrition expert analyzing meal descriptions.
 
@@ -275,53 +236,15 @@ PROCESSING LEVEL (ultra_processed_level 0-3):
 
 Answer ONLY with a JSON object:
 {
-  "description": "detailed description with portion and preparation (e.g. '2 slices whole wheat bread with 2 slices aged cheese (40g) and a boiled egg')",
-  "items": [
-    {
-      "name": "item name",
-      "grams": number,
-      "kcal": number,
-      "protein_g": number,
-      "carbs_g": number,
-      "fat_g": number,
-      "fiber_g": number,
-      "processing_level": 0-3
-    }
-  ],
-  "totals": {
-    "kcal_min": number,
-    "kcal_max": number,
-    "kcal": number,
-    "protein_g": number,
-    "carbs_g": number,
-    "fat_g": number,
-    "fiber_g": number,
-    "alcohol_g": number | null,
-    "caffeine_mg": number | null
-  },
+  "description": "detailed description with portion and preparation",
+  "items": [{"name": "item name", "grams": number, "kcal": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number, "processing_level": 0-3}],
+  "totals": {"kcal_min": number, "kcal_max": number, "kcal": number, "protein_g": number, "carbs_g": number, "fat_g": number, "fiber_g": number, "alcohol_g": number | null, "caffeine_mg": number | null},
   "ultra_processed_level": 0-3,
   "confidence": 0.0-1.0,
-  "missing_info": ["portion unknown", "sauce unknown"],
-  "clarification_question": "string or null - ask for clarification if confidence < 0.5",
-  "quality_flags": {
-    "has_protein": boolean,
-    "has_fiber": boolean,
-    "has_vegetables": boolean,
-    "is_ultra_processed": boolean,
-    "is_late_meal": false
-  }
-}
-
-IMPORTANT:
-- **description** must be DETAILED: specify exact products, amounts (grams or pieces), and preparation
-- confidence is a number between 0.0 and 1.0 (e.g. 0.62, 0.85)
-- kcal_min and kcal_max indicate the range (e.g. 520-720)
-- kcal is the average of the range
-- missing_info contains ALL missing information affecting the estimate
-- **clarification_question**: If confidence < 0.5, ask ONE clear question to better understand the meal. E.g: "How many slices of bread were there?" or "What sauce was included?"
-- For informal descriptions, use standard portion sizes
-- alcohol_g and caffeine_mg only fill in if relevant (otherwise null)
-- The more info is missing, the wider the range and lower the confidence`,
+  "missing_info": ["portion unknown"],
+  "clarification_question": "string or null",
+  "quality_flags": {"has_protein": boolean, "has_fiber": boolean, "has_vegetables": boolean, "is_ultra_processed": boolean, "is_late_meal": false}
+}`,
 };
 
 // Helper: Authenticate user and check limits
@@ -398,7 +321,9 @@ serve(async (req) => {
     
     const lang = getLanguage(language);
     const t = translations[lang];
-    const foodParsingPrompt = foodParsingPrompts[lang];
+    
+    // Fetch dynamic prompt from database
+    const foodParsingPrompt = await getPrompt('analyze_meal_system', lang, fallbackFoodParsingPrompts[lang]);
 
     // Authenticate and check limits
     const authResult = await authenticateAndCheckLimits(req, t);
