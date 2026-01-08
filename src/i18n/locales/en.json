@@ -930,7 +930,8 @@
     "thursday": "Thursday",
     "friday": "Friday",
     "saturday": "Saturday",
-    "sunday": "Sunday"
+    "sunday": "Sunday",
+    "noExercises": "No exercises for this phase yet."
   },
   "meditation": {
     "title": "Meditation",
