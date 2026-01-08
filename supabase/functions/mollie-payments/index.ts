@@ -58,8 +58,92 @@ serve(async (req) => {
       user = authUser;
     }
 
+    // Helper to check admin role
+    const isAdmin = async (userId: string): Promise<boolean> => {
+      const serviceClient = createClient(supabaseUrl, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
+      const { data } = await serviceClient
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .single();
+      return !!data;
+    };
+
     // Route handling
     switch (path) {
+      case 'test-payment': {
+        // Admin-only: Create €0.01 test payment to verify Mollie integration
+        if (!user) {
+          return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+            status: 401,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const userIsAdmin = await isAdmin(user.id);
+        if (!userIsAdmin) {
+          return new Response(JSON.stringify({ error: 'Admin access required' }), {
+            status: 403,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const { redirectUrl } = body;
+        const baseUrl = redirectUrl || `${supabaseUrl.replace('supabase.co', 'lovable.app')}/subscription`;
+
+        console.log(`[TEST] Creating €0.01 test payment for admin ${user.id}`);
+
+        const paymentBody: Record<string, unknown> = {
+          amount: {
+            currency: 'EUR',
+            value: '0.01',
+          },
+          description: 'Perimenopause Plan - Test Payment (€0.01)',
+          redirectUrl: `${baseUrl}?status=test-complete`,
+          webhookUrl: `${supabaseUrl}/functions/v1/mollie-payments/webhook`,
+          metadata: {
+            user_id: user.id,
+            is_test: true,
+          },
+        };
+
+        // Add profile ID if configured
+        if (mollieProfileId) {
+          paymentBody.profileId = mollieProfileId;
+        }
+
+        const response = await fetch(`${MOLLIE_API_URL}/payments`, {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${mollieApiKey}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(paymentBody),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          console.error('[TEST] Mollie API error:', { status: response.status, error: errorText });
+          return new Response(JSON.stringify({ error: 'Test payment failed', details: response.status }), {
+            status: 500,
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          });
+        }
+
+        const payment = await response.json();
+        console.log(`[TEST] Payment created: ${payment.id}`);
+
+        return new Response(JSON.stringify({
+          id: payment.id,
+          checkoutUrl: payment._links.checkout?.href,
+          status: payment.status,
+          isTest: true,
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
       case 'create-payment': {
         if (!user) {
           return new Response(JSON.stringify({ error: 'Unauthorized' }), {
