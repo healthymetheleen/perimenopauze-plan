@@ -22,6 +22,8 @@ serve(async (req) => {
 
   try {
     const mollieApiKey = Deno.env.get('MOLLIE_API_KEY');
+    const mollieProfileId = Deno.env.get('MOLLIE_PROFILE_ID');
+    
     if (!mollieApiKey) {
       console.error('Mollie API key not configured');
       return new Response(JSON.stringify({ error: 'Payment service not configured' }), {
@@ -29,6 +31,8 @@ serve(async (req) => {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
+    
+    console.log('Mollie config:', { hasApiKey: !!mollieApiKey, hasProfileId: !!mollieProfileId });
 
     const url = new URL(req.url);
     const path = url.pathname.split('/').pop();
@@ -89,6 +93,11 @@ serve(async (req) => {
           },
         };
 
+        // Add profile ID if configured
+        if (mollieProfileId) {
+          paymentBody.profileId = mollieProfileId;
+        }
+
         // Add specific payment method if requested (e.g., 'ideal')
         if (method) {
           paymentBody.method = method;
@@ -127,7 +136,11 @@ serve(async (req) => {
       case 'get-methods': {
         // Get available payment methods
         console.log('Fetching Mollie payment methods...');
-        const response = await fetch(`${MOLLIE_API_URL}/methods?include=issuers`, {
+        const methodsUrl = mollieProfileId 
+          ? `${MOLLIE_API_URL}/methods?include=issuers&profileId=${mollieProfileId}`
+          : `${MOLLIE_API_URL}/methods?include=issuers`;
+        
+        const response = await fetch(methodsUrl, {
           headers: {
             'Authorization': `Bearer ${mollieApiKey}`,
           },
@@ -220,6 +233,11 @@ serve(async (req) => {
           },
         };
 
+        // Add profile ID if configured
+        if (mollieProfileId) {
+          paymentBody.profileId = mollieProfileId;
+        }
+
         // Add specific payment method if requested
         if (method) {
           paymentBody.method = method;
@@ -295,6 +313,11 @@ serve(async (req) => {
           },
         };
 
+        // Add profile ID if configured
+        if (mollieProfileId) {
+          paymentBody.profileId = mollieProfileId;
+        }
+
         // Add specific bank issuer if selected
         if (issuer) {
           paymentBody.issuer = issuer;
@@ -332,7 +355,11 @@ serve(async (req) => {
 
       case 'get-ideal-issuers': {
         // Get iDEAL bank issuers
-        const response = await fetch(`${MOLLIE_API_URL}/methods/ideal?include=issuers`, {
+        const issuersUrl = mollieProfileId
+          ? `${MOLLIE_API_URL}/methods/ideal?include=issuers&profileId=${mollieProfileId}`
+          : `${MOLLIE_API_URL}/methods/ideal?include=issuers`;
+        
+        const response = await fetch(issuersUrl, {
           headers: {
             'Authorization': `Bearer ${mollieApiKey}`,
           },
