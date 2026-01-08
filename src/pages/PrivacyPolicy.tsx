@@ -129,11 +129,61 @@ export default function PrivacyPolicy() {
             {/* 6. Bewaartermijnen */}
             <section>
               <h2 className="text-lg font-semibold text-foreground">6. Bewaartermijnen</h2>
-              <ul className="list-disc list-inside text-muted-foreground space-y-1">
-                <li>Gezondheidsgegevens: maximaal 12 maanden actief, daarna automatisch verwijderd</li>
-                <li>AI-gebruikslogboek: maximaal 6 maanden</li>
-                <li>Accountgegevens: tot je je account verwijdert</li>
-              </ul>
+              <p className="text-muted-foreground mb-3">
+                We bewaren je gegevens niet langer dan noodzakelijk. Hieronder vind je een overzicht per categorie:
+              </p>
+              
+              <div className="space-y-3">
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">Gezondheidsgegevens – 12 maanden</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Eetdagboek (maaltijden), symptomen, slaapsessies, cycluslogboek, bloedingslogs, 
+                    dagelijkse context. Na 12 maanden automatisch verwijderd.
+                  </p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">Cyclus- en vruchtbaarheidsdata – 12 maanden</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Cyclusvoorspellingen, vruchtbaarheidssignalen. Na 12 maanden automatisch verwijderd.
+                  </p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">AI-gegevens – 6 maanden</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    AI-gebruikslogboek, gecachte AI-inzichten. Na 6 maanden automatisch verwijderd.
+                  </p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">Accountgegevens – tot verwijdering</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Profiel, e-mailadres, toestemmingsregistraties, abonnementsgegevens. 
+                    Bewaard tot je je account verwijdert.
+                  </p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">Community-bijdragen – tot verwijdering</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Forumposts en reacties blijven bewaard. Bij accountverwijdering worden deze 
+                    geanonimiseerd (auteur wordt "Anoniem").
+                  </p>
+                </div>
+
+                <div className="border border-border/50 rounded-lg p-3">
+                  <h4 className="font-medium text-foreground text-sm">Audit logs – 24 maanden</h4>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Beveiligingslogs en toestemmingswijzigingen. Wettelijke bewaartermijn.
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-muted-foreground mt-3 text-sm">
+                <strong>Automatische opschoning:</strong> Ons systeem verwijdert verlopen gegevens 
+                automatisch. Je kunt alle data eerder verwijderen via Instellingen → Account.
+              </p>
             </section>
 
             {/* 7. Beveiliging */}
