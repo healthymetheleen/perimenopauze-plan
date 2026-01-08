@@ -11,7 +11,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useLatestPrediction, seasonColors } from '@/hooks/useCycle';
-
+import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { MeditationAudioGenerator } from '@/components/meditation/MeditationAudioGenerator';
 interface MeditationData {
   id: string;
   titleKey: string;
@@ -136,6 +137,7 @@ interface Meditation {
 export default function MeditationPage() {
   const { t } = useTranslation();
   const { data: prediction } = useLatestPrediction();
+  const { data: isAdmin } = useIsAdmin();
   const [selectedMeditation, setSelectedMeditation] = useState<Meditation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
@@ -176,6 +178,9 @@ export default function MeditationPage() {
             {t('meditation.subtitle')}
           </p>
         </div>
+
+        {/* Admin Audio Generator */}
+        {isAdmin && <MeditationAudioGenerator />}
 
         {/* Cycle-based recommendation */}
         {cycleRecommendation && (
