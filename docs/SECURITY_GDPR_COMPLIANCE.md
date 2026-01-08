@@ -381,8 +381,11 @@ Elke wijziging wordt gelogd in `consent_history`:
 | Partij | Dienst | Locatie | DPA Status | Data Flow |
 |--------|--------|---------|------------|-----------|
 | Supabase | Database, Auth, Storage | EU (Frankfurt) | ✅ Standaard DPA | Alle data |
-| OpenAI | AI analyse | US | ⚠️ SCCs + ZDR aangevraagd | Alleen geanonimiseerde features |
+| Lovable / GPT Engineer | Frontend hosting, AI Gateway | EU | ✅ EU-gebaseerd | AI requests routing |
+| OpenAI | AI analyse (GPT modellen) | US | ⚠️ SCCs + ZDR aangevraagd | Alleen geanonimiseerde features |
+| Google (Gemini) | AI analyse (Gemini modellen) | EU/US | ✅ SCCs beschikbaar | Alleen geanonimiseerde features |
 | Mollie | Betalingen | NL | ✅ EU-gebaseerd | Alleen payment data |
+| Sentry | Error monitoring | EU | ✅ EU-gebaseerd | Alleen technische errors (geen PII) |
 
 ### OpenAI Zero Data Retention (ZDR)
 
