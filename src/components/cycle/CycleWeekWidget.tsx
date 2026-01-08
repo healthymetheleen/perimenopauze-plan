@@ -160,7 +160,7 @@ export function CycleWeekWidget() {
           </div>
 
           {/* 7-day strip (season background + event markers) */}
-          <div className="grid grid-cols-7 gap-2 pt-1">
+          <div className="grid grid-cols-7 gap-2 p-1">
             {calendarDays.map((d) => (
               <div
                 key={d.dateStr}
