@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -15,7 +16,7 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { sanitizeImageUrl } from '@/lib/sanitize';
 import { 
   Plus, Pencil, Trash2, Moon, Wind, Sun, Leaf, 
-  Dumbbell, Image, Upload, Sparkles
+  Dumbbell, Image, Upload, Sparkles, RefreshCw, Loader2
 } from 'lucide-react';
 import {
   useAdminMeditations,
@@ -32,6 +33,7 @@ import {
   type MeditationInsert,
   type ExerciseInsert,
 } from '@/hooks/useContent';
+import { supabase } from '@/integrations/supabase/client';
 
 const categoryIcons = {
   sleep: Moon,
@@ -467,6 +469,7 @@ function ExerciseFormDialog({
 
 export default function ContentAdminPage() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const { data: meditations, isLoading: meditationsLoading } = useAdminMeditations();
   const { data: exercises, isLoading: exercisesLoading } = useAdminExercises();
   const deleteMeditation = useDeleteMeditation();
@@ -476,6 +479,7 @@ export default function ContentAdminPage() {
   const [editingExercise, setEditingExercise] = useState<Exercise | undefined>();
   const [showMeditationDialog, setShowMeditationDialog] = useState(false);
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
+  const [regeneratingId, setRegeneratingId] = useState<string | null>(null);
 
   const handleDeleteMeditation = async (id: string) => {
     if (!confirm('Weet je zeker dat je deze meditatie wilt verwijderen?')) return;
@@ -494,6 +498,32 @@ export default function ContentAdminPage() {
       toast({ title: 'Oefening verwijderd' });
     } catch {
       toast({ title: 'Verwijderen mislukt', variant: 'destructive' });
+    }
+  };
+
+  const handleRegenerateImage = async (exercise: Exercise) => {
+    setRegeneratingId(exercise.id);
+    try {
+      const { data, error } = await supabase.functions.invoke('regenerate-exercise-image', {
+        body: {
+          exerciseId: exercise.id,
+          exerciseName: exercise.name,
+          cyclePhase: exercise.cycle_phase,
+        },
+      });
+
+      if (error) throw error;
+      
+      // Invalidate queries to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['admin-exercises'] });
+      queryClient.invalidateQueries({ queryKey: ['exercises'] });
+      
+      toast({ title: 'Afbeelding opnieuw gegenereerd!' });
+    } catch (error) {
+      console.error('Regenerate error:', error);
+      toast({ title: 'Genereren mislukt', description: 'Probeer het opnieuw', variant: 'destructive' });
+    } finally {
+      setRegeneratingId(null);
     }
   };
 
@@ -627,13 +657,29 @@ export default function ContentAdminPage() {
                 <Card key={exercise.id} className={`glass rounded-xl ${!exercise.is_active ? 'opacity-60' : ''}`}>
                   <CardContent className="p-4">
                     <div className="flex items-start gap-4">
-                      {exercise.image_url ? (
-                        <img src={exercise.image_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
-                      ) : (
-                        <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
-                          <Image className="h-6 w-6 text-muted-foreground" />
-                        </div>
-                      )}
+                      <div className="relative group">
+                        {exercise.image_url ? (
+                          <img src={exercise.image_url} alt="" className="w-16 h-16 rounded-lg object-cover" />
+                        ) : (
+                          <div className="w-16 h-16 rounded-lg bg-muted flex items-center justify-center">
+                            <Image className="h-6 w-6 text-muted-foreground" />
+                          </div>
+                        )}
+                        <Button
+                          variant="secondary"
+                          size="icon"
+                          className="absolute inset-0 w-full h-full opacity-0 group-hover:opacity-100 transition-opacity bg-black/50 hover:bg-black/60 rounded-lg"
+                          onClick={() => handleRegenerateImage(exercise)}
+                          disabled={regeneratingId === exercise.id}
+                          title="Afbeelding opnieuw genereren"
+                        >
+                          {regeneratingId === exercise.id ? (
+                            <Loader2 className="h-5 w-5 text-white animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-5 w-5 text-white" />
+                          )}
+                        </Button>
+                      </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
                           <h3 className="font-medium truncate">{exercise.name_dutch}</h3>
@@ -652,7 +698,20 @@ export default function ContentAdminPage() {
                           </p>
                         )}
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-1">
+                        <Button 
+                          variant="ghost" 
+                          size="icon"
+                          onClick={() => handleRegenerateImage(exercise)}
+                          disabled={regeneratingId === exercise.id}
+                          title="Afbeelding opnieuw genereren"
+                        >
+                          {regeneratingId === exercise.id ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <RefreshCw className="h-4 w-4 text-primary" />
+                          )}
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="icon"
