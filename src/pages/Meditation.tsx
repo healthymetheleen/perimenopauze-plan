@@ -1,8 +1,7 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { 
-  Sparkles, Play, Pause, Clock, Moon, Heart, 
+  Sparkles, Play, Pause, Clock, Moon, 
   Wind, Leaf, Sun, Volume2
 } from 'lucide-react';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -10,120 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Skeleton } from '@/components/ui/skeleton';
 import { useLatestPrediction, seasonColors } from '@/hooks/useCycle';
 import { useIsAdmin } from '@/hooks/useIsAdmin';
+import { useMeditations, type Meditation as DbMeditation } from '@/hooks/useContent';
 import { MeditationAudioGenerator } from '@/components/meditation/MeditationAudioGenerator';
-interface MeditationData {
-  id: string;
-  titleKey: string;
-  descriptionKey: string;
-  duration: string;
-  category: 'sleep' | 'stress' | 'energy' | 'cycle';
-  audioUrl?: string;
-  imageUrl: string;
-}
-
-const meditationsData: MeditationData[] = [
-  // Sleep meditations
-  {
-    id: 'sleep-body-scan',
-    titleKey: 'meditation.items.sleep_body_scan.title',
-    descriptionKey: 'meditation.items.sleep_body_scan.description',
-    duration: '15 min',
-    category: 'sleep',
-    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'sleep-breath',
-    titleKey: 'meditation.items.sleep_breath.title',
-    descriptionKey: 'meditation.items.sleep_breath.description',
-    duration: '10 min',
-    category: 'sleep',
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'sleep-gratitude',
-    titleKey: 'meditation.items.sleep_gratitude.title',
-    descriptionKey: 'meditation.items.sleep_gratitude.description',
-    duration: '8 min',
-    category: 'sleep',
-    imageUrl: 'https://images.unsplash.com/photo-1518611012118-696072aa579a?w=400&h=300&fit=crop',
-  },
-  // Stress meditations
-  {
-    id: 'stress-reset',
-    titleKey: 'meditation.items.stress_reset.title',
-    descriptionKey: 'meditation.items.stress_reset.description',
-    duration: '5 min',
-    category: 'stress',
-    imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'stress-anxiety',
-    titleKey: 'meditation.items.stress_anxiety.title',
-    descriptionKey: 'meditation.items.stress_anxiety.description',
-    duration: '12 min',
-    category: 'stress',
-    imageUrl: 'https://images.unsplash.com/photo-1545389336-cf090694435e?w=400&h=300&fit=crop',
-  },
-  // Energy meditations
-  {
-    id: 'energy-morning',
-    titleKey: 'meditation.items.energy_morning.title',
-    descriptionKey: 'meditation.items.energy_morning.description',
-    duration: '7 min',
-    category: 'energy',
-    imageUrl: 'https://images.unsplash.com/photo-1575052814086-f385e2e2ad1b?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'energy-afternoon',
-    titleKey: 'meditation.items.energy_afternoon.title',
-    descriptionKey: 'meditation.items.energy_afternoon.description',
-    duration: '5 min',
-    category: 'energy',
-    imageUrl: 'https://images.unsplash.com/photo-1510894347713-fc3ed6fdf539?w=400&h=300&fit=crop',
-  },
-  // Cycle meditations
-  {
-    id: 'cycle-winter',
-    titleKey: 'meditation.items.cycle_winter.title',
-    descriptionKey: 'meditation.items.cycle_winter.description',
-    duration: '10 min',
-    category: 'cycle',
-    imageUrl: 'https://images.unsplash.com/photo-1599901860904-17e6ed7083a0?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'cycle-spring',
-    titleKey: 'meditation.items.cycle_spring.title',
-    descriptionKey: 'meditation.items.cycle_spring.description',
-    duration: '10 min',
-    category: 'cycle',
-    imageUrl: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'cycle-summer',
-    titleKey: 'meditation.items.cycle_summer.title',
-    descriptionKey: 'meditation.items.cycle_summer.description',
-    duration: '10 min',
-    category: 'cycle',
-    imageUrl: 'https://images.unsplash.com/photo-1544367567-0f2fcb009e0b?w=400&h=300&fit=crop',
-  },
-  {
-    id: 'cycle-autumn',
-    titleKey: 'meditation.items.cycle_autumn.title',
-    descriptionKey: 'meditation.items.cycle_autumn.description',
-    duration: '12 min',
-    category: 'cycle',
-    imageUrl: 'https://images.unsplash.com/photo-1552196563-55cd4e45efb3?w=400&h=300&fit=crop',
-  },
-];
-
-const categoryIcons = {
-  sleep: Moon,
-  stress: Wind,
-  energy: Sun,
-  cycle: Leaf,
-};
 
 interface Meditation {
   id: string;
@@ -132,36 +22,49 @@ interface Meditation {
   duration: string;
   category: 'sleep' | 'stress' | 'energy' | 'cycle';
   imageUrl: string;
+  audioUrl?: string | null;
+  cycleSeason?: string | null;
+}
+
+// Map database meditation to UI meditation
+function mapDbMeditation(m: DbMeditation): Meditation {
+  return {
+    id: m.id,
+    title: m.title,
+    description: m.description || '',
+    duration: m.duration,
+    category: m.category,
+    imageUrl: m.image_url || 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=400&h=300&fit=crop',
+    audioUrl: m.audio_url,
+    cycleSeason: m.cycle_season,
+  };
 }
 
 export default function MeditationPage() {
   const { t } = useTranslation();
   const { data: prediction } = useLatestPrediction();
   const { data: isAdmin } = useIsAdmin();
+  const { data: dbMeditations, isLoading } = useMeditations();
   const [selectedMeditation, setSelectedMeditation] = useState<Meditation | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   
   const currentSeason = prediction?.current_season || 'onbekend';
   const colors = seasonColors[currentSeason] || seasonColors.onbekend;
   
-  // Convert data to translated meditations
-  const meditations: Meditation[] = meditationsData.map(m => ({
-    id: m.id,
-    title: t(m.titleKey),
-    description: t(m.descriptionKey),
-    duration: m.duration,
-    category: m.category,
-    imageUrl: m.imageUrl,
-  }));
+  // Convert database meditations to UI format
+  const meditations: Meditation[] = (dbMeditations || []).map(mapDbMeditation);
   
   // Get recommended meditation based on cycle
-  const cycleRecommendation = meditations.find(m => {
-    if (currentSeason === 'winter') return m.id === 'cycle-winter';
-    if (currentSeason === 'lente') return m.id === 'cycle-spring';
-    if (currentSeason === 'zomer') return m.id === 'cycle-summer';
-    if (currentSeason === 'herfst') return m.id === 'cycle-autumn';
-    return false;
-  });
+  const seasonToDbSeason: Record<string, string> = {
+    winter: 'winter',
+    lente: 'lente',
+    zomer: 'zomer',
+    herfst: 'herfst',
+  };
+  
+  const cycleRecommendation = meditations.find(m => 
+    m.category === 'cycle' && m.cycleSeason === seasonToDbSeason[currentSeason]
+  );
 
   const getMeditationsByCategory = (category: Meditation['category']) => 
     meditations.filter(m => m.category === category);
@@ -231,26 +134,37 @@ export default function MeditationPage() {
           </CardHeader>
           <CardContent>
             <div className="grid gap-3">
-              {getMeditationsByCategory('sleep').map(meditation => (
-                <div 
-                  key={meditation.id}
-                  className="flex items-center gap-3 p-3 rounded-xl bg-card/50 cursor-pointer hover:bg-card transition-colors"
-                  onClick={() => setSelectedMeditation(meditation)}
-                >
-                  <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
-                    <img 
-                      src={meditation.imageUrl} 
-                      alt={meditation.title}
-                      className="w-full h-full object-cover"
-                    />
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                  <Skeleton className="h-16 w-full rounded-xl" />
+                </>
+              ) : getMeditationsByCategory('sleep').length === 0 ? (
+                <p className="text-sm text-muted-foreground py-4 text-center">
+                  {t('meditation.no_meditations')}
+                </p>
+              ) : (
+                getMeditationsByCategory('sleep').map(meditation => (
+                  <div 
+                    key={meditation.id}
+                    className="flex items-center gap-3 p-3 rounded-xl bg-card/50 cursor-pointer hover:bg-card transition-colors"
+                    onClick={() => setSelectedMeditation(meditation)}
+                  >
+                    <div className="w-12 h-12 rounded-lg overflow-hidden flex-shrink-0">
+                      <img 
+                        src={meditation.imageUrl} 
+                        alt={meditation.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-sm truncate">{meditation.title}</h4>
+                      <p className="text-xs text-muted-foreground">{meditation.duration}</p>
+                    </div>
+                    <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h4 className="font-medium text-sm truncate">{meditation.title}</h4>
-                    <p className="text-xs text-muted-foreground">{meditation.duration}</p>
-                  </div>
-                  <Play className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </CardContent>
         </Card>
@@ -274,35 +188,46 @@ export default function MeditationPage() {
 
           {(['stress', 'energy', 'cycle'] as const).map(category => (
             <TabsContent key={category} value={category} className="space-y-4">
-              {getMeditationsByCategory(category).map(meditation => (
-                <Card 
-                  key={meditation.id}
-                  className="glass rounded-xl overflow-hidden cursor-pointer hover:shadow-soft transition-all"
-                  onClick={() => setSelectedMeditation(meditation)}
-                >
-                  <div className="flex">
-                    <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
-                      <img 
-                        src={meditation.imageUrl} 
-                        alt={meditation.title}
-                        className="w-full h-full object-cover"
-                      />
-                    </div>
-                    <CardContent className="flex-1 p-3 sm:p-4">
-                      <h4 className="font-medium text-sm sm:text-base">{meditation.title}</h4>
-                      <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
-                        {meditation.description}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          <Clock className="h-3 w-3 mr-1" />
-                          {meditation.duration}
-                        </Badge>
-                      </div>
-                    </CardContent>
-                  </div>
+              {isLoading ? (
+                <>
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                  <Skeleton className="h-32 w-full rounded-xl" />
+                </>
+              ) : getMeditationsByCategory(category).length === 0 ? (
+                <Card className="glass rounded-xl p-8 text-center">
+                  <p className="text-muted-foreground">{t('meditation.no_meditations')}</p>
                 </Card>
-              ))}
+              ) : (
+                getMeditationsByCategory(category).map(meditation => (
+                  <Card 
+                    key={meditation.id}
+                    className="glass rounded-xl overflow-hidden cursor-pointer hover:shadow-soft transition-all"
+                    onClick={() => setSelectedMeditation(meditation)}
+                  >
+                    <div className="flex">
+                      <div className="w-24 h-24 sm:w-32 sm:h-32 flex-shrink-0">
+                        <img 
+                          src={meditation.imageUrl} 
+                          alt={meditation.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                      <CardContent className="flex-1 p-3 sm:p-4">
+                        <h4 className="font-medium text-sm sm:text-base">{meditation.title}</h4>
+                        <p className="text-xs sm:text-sm text-muted-foreground mt-1 line-clamp-2">
+                          {meditation.description}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <Badge variant="outline" className="text-xs">
+                            <Clock className="h-3 w-3 mr-1" />
+                            {meditation.duration}
+                          </Badge>
+                        </div>
+                      </CardContent>
+                    </div>
+                  </Card>
+                ))
+              )}
             </TabsContent>
           ))}
         </Tabs>
