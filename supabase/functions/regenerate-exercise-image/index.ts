@@ -6,12 +6,28 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Phase-specific color palettes for consistent styling
-const phaseColors: Record<string, string> = {
-  menstrual: "sage green and soft grey tones",
-  follicular: "coral pink and warm peach tones",
-  ovulatory: "golden yellow and amber tones",
-  luteal: "terracotta orange and warm brown tones",
+// Phase-specific color palettes matching the existing illustration style
+const phaseColors: Record<string, { background: string; accent: string; description: string }> = {
+  menstrual: {
+    background: "#E8E4DF",
+    accent: "#8B9A7D",
+    description: "muted sage green accents on warm grey background"
+  },
+  follicular: {
+    background: "#F5E6E0",
+    accent: "#E8A090",
+    description: "soft coral pink and warm peach tones on blush background"
+  },
+  ovulatory: {
+    background: "#F5EBD7",
+    accent: "#D4A855",
+    description: "warm golden yellow and amber accents on cream background"
+  },
+  luteal: {
+    background: "#EDE4DA",
+    accent: "#C4795A",
+    description: "terracotta orange and warm brown tones on beige background"
+  },
 };
 
 serve(async (req) => {
@@ -66,10 +82,19 @@ serve(async (req) => {
       );
     }
 
-    const colorPalette = phaseColors[cyclePhase] || "soft neutral tones";
+    const colors = phaseColors[cyclePhase] || phaseColors.menstrual;
     
-    // Build the prompt for consistent yoga pose illustration
-    const prompt = `Ultra minimalist line art illustration of a single woman performing ${exerciseName} yoga pose. Clean geometric style, ${colorPalette}, solid color background matching the palette. The woman has exactly TWO arms and TWO legs, anatomically correct human proportions. Simple elegant lines, no shading, no texture, no background details. High quality, professional illustration style. 1:1 aspect ratio.`;
+    // Build the prompt for consistent yoga pose illustration matching existing style
+    // The existing images have: soft watercolor aesthetic, single woman silhouette, muted earthy tones, 
+    // simple clean lines, no facial details, gentle flowing poses, minimalist backgrounds
+    const prompt = `Soft watercolor illustration of a woman in ${exerciseName} yoga pose. 
+Style: Gentle feminine wellness illustration, similar to modern yoga app artwork.
+Woman: Single female figure, graceful flowing silhouette, no facial details, anatomically correct with exactly TWO arms and TWO legs.
+Colors: ${colors.description}, soft muted palette.
+Background: Simple solid ${colors.background} color, no patterns or details.
+Aesthetic: Calming, serene, minimalist, organic curves, soft edges like watercolor wash.
+Must NOT include: text, multiple figures, detailed faces, harsh lines, busy backgrounds.
+Square 1:1 aspect ratio, high quality, professional wellness illustration.`;
 
     console.log("Generating image with prompt:", prompt);
 
