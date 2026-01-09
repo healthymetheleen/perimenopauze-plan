@@ -45,7 +45,7 @@ export function TrendsProteinChart({ data, targetProtein = 70 }: TrendsProteinCh
   const lowProteinDays = data.filter(d => d.proteinG > 0 && d.proteinG < targetProtein).length;
   const daysWithData = data.filter(d => d.proteinG > 0).length;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { value: number }[]; label?: string }) => {
     if (!active || !payload?.length) return null;
     const value = payload[0]?.value;
     

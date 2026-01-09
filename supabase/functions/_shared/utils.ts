@@ -3,7 +3,7 @@
  * Security, validation, rate limiting, and audit logging
  */
 
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient } from "npm:@supabase/supabase-js@2";
 
 // CORS headers for all edge functions
 export const corsHeaders = {
@@ -84,7 +84,7 @@ export const validators = {
  * Returns user and supabase client, or error response
  */
 export async function authenticateUser(req: Request): Promise<
-  { user: { id: string; email?: string }; supabase: any } | Response
+  { user: { id: string; email?: string }; supabase: SupabaseClient } | Response
 > {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
@@ -124,7 +124,7 @@ export async function authenticateUser(req: Request): Promise<
  * Check rate limit for a function
  */
 export async function checkRateLimit(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   functionName: keyof typeof RATE_LIMITS,
   period: 'day' | 'month' = 'day'
@@ -170,7 +170,7 @@ export async function checkRateLimit(
  * Track AI usage
  */
 export async function trackUsage(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string,
   functionName: string
 ): Promise<void> {
@@ -218,7 +218,7 @@ export async function logAudit(
  * Verify AI consent server-side
  */
 export async function verifyAIConsent(
-  supabase: any,
+  supabase: SupabaseClient,
   userId: string
 ): Promise<boolean> {
   const { data: consent } = await supabase

@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient, User } from "npm:@supabase/supabase-js@2";
 import { getPrompts, type SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
@@ -405,7 +405,7 @@ function getDefaultResponse(type: string, lang: SupportedLanguage): object {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request, lang: SupportedLanguage): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, lang: SupportedLanguage): Promise<{ user: User; supabase: SupabaseClient; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: translations[lang].consentRequired }), {
@@ -459,7 +459,7 @@ async function authenticateAndCheckLimits(req: Request, lang: SupportedLanguage)
 }
 
 // Helper: Track AI usage server-side
-async function trackUsage(supabase: any, userId: string, functionName: string) {
+async function trackUsage(supabase: SupabaseClient, userId: string, functionName: string) {
   const { error } = await supabase
     .from('ai_usage')
     .insert({ owner_id: userId, function_name: functionName });

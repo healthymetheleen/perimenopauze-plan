@@ -174,6 +174,7 @@ export default function NutritionAdminPage() {
   useEffect(() => {
     if (isInitialMount.current || !hasInitialized.current) return;
     performAutoSave(getCurrentSettings());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     targetKcal, targetProtein, targetCarbs, targetFat, targetFiber,
     targetProteinPerKg, targetSleepHours, targetEatingWindow,
@@ -185,6 +186,7 @@ export default function NutritionAdminPage() {
   useEffect(() => {
     if (isInitialMount.current || !hasInitialized.current) return;
     debouncedAutoSave(getCurrentSettings());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dietVision, appPhilosophy, coachingContext]);
 
   const handleSave = async () => {

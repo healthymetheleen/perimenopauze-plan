@@ -21,7 +21,7 @@ export function usePwaInstall() {
 
     // Check platform
     const userAgent = navigator.userAgent.toLowerCase();
-    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as any).MSStream;
+    const isIOSDevice = /iphone|ipad|ipod/.test(userAgent) && !(window as Window & { MSStream?: unknown }).MSStream;
     const isAndroidDevice = /android/.test(userAgent);
     
     setIsIOS(isIOSDevice);

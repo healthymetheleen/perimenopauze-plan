@@ -148,7 +148,7 @@ The entire frame should be filled with just the wooden table and the plated dish
     
     // Alternative: check inline_data format
     if (!imageData && data.choices?.[0]?.message?.parts) {
-      const imagePart = data.choices[0].message.parts.find((p: any) => p.inline_data);
+      const imagePart = data.choices[0].message.parts.find((p: { inline_data?: unknown }) => p.inline_data);
       if (imagePart?.inline_data?.data) {
         imageData = `data:${imagePart.inline_data.mime_type || 'image/png'};base64,${imagePart.inline_data.data}`;
       }

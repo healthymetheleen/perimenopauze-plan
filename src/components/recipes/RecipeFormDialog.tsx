@@ -254,10 +254,10 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
                           title: 'Afbeelding gegenereerd',
                           description: 'De AI heeft een afbeelding voor dit recept gemaakt.',
                         });
-                      } catch (error: any) {
+                      } catch (error: unknown) {
                         toast({
                           title: 'Genereren mislukt',
-                          description: error.message || 'Kon geen afbeelding genereren.',
+                          description: error instanceof Error ? error.message : 'Kon geen afbeelding genereren.',
                           variant: 'destructive',
                         });
                       }

@@ -47,7 +47,7 @@ export const LandingHeader = () => {
     });
 
     return () => observer.disconnect();
-  }, []);
+  }, [navLinks]);
 
   const handleNavClick = (href: string) => {
     setMobileMenuOpen(false);

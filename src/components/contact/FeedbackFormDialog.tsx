@@ -81,11 +81,11 @@ export function FeedbackFormDialog({ trigger }: FeedbackFormDialogProps) {
       setSubject('');
       setMessage('');
       setOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Feedback form error:', error);
       toast({
         title: t('feedback.error_title'),
-        description: error.message || t('feedback.error_description'),
+        description: error instanceof Error ? error.message : t('feedback.error_description'),
         variant: 'destructive',
       });
     } finally {

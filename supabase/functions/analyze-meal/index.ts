@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient, User } from "npm:@supabase/supabase-js@2";
 import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 
 const corsHeaders = {
@@ -248,7 +248,7 @@ Answer ONLY with a JSON object:
 };
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request, t: typeof translations.nl): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof translations.nl): Promise<{ user: User; supabase: SupabaseClient; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: t.unauthorized }), {
@@ -301,7 +301,7 @@ async function authenticateAndCheckLimits(req: Request, t: typeof translations.n
 }
 
 // Helper: Track AI usage server-side
-async function trackUsage(supabase: any, userId: string, functionName: string) {
+async function trackUsage(supabase: SupabaseClient, userId: string, functionName: string) {
   const { error } = await supabase
     .from('ai_usage')
     .insert({ owner_id: userId, function_name: functionName });
@@ -366,7 +366,7 @@ serve(async (req) => {
 
     const scrubbedDescription = description ? scrubPII(description) : null;
 
-    const userContent: any[] = [];
+    const userContent: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [];
     const analyzeText = lang === 'en' ? 'Analyze this meal:' : 'Analyseer deze maaltijd:';
     const photoText = lang === 'en' ? 'Analyze this meal in the photo.' : 'Analyseer deze maaltijd op de foto.';
     

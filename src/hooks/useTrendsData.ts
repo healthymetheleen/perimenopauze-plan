@@ -48,6 +48,16 @@ export interface TrendsKPIs {
   caffeineAfter14: { days: number };
 }
 
+interface MealWithDiaryDay {
+  diary_days?: { day_date: string };
+  time_local?: string;
+  kcal?: number;
+  protein_g?: number;
+  fiber_g?: number;
+  fat_g?: number;
+  ultra_processed_level?: number;
+}
+
 export interface Correlation {
   trigger: string;
   effect: string;
@@ -141,7 +151,7 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
       const dateStr = format(date, 'yyyy-MM-dd');
       
       const dayScore = scores.find(s => s.day_date === dateStr);
-      const dayMeals = meals.filter((m: any) => m.diary_days?.day_date === dateStr);
+      const dayMeals = meals.filter((m: MealWithDiaryDay) => m.diary_days?.day_date === dateStr);
       const daySymptoms = symptoms.find(s => s.log_date === dateStr);
       const daySleep = sleepSessions?.find(s => {
         const sleepDate = format(parseISO(s.sleep_start), 'yyyy-MM-dd');
@@ -150,8 +160,8 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
       
       // Calculate eating window
       const mealTimes = dayMeals
-        .filter((m: any) => m.time_local)
-        .map((m: any) => m.time_local)
+        .filter((m: MealWithDiaryDay) => m.time_local)
+        .map((m: MealWithDiaryDay) => m.time_local!)
         .sort();
       
       const firstMeal = mealTimes[0] || null;
@@ -174,18 +184,18 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
         dayOfWeek: format(date, 'EEE'),
         score: dayScore?.day_score ?? null,
         mealsCount: dayScore?.meals_count || dayMeals.length,
-        kcalTotal: dayScore?.kcal_total || dayMeals.reduce((sum: number, m: any) => sum + (m.kcal || 0), 0),
-        proteinG: dayScore?.protein_g || dayMeals.reduce((sum: number, m: any) => sum + (m.protein_g || 0), 0),
+        kcalTotal: dayScore?.kcal_total || dayMeals.reduce((sum: number, m: MealWithDiaryDay) => sum + (m.kcal || 0), 0),
+        proteinG: dayScore?.protein_g || dayMeals.reduce((sum: number, m: MealWithDiaryDay) => sum + (m.protein_g || 0), 0),
         carbsG: dayScore?.carbs_g || 0,
-        fiberG: dayScore?.fiber_g || dayMeals.reduce((sum: number, m: any) => sum + (m.fiber_g || 0), 0),
-        fatG: dayMeals.reduce((sum: number, m: any) => sum + (m.fat_g || 0), 0),
+        fiberG: dayScore?.fiber_g || dayMeals.reduce((sum: number, m: MealWithDiaryDay) => sum + (m.fiber_g || 0), 0),
+        fatG: dayMeals.reduce((sum: number, m: MealWithDiaryDay) => sum + (m.fat_g || 0), 0),
         season,
         sleepDurationMin: daySleep?.duration_minutes || null,
         sleepQuality: daySleep?.quality_score || null,
         lastMealTime: lastMeal,
         firstMealTime: firstMeal,
         eatingWindowMin,
-        upfDays: dayMeals.filter((m: any) => m.ultra_processed_level && m.ultra_processed_level >= 3).length > 0 ? 1 : 0,
+        upfDays: dayMeals.filter((m: MealWithDiaryDay) => m.ultra_processed_level && m.ultra_processed_level >= 3).length > 0 ? 1 : 0,
         energy: daySymptoms?.energy || null,
         mood: daySymptoms?.mood || null,
         cravings: daySymptoms?.cravings || null,
@@ -226,7 +236,7 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
   };
 }
 
-function calculateKPIs(trendDays: TrendDayData[], totalDays: number, sleepSessions: any[]): TrendsKPIs {
+function calculateKPIs(trendDays: TrendDayData[], totalDays: number, sleepSessions: { duration_minutes: number }[]): TrendsKPIs {
   const daysWithData = trendDays.filter(d => d.mealsCount > 0);
   const daysWithSleep = trendDays.filter(d => d.sleepDurationMin !== null);
   

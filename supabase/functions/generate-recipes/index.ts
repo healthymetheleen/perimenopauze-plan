@@ -181,7 +181,7 @@ serve(async (req) => {
       recipes = [recipes];
     }
 
-    const validRecipes = recipes.filter((r: any) => 
+    const validRecipes = recipes.filter((r: Record<string, unknown>) =>
       r.title && r.instructions && r.meal_type && Array.isArray(r.ingredients)
     );
 

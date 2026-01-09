@@ -56,7 +56,7 @@ export function TrendsScoreChart({ data, showSeasonOverlay, onDayClick }: Trends
     });
   }, [data, showSeasonOverlay, dateLocale]);
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { payload: { score: number | null; avg: number | null; season?: string } }[]; label?: string }) => {
     if (!active || !payload?.length) return null;
     const dayData = payload[0]?.payload;
     

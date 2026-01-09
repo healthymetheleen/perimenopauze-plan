@@ -393,7 +393,7 @@ serve(async (req) => {
 
         const data = await response.json();
         console.log('Mollie methods fetched successfully:', data._embedded?.methods?.length || 0, 'methods');
-        const methods = data._embedded?.methods?.map((m: any) => ({
+        const methods = data._embedded?.methods?.map((m: Record<string, unknown>) => ({
           id: m.id,
           description: m.description,
           image: m.image?.svg,
@@ -609,7 +609,7 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        const issuers = data.issuers?._embedded?.issuers?.map((i: any) => ({
+        const issuers = data.issuers?._embedded?.issuers?.map((i: Record<string, unknown>) => ({
           id: i.id,
           name: i.name,
           image: i.image?.svg,
@@ -1483,8 +1483,8 @@ serve(async (req) => {
 
         const data = await response.json();
         const payments = (data._embedded?.payments || [])
-          .filter((p: any) => p.status === 'paid')
-          .map((p: any) => ({
+          .filter((p: Record<string, unknown>) => p.status === 'paid')
+          .map((p: Record<string, unknown>) => ({
             id: p.id,
             amount: p.amount.value,
             currency: p.amount.currency,
