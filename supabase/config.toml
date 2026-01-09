@@ -1,43 +1,43 @@
 project_id = "rfvvpfvrxxodslzdqgll"
 
 [functions.analyze-meal]
-verify_jwt = false
+verify_jwt = true
 
 [functions.cycle-coach]
-verify_jwt = false
+verify_jwt = true
 
 [functions.voice-to-text]
-verify_jwt = false
+verify_jwt = true
 
 [functions.premium-insights]
-verify_jwt = false
+verify_jwt = true
 
 [functions.monthly-analysis]
-verify_jwt = false
+verify_jwt = true
 
 [functions.mollie-payments]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nutrition-coach]
-verify_jwt = false
+verify_jwt = true
 
 [functions.daily-analysis]
-verify_jwt = false
+verify_jwt = true
 
 [functions.weekly-nutrition-insight]
-verify_jwt = false
+verify_jwt = true
 
 [functions.send-contact-email]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-recipes]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-recipe-image]
-verify_jwt = false
+verify_jwt = true
 
 [functions.admin-broadcast]
-verify_jwt = false
+verify_jwt = true
 
 [functions.generate-meditation-audio]
-verify_jwt = false
+verify_jwt = true
