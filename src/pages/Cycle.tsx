@@ -41,7 +41,6 @@ import {
 } from 'lucide-react';
 import { CycleDayLogDialog } from '@/components/cycle/CycleDayLogDialog';
 import { CycleCalendar } from '@/components/cycle/CycleCalendar';
-import { BleedingReminderBanner } from '@/components/cycle/BleedingReminderBanner';
 import {
   Dialog,
   DialogContent,
@@ -206,15 +205,6 @@ export default function CyclePage() {
               </div>
             </div>
           </div>
-        )}
-
-        {/* Bleeding reminder for early cycle days */}
-        {cycles && cycles[0] && (
-          <BleedingReminderBanner
-            cycleStartDate={cycles[0].start_date}
-            hasBleedingToday={!!(bleedingLogs?.find(l => l.log_date === format(new Date(), 'yyyy-MM-dd') && l.intensity !== 'geen'))}
-            onLogBleeding={handleBleedingClick}
-          />
         )}
 
         {/* Season header */}
