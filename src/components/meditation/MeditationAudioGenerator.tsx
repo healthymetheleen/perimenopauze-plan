@@ -1,5 +1,4 @@
 import { useState, useRef } from 'react';
-import { useTranslation } from 'react-i18next';
 import { 
   Mic, Play, Pause, Download, Loader2, 
   Volume2, Wand2, RefreshCw, Save, Link2
@@ -11,8 +10,8 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
 import { useAdminMeditations } from '@/hooks/useContent';
+import { useAuth } from '@/lib/auth';
 
 const VOICE_OPTIONS = [
   { id: 'laura', name: 'Laura Peeters', description: 'Nederlands, rustig en enthousiast' },
@@ -49,8 +48,8 @@ Dat is genoeg.`,
 };
 
 export function MeditationAudioGenerator() {
-  const { t } = useTranslation();
   const { toast } = useToast();
+  const { session } = useAuth();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const { data: meditations, refetch: refetchMeditations } = useAdminMeditations();
   
@@ -67,6 +66,15 @@ export function MeditationAudioGenerator() {
   const characterCount = text.length;
 
   const handleGenerate = async () => {
+    if (!session?.access_token) {
+      toast({
+        title: 'Niet ingelogd',
+        description: 'Log in om audio te genereren.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!text.trim()) {
       toast({
         title: 'Tekst vereist',
@@ -87,7 +95,7 @@ export function MeditationAudioGenerator() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ text, voice }),
         }
@@ -121,6 +129,15 @@ export function MeditationAudioGenerator() {
   };
 
   const handleSaveToMeditation = async () => {
+    if (!session?.access_token) {
+      toast({
+        title: 'Niet ingelogd',
+        description: 'Log in om audio op te slaan.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
     if (!audioBlob || !selectedMeditationId) {
       toast({
         title: 'Selecteer een meditatie',
@@ -140,7 +157,7 @@ export function MeditationAudioGenerator() {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            'Authorization': `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({ 
             text, 
