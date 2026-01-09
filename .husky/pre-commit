@@ -1,4 +1,11 @@
 #!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
+# Auto-fix ESLint errors where possible
+npm run lint:fix
+
+# Add any auto-fixed files back to staging
+git add -u
+
+# Run type check and build
 npm run verify-build
