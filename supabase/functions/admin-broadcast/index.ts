@@ -67,7 +67,7 @@ serve(async (req) => {
     }
 
     // Get target users based on audience
-    const userQuery = adminClient.auth.admin.listUsers();
+    let userQuery = adminClient.auth.admin.listUsers();
     
     // Note: For production, you'd want to paginate this
     const { data: usersData, error: usersError } = await userQuery;
