@@ -1,21 +1,33 @@
 /**
  * Secure CORS configuration
- * IMPORTANT: Update ALLOWED_ORIGINS with your actual production domain(s)
+ * Domains configured via environment variable for production
  */
 
-// TODO: Replace with your actual domain(s)
-const ALLOWED_ORIGINS = [
-  'http://localhost:5173',           // Local development
-  'http://localhost:4173',           // Local preview
-  'https://YOUR-DOMAIN.com',         // ⚠️ REPLACE THIS with your production domain
-  'https://www.YOUR-DOMAIN.com',     // ⚠️ REPLACE THIS with your www domain
-];
+/**
+ * Get allowed origins from environment or defaults
+ */
+function getAllowedOrigins(): string[] {
+  const envOrigins = Deno.env.get('ALLOWED_ORIGINS');
+
+  if (envOrigins) {
+    // Production: comma-separated list from env var
+    return envOrigins.split(',').map(o => o.trim());
+  }
+
+  // Development fallback
+  return [
+    'http://localhost:5173',
+    'http://localhost:4173',
+  ];
+}
 
 /**
  * Get CORS headers for a specific origin
  * Rejects requests from unauthorized origins
  */
 export function getCorsHeaders(origin: string | null): HeadersInit {
+  const allowedOrigins = getAllowedOrigins();
+
   // If no origin header, reject (server-to-server requests should use service key)
   if (!origin) {
     return {
@@ -25,8 +37,8 @@ export function getCorsHeaders(origin: string | null): HeadersInit {
   }
 
   // Check if origin is allowed
-  const isAllowed = ALLOWED_ORIGINS.some(allowed =>
-    origin === allowed || origin.endsWith(allowed)
+  const isAllowed = allowedOrigins.some(allowed =>
+    origin === allowed || origin === `https://${allowed}` || origin === `http://${allowed}`
   );
 
   if (!isAllowed) {
