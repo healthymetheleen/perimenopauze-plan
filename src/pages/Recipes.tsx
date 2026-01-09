@@ -21,7 +21,7 @@ import { getWeatherSeason, detectHemisphere, Hemisphere } from '@/lib/seasonUtil
 import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart, Heart } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
-// Time categories will use translation keys
+// Time categories for filtering recipes by preparation time
 const timeCategories = [
   { value: 'supersnel', labelKey: 'recipes.time_superfast', maxMinutes: 15 },
   { value: 'snel', labelKey: 'recipes.time_fast', maxMinutes: 30 },
