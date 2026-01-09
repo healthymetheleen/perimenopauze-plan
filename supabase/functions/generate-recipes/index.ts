@@ -121,6 +121,11 @@ serve(async (req) => {
     // Replace {{count}} placeholder if present
     systemPrompt = systemPrompt.replace(/\{\{count\}\}/g, String(count));
 
+    const userPrompt = `${prompt}
+
+CRITICAL: Respond with ONLY a valid JSON array. No text before or after. Start directly with [ and end with ]. Example format:
+[{"title":"...","description":"...","meal_type":"breakfast|lunch|dinner|snack","ingredients":[{"amount":"...","item":"..."}],"instructions":"...","prep_time_minutes":5,"cook_time_minutes":10,"servings":2,"protein_g":25,"fiber_g":8,"kcal":350,"carbs_g":20,"fat_g":15,"diet_tags":["vegetarian"],"seasons":["winter","spring"],"cycle_phases":["menstrual","follicular"]}]`;
+
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -131,8 +136,9 @@ serve(async (req) => {
         model: "google/gemini-2.5-flash",
         messages: [
           { role: "system", content: systemPrompt },
-          { role: "user", content: prompt }
+          { role: "user", content: userPrompt }
         ],
+        response_format: { type: "json_object" }
       }),
     });
 
