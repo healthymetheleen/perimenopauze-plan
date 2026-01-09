@@ -1,7 +1,9 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 
 interface ContactEmailRequest {
   type: 'contact' | 'feedback';
@@ -10,6 +12,66 @@ interface ContactEmailRequest {
   message: string;
   subject?: string;
 }
+
+// Rate limiting configuration
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+const MAX_REQUESTS_PER_WINDOW = 3; // Max 3 requests per hour per IP
+
+// In-memory rate limit store (resets on function cold start)
+// For production, consider using a persistent store like Redis
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+
+/**
+ * Check if the request is rate limited
+ * Returns true if the request should be blocked
+ */
+function isRateLimited(clientIp: string): boolean {
+  const now = Date.now();
+  const record = rateLimitStore.get(clientIp);
+
+  if (!record) {
+    // First request from this IP
+    rateLimitStore.set(clientIp, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW_MS,
+    });
+    return false;
+  }
+
+  if (now > record.resetTime) {
+    // Window has expired, reset counter
+    rateLimitStore.set(clientIp, {
+      count: 1,
+      resetTime: now + RATE_LIMIT_WINDOW_MS,
+    });
+    return false;
+  }
+
+  if (record.count >= MAX_REQUESTS_PER_WINDOW) {
+    // Rate limit exceeded
+    return true;
+  }
+
+  // Increment counter
+  record.count++;
+  return false;
+}
+
+/**
+ * Clean up expired entries from rate limit store
+ * Called periodically to prevent memory leaks
+ */
+function cleanupRateLimitStore(): void {
+  const now = Date.now();
+  for (const [ip, record] of rateLimitStore.entries()) {
+    if (now > record.resetTime) {
+      rateLimitStore.delete(ip);
+    }
+  }
+}
+
+// Cleanup every 10 minutes
+setInterval(cleanupRateLimitStore, 10 * 60 * 1000);
 
 const handler = async (req: Request): Promise<Response> => {
   const corsHeaders = getCorsHeaders(req.headers.get('origin'));
@@ -20,13 +82,46 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Get client IP for rate limiting
+    const clientIp = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || 
+                     req.headers.get("x-real-ip") || 
+                     "unknown";
+    
+    // Check rate limit
+    if (isRateLimited(clientIp)) {
+      console.warn(`Rate limit exceeded for IP: ${clientIp}`);
+      return new Response(
+        JSON.stringify({ 
+          error: "Te veel verzoeken. Probeer het over een uur opnieuw.",
+          retryAfter: 3600 
+        }),
+        { 
+          status: 429, 
+          headers: { 
+            "Content-Type": "application/json", 
+            "Retry-After": "3600",
+            ...corsHeaders 
+          } 
+        }
+      );
+    }
+
     const { type, name, email, message, subject }: ContactEmailRequest = await req.json();
 
     // Validate input
     if (!name || !email || !message || !type) {
-      console.error("Missing required fields:", { name, email, message, type });
+      console.error("Missing required fields:", { name: !!name, email: !!email, message: !!message, type: !!type });
       return new Response(
         JSON.stringify({ error: "Alle velden zijn verplicht" }),
+        { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
+      );
+    }
+
+    // Validate type
+    if (type !== 'contact' && type !== 'feedback') {
+      console.error("Invalid type:", type);
+      return new Response(
+        JSON.stringify({ error: "Ongeldig berichttype" }),
         { status: 400, headers: { "Content-Type": "application/json", ...corsHeaders } }
       );
     }
@@ -88,7 +183,7 @@ const handler = async (req: Request): Promise<Response> => {
       </div>
     `;
 
-    console.log(`Sending ${type} email from ${email}`);
+    console.log(`Sending ${type} email from ${email} (IP: ${clientIp})`);
 
     const emailResponse = await fetch("https://api.resend.com/emails", {
       method: "POST",
