@@ -24,6 +24,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let isMounted = true;
 
+    const finishLoading = () => {
+      if (!isMounted) return;
+      setLoading(false);
+    };
+
+    // Hard safety timeout: never allow auth init to "hang" if the network/backend
+    // is temporarily unreachable (e.g. refresh token call timing out).
+    const hardTimeout = window.setTimeout(finishLoading, 8000);
+
     // Subscribe to auth changes. Supabase emits an INITIAL_SESSION event on init,
     // so we don't need an extra concurrent getSession() call here (which can
     // trigger navigatorLock timeouts in gotrue-js).
@@ -33,30 +42,37 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!isMounted) return;
       setSession(session);
       setUser(session?.user ?? null);
-      setLoading(false);
+      finishLoading();
     });
 
     // Safety fallback: if, for any reason, INITIAL_SESSION doesn't arrive,
     // do a single session check after a short delay.
+    const getSessionWithTimeout = async () => {
+      let timeoutId: number | undefined;
+      try {
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          timeoutId = window.setTimeout(() => reject(new Error('AUTH_INIT_TIMEOUT')), 6000);
+        });
+
+        const result = await Promise.race([supabase.auth.getSession(), timeoutPromise]);
+        if (!isMounted) return;
+
+        setSession(result.data.session);
+        setUser(result.data.session?.user ?? null);
+      } catch {
+        // Ignore: we'll just leave session/user as null
+      } finally {
+        if (timeoutId) window.clearTimeout(timeoutId);
+        finishLoading();
+      }
+    };
+
     const fallback = window.setTimeout(() => {
       if (!isMounted) return;
       // Only run if we're still loading.
       setLoading((prev) => {
         if (!prev) return prev;
-        void supabase.auth
-          .getSession()
-          .then(({ data: { session } }) => {
-            if (!isMounted) return;
-            setSession(session);
-            setUser(session?.user ?? null);
-          })
-          .catch(() => {
-            // Ignore: we'll just leave session/user as null
-          })
-          .finally(() => {
-            if (!isMounted) return;
-            setLoading(false);
-          });
+        void getSessionWithTimeout();
         return prev;
       });
     }, 800);
@@ -64,6 +80,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => {
       isMounted = false;
       window.clearTimeout(fallback);
+      window.clearTimeout(hardTimeout);
       subscription.unsubscribe();
     };
   }, []);
