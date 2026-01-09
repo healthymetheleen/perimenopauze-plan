@@ -308,7 +308,7 @@ async function trackUsage(supabase: SupabaseClient, userId: string, functionName
 }
 
 // Helper: Check if analysis has actual nutrient data
-function hasNutrientData(analysis: any): boolean {
+function hasNutrientData(analysis: Record<string, unknown>): boolean {
   if (!analysis) return false;
   const totals = analysis.totals || analysis;
   return (
@@ -342,7 +342,7 @@ const commonFoodEstimates: Record<string, { kcal: number; protein_g: number; car
 };
 
 // Generate a rough estimate based on description when AI fails
-function generateFallbackEstimate(description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+function generateFallbackEstimate(description: string, lang: SupportedLanguage, t: typeof translations.nl): Record<string, unknown> {
   const lowerDesc = description.toLowerCase();
   let totalKcal = 0;
   let totalProtein = 0;
@@ -416,7 +416,7 @@ function generateFallbackEstimate(description: string, lang: SupportedLanguage, 
 }
 
 // Ensure analysis always has nutrient estimates
-function ensureNutrientEstimates(analysis: any, description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+function ensureNutrientEstimates(analysis: Record<string, unknown>, description: string, lang: SupportedLanguage, t: typeof translations.nl): Record<string, unknown> {
   if (!analysis) {
     return generateFallbackEstimate(description, lang, t);
   }

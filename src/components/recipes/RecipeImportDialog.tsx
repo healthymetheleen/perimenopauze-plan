@@ -175,17 +175,11 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         prep_time_minutes: r.prep_time_minutes || null,
         cook_time_minutes: r.cook_time_minutes || null,
         servings: r.servings || 4,
-        meal_type: r.meal_type || 'diner',
-        seasons: r.seasons || [],
-        cycle_phases: r.cycle_phases || [],
-        diet_tags: normalizeDietTags(r.diet_tags || []),
-        ingredients: ((r.ingredients as unknown[]) || []).map((i: Record<string, unknown>) => ({
-          name: i.name || '',
         meal_type: r.meal_type || selectedMealType || 'diner',
         seasons: r.seasons || (selectedWeatherSeason ? [selectedWeatherSeason] : []),
         cycle_phases: r.cycle_phases || (selectedCyclePhase ? [selectedCyclePhase] : []),
         diet_tags: normalizeDietTags([...(r.diet_tags || []), ...selectedDietTags]),
-        ingredients: (r.ingredients || []).map((i: any) => ({
+        ingredients: (r.ingredients || []).map((i: Record<string, unknown>) => ({
           name: i.name || i.item || '',
           amount: String(i.amount || ''),
           unit: i.unit || '',
