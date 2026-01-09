@@ -112,7 +112,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       }
       
       // Validate and map
-      const mapped: ParsedRecipe[] = recipes.map((r: any) => ({
+      const mapped: ParsedRecipe[] = recipes.map((r: Record<string, unknown>) => ({
         title: r.title || t('recipeImport.untitledRecipe'),
         description: r.description || null,
         instructions: r.instructions || '',
@@ -123,7 +123,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         seasons: r.seasons || [],
         cycle_phases: r.cycle_phases || [],
         diet_tags: normalizeDietTags(r.diet_tags || []),
-        ingredients: (r.ingredients || []).map((i: any) => ({
+        ingredients: ((r.ingredients as unknown[]) || []).map((i: Record<string, unknown>) => ({
           name: i.name || '',
           amount: String(i.amount || ''),
           unit: i.unit || '',
@@ -168,7 +168,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
       if (error) throw error;
       if (data.error) throw new Error(data.error);
 
-      const recipes: ParsedRecipe[] = data.recipes.map((r: any) => ({
+      const recipes: ParsedRecipe[] = data.recipes.map((r: Record<string, unknown>) => ({
         title: r.title || t('recipeImport.untitledRecipe'),
         description: r.description || null,
         instructions: r.instructions || '',
@@ -179,7 +179,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         seasons: r.seasons || (selectedWeatherSeason ? [selectedWeatherSeason] : []),
         cycle_phases: r.cycle_phases || (selectedCyclePhase ? [selectedCyclePhase] : []),
         diet_tags: normalizeDietTags([...(r.diet_tags || []), ...selectedDietTags]),
-        ingredients: (r.ingredients || []).map((i: any) => ({
+        ingredients: (r.ingredients || []).map((i: Record<string, unknown>) => ({
           name: i.name || i.item || '',
           amount: String(i.amount || ''),
           unit: i.unit || '',
@@ -195,12 +195,12 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
 
       setParsedRecipes(recipes);
       toast({ title: t('recipeImport.recipesGenerated', { count: recipes.length }) });
-    } catch (e: any) {
+    } catch (e: unknown) {
       console.error('AI generation error:', e);
-      toast({ 
-        title: t('recipeImport.generationFailed'), 
-        description: e.message || t('recipeImport.tryAgain'),
-        variant: 'destructive' 
+      toast({
+        title: t('recipeImport.generationFailed'),
+        description: e instanceof Error ? e.message : t('recipeImport.tryAgain'),
+        variant: 'destructive'
       });
     } finally {
       setIsLoading(false);
@@ -273,7 +273,7 @@ export function RecipeImportDialog({ open, onOpenChange }: RecipeImportDialogPro
         </DialogHeader>
 
         {parsedRecipes.length === 0 ? (
-          <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+          <Tabs value={tab} onValueChange={(v) => setTab(v as "json" | "ai")}>
             <TabsList className="grid grid-cols-2 w-full">
               <TabsTrigger value="json" className="flex items-center gap-2">
                 <FileJson className="h-4 w-4" />

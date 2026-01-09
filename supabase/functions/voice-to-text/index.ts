@@ -1,11 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { createClient, SupabaseClient, User } from "npm:@supabase/supabase-js@2";
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
 
 const DAILY_AI_LIMIT = 30;
 
@@ -40,7 +36,7 @@ function processBase64Chunks(base64String: string, chunkSize = 32768) {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; supabase: any } | Response> {
+async function authenticateAndCheckLimits(req: Request): Promise<{ user: User; supabase: SupabaseClient } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -92,7 +88,7 @@ async function authenticateAndCheckLimits(req: Request): Promise<{ user: any; su
 }
 
 // Helper: Track AI usage server-side
-async function trackUsage(supabase: any, userId: string, functionName: string) {
+async function trackUsage(supabase: SupabaseClient, userId: string, functionName: string) {
   const { error } = await supabase
     .from('ai_usage')
     .insert({ owner_id: userId, function_name: functionName });
@@ -103,8 +99,10 @@ async function trackUsage(supabase: any, userId: string, functionName: string) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {

@@ -53,7 +53,7 @@ export function TrendsSleepBlock({ data }: TrendsSleepBlockProps) {
   const lateMealWithBadSleep = lateMealDays.filter(d => d.quality !== null && d.quality < 6);
   const showLateMealInsight = lateMealDays.length >= 2 && lateMealWithBadSleep.length > 0;
 
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: { payload: { sleepHours?: number; quality: number | null; lastMealHour: number | null } }[]; label?: string }) => {
     if (!active || !payload?.length) return null;
     const dayData = payload[0]?.payload;
     

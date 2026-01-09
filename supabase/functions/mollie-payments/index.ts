@@ -7,17 +7,17 @@ import {
   getPaymentFailedEmail,
   getRefundProcessedEmail,
 } from "../_shared/email-templates.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
+import { verifyMollieWebhook, checkWebhookRateLimit } from "../_shared/mollie-security.ts";
 
 const MOLLIE_API_URL = 'https://api.mollie.com/v2';
 
 serve(async (req) => {
+  // Secure CORS handling
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {
@@ -43,13 +43,29 @@ serve(async (req) => {
     // Handle webhook separately - it sends form data, not JSON
     if (path === 'webhook' && req.method === 'POST') {
       console.log('Webhook received from Mollie');
-      
-      const formData = await req.formData();
+
+      // SECURITY: Verify webhook signature
+      const rawBody = await req.text();
+      const isValidSignature = await verifyMollieWebhook(req, rawBody);
+
+      if (!isValidSignature) {
+        console.error('Webhook signature verification failed - possible attack attempt');
+        return new Response('Unauthorized', { status: 401 });
+      }
+
+      // Parse form data from raw body
+      const formData = new URLSearchParams(rawBody);
       const paymentId = formData.get('id');
 
       if (!paymentId) {
         console.log('Webhook: No payment ID received');
         return new Response('OK', { status: 200 });
+      }
+
+      // SECURITY: Rate limit check
+      if (!checkWebhookRateLimit(paymentId)) {
+        console.error(`Webhook rate limit exceeded for payment ${paymentId}`);
+        return new Response('Too Many Requests', { status: 429 });
       }
 
       console.log(`Webhook: Processing payment ${paymentId}`);
@@ -393,7 +409,7 @@ serve(async (req) => {
 
         const data = await response.json();
         console.log('Mollie methods fetched successfully:', data._embedded?.methods?.length || 0, 'methods');
-        const methods = data._embedded?.methods?.map((m: any) => ({
+        const methods = data._embedded?.methods?.map((m: Record<string, unknown>) => ({
           id: m.id,
           description: m.description,
           image: m.image?.svg,
@@ -609,7 +625,7 @@ serve(async (req) => {
         }
 
         const data = await response.json();
-        const issuers = data.issuers?._embedded?.issuers?.map((i: any) => ({
+        const issuers = data.issuers?._embedded?.issuers?.map((i: Record<string, unknown>) => ({
           id: i.id,
           name: i.name,
           image: i.image?.svg,
@@ -1483,8 +1499,8 @@ serve(async (req) => {
 
         const data = await response.json();
         const payments = (data._embedded?.payments || [])
-          .filter((p: any) => p.status === 'paid')
-          .map((p: any) => ({
+          .filter((p: Record<string, unknown>) => p.status === 'paid')
+          .map((p: Record<string, unknown>) => ({
             id: p.id,
             amount: p.amount.value,
             currency: p.amount.currency,

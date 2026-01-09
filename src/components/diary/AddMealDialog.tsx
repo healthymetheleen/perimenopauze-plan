@@ -604,7 +604,7 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
         {!showConfirmation ? (
           <div className="space-y-4">
-            <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as any)}>
+            <Tabs value={inputMethod} onValueChange={(v) => setInputMethod(v as "text" | "photo" | "voice")}>
               <TabsList className="grid grid-cols-3 w-full">
                 <TabsTrigger value="text" className="flex items-center gap-2">
                   <Type className="h-4 w-4" />

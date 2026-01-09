@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
 
 function getLanguage(lang?: string): SupportedLanguage {
   if (lang === 'en') return 'en';
@@ -127,8 +123,10 @@ interface NutritionSettings {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {
@@ -364,7 +362,7 @@ Example format:
       recipes = [recipes];
     }
 
-    const validRecipes = recipes.filter((r: any) => 
+    const validRecipes = recipes.filter((r: Record<string, unknown>) =>
       r.title && r.instructions && r.meal_type && Array.isArray(r.ingredients)
     );
 

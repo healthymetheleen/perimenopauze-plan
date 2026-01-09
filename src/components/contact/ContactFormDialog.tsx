@@ -76,11 +76,11 @@ export function ContactFormDialog({ trigger }: ContactFormDialogProps) {
       setEmail('');
       setMessage('');
       setOpen(false);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Contact form error:', error);
       toast({
         title: 'Versturen mislukt',
-        description: error.message || 'Probeer het later opnieuw.',
+        description: error instanceof Error ? error.message : 'Probeer het later opnieuw.',
         variant: 'destructive',
       });
     } finally {

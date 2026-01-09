@@ -221,7 +221,7 @@ export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symp
           </DialogTitle>
         </DialogHeader>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
+        <Tabs value={tab} onValueChange={(v) => setTab(v as "bleeding" | "symptoms")}>
           <TabsList className="grid grid-cols-2 w-full">
             <TabsTrigger value="bleeding" className="flex items-center gap-2">
               <Droplets className="h-4 w-4" />

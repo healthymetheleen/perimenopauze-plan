@@ -1,12 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient, User } from "npm:@supabase/supabase-js@2";
 import { getPrompt, type SupportedLanguage } from "../_shared/prompts.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
 
 const DAILY_AI_LIMIT = 30;
 
@@ -197,11 +193,11 @@ function getLocalizedTexts(language: SupportedLanguage) {
 
 // Helper: anonimiseer data - ALLEEN statistieken, geen herleidbare info
 function anonymizeData(input: {
-  cycles?: any[];
-  bleedingLogs?: any[];
-  symptomLogs?: any[];
-  preferences?: any;
-  baselinePrediction?: any;
+  cycles?: Record<string, unknown>[];
+  bleedingLogs?: Record<string, unknown>[];
+  symptomLogs?: Record<string, unknown>[];
+  preferences?: Record<string, unknown>;
+  baselinePrediction?: Record<string, unknown>;
   hasAIConsent?: boolean;
 }, language: SupportedLanguage) {
   const { cycles, bleedingLogs, symptomLogs, preferences, baselinePrediction } = input;
@@ -232,7 +228,7 @@ function anonymizeData(input: {
   const symptomCounts: Record<string, string> = {};
   const symptoms = ['headache', 'bloating', 'anxiety', 'irritability', 'breast_tender', 'hot_flashes'];
   symptoms.forEach(s => {
-    const count = (symptomLogs || []).filter((log: any) => log[s]).length;
+    const count = (symptomLogs || []).filter((log: Record<string, unknown>) => log[s]).length;
     symptomCounts[s] = count === 0 ? labels.notLogged 
       : count <= 3 ? labels.occasional 
       : count <= 7 ? labels.regular 
@@ -271,7 +267,7 @@ function anonymizeData(input: {
 }
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request, t: typeof fallbackPrompts['nl']): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof fallbackPrompts['nl']): Promise<{ user: User; supabase: SupabaseClient; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: 'Authentication required' }), {
@@ -325,7 +321,7 @@ async function authenticateAndCheckLimits(req: Request, t: typeof fallbackPrompt
 }
 
 // Helper: Track AI usage server-side
-async function trackUsage(supabase: any, userId: string, functionName: string) {
+async function trackUsage(supabase: SupabaseClient, userId: string, functionName: string) {
   const { error } = await supabase
     .from('ai_usage')
     .insert({ owner_id: userId, function_name: functionName });
@@ -336,8 +332,10 @@ async function trackUsage(supabase: any, userId: string, functionName: string) {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {

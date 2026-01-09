@@ -1,12 +1,8 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "npm:@supabase/supabase-js@2";
+import { createClient, SupabaseClient, User } from "npm:@supabase/supabase-js@2";
 import { getPrompt, SupportedLanguage } from "../_shared/prompts.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
 
 const DAILY_AI_LIMIT = 30;
 
@@ -248,7 +244,7 @@ Answer ONLY with a JSON object:
 };
 
 // Helper: Authenticate user and check limits
-async function authenticateAndCheckLimits(req: Request, t: typeof translations.nl): Promise<{ user: any; supabase: any; aiSubjectId: string } | Response> {
+async function authenticateAndCheckLimits(req: Request, t: typeof translations.nl): Promise<{ user: User; supabase: SupabaseClient; aiSubjectId: string } | Response> {
   const authHeader = req.headers.get('authorization');
   if (!authHeader) {
     return new Response(JSON.stringify({ error: 'Unauthorized', message: t.unauthorized }), {
@@ -301,7 +297,7 @@ async function authenticateAndCheckLimits(req: Request, t: typeof translations.n
 }
 
 // Helper: Track AI usage server-side
-async function trackUsage(supabase: any, userId: string, functionName: string) {
+async function trackUsage(supabase: SupabaseClient, userId: string, functionName: string) {
   const { error } = await supabase
     .from('ai_usage')
     .insert({ owner_id: userId, function_name: functionName });
@@ -312,7 +308,7 @@ async function trackUsage(supabase: any, userId: string, functionName: string) {
 }
 
 // Helper: Check if analysis has actual nutrient data
-function hasNutrientData(analysis: any): boolean {
+function hasNutrientData(analysis: Record<string, unknown>): boolean {
   if (!analysis) return false;
   const totals = analysis.totals || analysis;
   return (
@@ -346,7 +342,7 @@ const commonFoodEstimates: Record<string, { kcal: number; protein_g: number; car
 };
 
 // Generate a rough estimate based on description when AI fails
-function generateFallbackEstimate(description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+function generateFallbackEstimate(description: string, lang: SupportedLanguage, t: typeof translations.nl): Record<string, unknown> {
   const lowerDesc = description.toLowerCase();
   let totalKcal = 0;
   let totalProtein = 0;
@@ -420,7 +416,7 @@ function generateFallbackEstimate(description: string, lang: SupportedLanguage, 
 }
 
 // Ensure analysis always has nutrient estimates
-function ensureNutrientEstimates(analysis: any, description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+function ensureNutrientEstimates(analysis: Record<string, unknown>, description: string, lang: SupportedLanguage, t: typeof translations.nl): Record<string, unknown> {
   if (!analysis) {
     return generateFallbackEstimate(description, lang, t);
   }
@@ -484,8 +480,10 @@ function ensureNutrientEstimates(analysis: any, description: string, lang: Suppo
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {
@@ -538,7 +536,7 @@ serve(async (req) => {
 
     const scrubbedDescription = description ? scrubPII(description) : null;
 
-    const userContent: any[] = [];
+    const userContent: Array<{ type: string; text?: string; source?: { type: string; media_type: string; data: string } }> = [];
     const analyzeText = lang === 'en' ? 'Analyze this meal:' : 'Analyseer deze maaltijd:';
     const photoText = lang === 'en' ? 'Analyze this meal in the photo.' : 'Analyseer deze maaltijd op de foto.';
     

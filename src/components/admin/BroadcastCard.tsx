@@ -104,9 +104,9 @@ export function BroadcastCard() {
       // Clear form on success
       setSubject('');
       setMessage('');
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Broadcast error:', error);
-      toast.error(error.message || 'Er ging iets mis bij het versturen');
+      toast.error(error instanceof Error ? error.message : 'Er ging iets mis bij het versturen');
     } finally {
       setIsSending(false);
     }

@@ -1,11 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { Image } from "https://deno.land/x/imagescript@1.3.0/mod.ts";
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
+import { getCorsHeaders, handleCorsPreflightRequest } from "../_shared/cors.ts";
 
 // Compress and resize image
 async function compressImage(base64Data: string, maxWidth: number, maxHeight: number, targetSizeKB: number): Promise<Uint8Array> {
@@ -54,8 +50,10 @@ async function compressImage(base64Data: string, maxWidth: number, maxHeight: nu
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
+
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return handleCorsPreflightRequest(req);
   }
 
   try {
@@ -148,7 +146,7 @@ The entire frame should be filled with just the wooden table and the plated dish
     
     // Alternative: check inline_data format
     if (!imageData && data.choices?.[0]?.message?.parts) {
-      const imagePart = data.choices[0].message.parts.find((p: any) => p.inline_data);
+      const imagePart = data.choices[0].message.parts.find((p: { inline_data?: unknown }) => p.inline_data);
       if (imagePart?.inline_data?.data) {
         imageData = `data:${imagePart.inline_data.mime_type || 'image/png'};base64,${imagePart.inline_data.data}`;
       }
