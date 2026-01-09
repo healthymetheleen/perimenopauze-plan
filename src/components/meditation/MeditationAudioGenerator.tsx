@@ -14,6 +14,9 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAdminMeditations } from '@/hooks/useContent';
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+
 const VOICE_OPTIONS = [
   { id: 'laura', name: 'Laura Peeters', description: 'Nederlands, rustig en enthousiast' },
   { id: 'lily', name: 'Lily', description: 'Zacht en vriendelijk' },
@@ -82,11 +85,12 @@ export function MeditationAudioGenerator() {
 
     try {
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-meditation-audio`,
+        `${SUPABASE_URL}/functions/v1/generate-meditation-audio`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            apikey: SUPABASE_PUBLISHABLE_KEY,
             'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
           body: JSON.stringify({ text, voice }),
@@ -135,11 +139,12 @@ export function MeditationAudioGenerator() {
       const selectedMeditation = meditations?.find(m => m.id === selectedMeditationId);
       
       const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-meditation-audio`,
+        `${SUPABASE_URL}/functions/v1/generate-meditation-audio`,
         {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
+            apikey: SUPABASE_PUBLISHABLE_KEY,
             'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
           },
           body: JSON.stringify({ 
