@@ -1,6 +1,6 @@
 # 🚨 KRITIEKE SECURITY FIXES - PRIORITEIT
 
-**Status:** ✅ JWT Verificatie ingeschakeld
+**Status:** ✅ JWT + CORS + Mollie gefixt
 **Datum:** 9 januari 2026
 
 ---
@@ -14,119 +14,57 @@
 
 ---
 
-## 🔴 NOG TE FIXEN: CORS Beveiliging
+## ✅ GEFIXT: CORS Beveiliging
 
-### Wat is het probleem?
+**Probleem (was):** Alle edge functions hadden wildcard CORS: `'Access-Control-Allow-Origin': '*'`
+**Risico:** Elke website kon jouw API aanroepen (Cross-Site Request Forgery mogelijk)
+**Fix:** ✅ Alle 14 functies nu met veilige origin-based CORS
 
-**NU:** Alle edge functions hebben:
-```typescript
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',  // ⚠️ GEVAARLIJK - staat OPEN voor iedereen
-};
-```
+**Wat is geïmplementeerd:**
+- ✅ Secure CORS helper in `/supabase/functions/_shared/cors.ts`
+- ✅ Dynamic origin checking tegen allowed origins lijst
+- ✅ Alle 14 edge functions geüpdatet met `getCorsHeaders()` en `handleCorsPreflightRequest()`
+- ✅ Fallback naar localhost voor development
 
-**Dit betekent:** Elke website (ook hackers) kan jouw API aanroepen.
+**Nog te doen:**
+- [ ] Configureer `ALLOWED_ORIGINS` environment variable in Supabase met productie domein(en)
+  - Bijvoorbeeld: `healthymetheleen.nl,www.healthymetheleen.nl`
+  - In Supabase Dashboard → Settings → API → Environment Variables
 
-### Wat moet er gebeuren?
-
-**Stap 1:** Vind je productie domein
-- Is het `healthymetheleen.nl`?
-- Of een andere URL?
-
-**Stap 2:** Update `/supabase/functions/_shared/cors.ts`
-- Open het bestand
-- Vervang `YOUR-DOMAIN.com` met jouw echte domein
-- Bijvoorbeeld: `https://healthymetheleen.nl`
-
-**Stap 3:** Update alle edge functions (14 bestanden)
-
-Vervang in ELKE functie:
-```typescript
-// OUD (onveilig):
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-};
-```
-
-Door:
-```typescript
-// NIEUW (veilig):
-import { getCorsHeaders, handleCorsPreflightRequest } from '../_shared/cors.ts';
-
-// Aan het begin van de serve functie:
-serve(async (req) => {
-  const corsHeaders = getCorsHeaders(req.headers.get('origin'));
-
-  if (req.method === 'OPTIONS') {
-    return handleCorsPreflightRequest(req);
-  }
-  // ... rest van de functie
-});
-```
-
-**Functies die geupdate moeten worden:**
-1. `/supabase/functions/mollie-payments/index.ts`
-2. `/supabase/functions/admin-broadcast/index.ts`
-3. `/supabase/functions/analyze-meal/index.ts`
-4. `/supabase/functions/cycle-coach/index.ts`
-5. `/supabase/functions/premium-insights/index.ts`
-6. `/supabase/functions/voice-to-text/index.ts`
-7. `/supabase/functions/generate-recipes/index.ts`
-8. `/supabase/functions/generate-recipe-image/index.ts`
-9. `/supabase/functions/send-contact-email/index.ts`
-10. `/supabase/functions/nutrition-coach/index.ts`
-11. `/supabase/functions/daily-analysis/index.ts`
-12. `/supabase/functions/weekly-nutrition-insight/index.ts`
-13. `/supabase/functions/monthly-analysis/index.ts`
-14. `/supabase/functions/generate-meditation-audio/index.ts`
+**Geüpdateerde functies:**
+1. ✅ `/supabase/functions/mollie-payments/index.ts`
+2. ✅ `/supabase/functions/admin-broadcast/index.ts`
+3. ✅ `/supabase/functions/analyze-meal/index.ts`
+4. ✅ `/supabase/functions/cycle-coach/index.ts`
+5. ✅ `/supabase/functions/premium-insights/index.ts`
+6. ✅ `/supabase/functions/voice-to-text/index.ts`
+7. ✅ `/supabase/functions/generate-recipes/index.ts`
+8. ✅ `/supabase/functions/generate-recipe-image/index.ts`
+9. ✅ `/supabase/functions/send-contact-email/index.ts`
+10. ✅ `/supabase/functions/nutrition-coach/index.ts`
+11. ✅ `/supabase/functions/daily-analysis/index.ts`
+12. ✅ `/supabase/functions/weekly-nutrition-insight/index.ts`
+13. ✅ `/supabase/functions/monthly-analysis/index.ts`
+14. ✅ `/supabase/functions/generate-meditation-audio/index.ts`
 
 ---
 
-## 🟠 MOLLIE WEBHOOK BEVEILIGING
+## ✅ GEFIXT: MOLLIE WEBHOOK BEVEILIGING
 
-### Probleem
-De Mollie webhook accepteert betalings-updates ZONDER te verifiëren dat ze echt van Mollie komen.
+**Probleem (was):** De Mollie webhook accepteerde betalings-updates ZONDER signature verificatie
+**Risico:** Hackers konden fake "betaling geslaagd" berichten sturen
+**Fix:** ✅ HMAC-SHA256 signature verificatie geïmplementeerd
 
-**Risico:** Hackers kunnen "betaling geslaagd" berichten fake-en en gratis premium krijgen.
+**Wat is geïmplementeerd:**
+- ✅ Webhook security helper in `/supabase/functions/_shared/mollie-security.ts`
+- ✅ HMAC-SHA256 signature verificatie met `x-mollie-signature` header
+- ✅ Rate limiting: max 10 webhooks per minuut per payment ID
+- ✅ Graceful degradation: waarschuwing als secret niet geconfigureerd
 
-### Fix
-
-**Stap 1:** Genereer webhook secret bij Mollie
-1. Log in bij https://www.mollie.com/dashboard
-2. Ga naar: Settings → Website profiles → [Jouw profile] → Webhooks
-3. Voeg toe aan environment variables: `MOLLIE_WEBHOOK_SECRET`
-
-**Stap 2:** Update `/supabase/functions/mollie-payments/index.ts`
-
-Zoek de webhook handler (rond regel 44-190) en voeg toe:
-
-```typescript
-if (path === 'webhook' && req.method === 'POST') {
-  // ⚠️ VOEG DIT TOE - Signature verification
-  const signature = req.headers.get('mollie-signature');
-  const webhookSecret = Deno.env.get('MOLLIE_WEBHOOK_SECRET');
-
-  if (!signature || !webhookSecret) {
-    console.error('Missing webhook signature or secret');
-    return new Response('Unauthorized', { status: 401 });
-  }
-
-  // Verify signature (verhindert fake webhooks)
-  const body = await req.text();
-  const expectedSignature = await crypto.subtle.digest(
-    'SHA-256',
-    new TextEncoder().encode(body + webhookSecret)
-  );
-
-  // Compare signatures...
-  // (Mollie documentatie heeft exact algoritme)
-
-  // ... rest van webhook handler
-}
-```
-
-**Mollie documentatie:** https://docs.mollie.com/overview/webhooks
+**Nog te doen:**
+- [ ] Configureer `MOLLIE_WEBHOOK_SECRET` in Supabase Environment Variables
+  - Haal secret op bij: https://www.mollie.com/dashboard → Settings → Webhooks
+  - Voeg toe in: Supabase Dashboard → Settings → API → Environment Variables
 
 ---
 
@@ -253,8 +191,10 @@ SELECT cron.schedule(
 
 **Kritiek (NU):**
 - [x] JWT verificatie ingeschakeld
-- [ ] CORS beperkt tot jouw domein
-- [ ] Mollie webhook signature verificatie
+- [x] CORS beperkt tot jouw domein (code klaar, env var moet nog)
+- [x] Mollie webhook signature verificatie (code klaar, secret moet nog)
+- [ ] ALLOWED_ORIGINS environment variable configureren
+- [ ] MOLLIE_WEBHOOK_SECRET environment variable configureren
 - [ ] OpenAI DPA aangevraagd
 
 **Belangrijk (deze week):**
@@ -320,4 +260,43 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 ---
 
 **Laatste update:** 9 januari 2026
-**Status:** JWT ✅ | CORS ⏳ | Mollie ⏳ | GDPR ⏳
+**Status:** JWT ✅ | CORS ✅ | Mollie ✅ | GDPR ⏳
+
+---
+
+## 🚀 DEPLOYMENT INSTRUCTIES
+
+### Stap 1: Environment Variables Configureren
+
+Ga naar Supabase Dashboard → Settings → API → Environment Variables en voeg toe:
+
+```bash
+# CORS Beveiliging
+ALLOWED_ORIGINS=healthymetheleen.nl,www.healthymetheleen.nl
+
+# Mollie Webhook Security
+MOLLIE_WEBHOOK_SECRET=whsec_xxx  # Haal op bij Mollie Dashboard
+```
+
+### Stap 2: Deploy Edge Functions
+
+```bash
+# Deploy alle functies naar Supabase
+supabase functions deploy --all
+
+# Of deploy individueel:
+supabase functions deploy mollie-payments
+supabase functions deploy analyze-meal
+# ... etc
+```
+
+### Stap 3: Test de Security
+
+**Test CORS:**
+1. Open browser console op een ander domein (bijv. google.com)
+2. Probeer je API aan te roepen - moet worden geblokkeerd
+
+**Test Mollie Webhook:**
+1. Gebruik Mollie Dashboard → Webhooks → "Test webhook"
+2. Controleer logs: moet signature verificatie zien
+3. Probeer fake webhook te sturen zonder signature - moet 401 geven
