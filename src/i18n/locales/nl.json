@@ -19,6 +19,34 @@
     "upgrade": "Upgraden",
     "logout": "Uitloggen"
   },
+  "auth": {
+    "hero_description": "Speciaal ontwikkeld voor vrouwen in de perimenopauze",
+    "hero_badge": "AI-inzichten afgestemd op jouw cyclus & symptomen",
+    "tab_login": "Inloggen",
+    "tab_signup": "Registreren",
+    "email_label": "E-mailadres",
+    "email_placeholder": "jouw@email.nl",
+    "password_label": "Wachtwoord",
+    "password_hint": "Minimaal 6 tekens",
+    "forgot_password": "Wachtwoord vergeten?",
+    "view_plans_link": "Bekijk onze abonnementen",
+
+    "login_failed_title": "Inloggen mislukt",
+    "signup_failed_title": "Registratie mislukt",
+    "signup_success_title": "Account aangemaakt",
+    "signup_success_desc": "Je kunt nu inloggen.",
+
+    "reset_title": "Wachtwoord resetten",
+    "reset_description": "Vul je e-mailadres in en we sturen je een link om je wachtwoord te resetten.",
+    "reset_send": "Verstuur resetlink",
+    "reset_failed_title": "Kon reset e-mail niet versturen",
+    "reset_email_sent_title": "E-mail verstuurd",
+    "reset_email_sent_desc": "Check je inbox voor de resetlink.",
+
+    "error_network_title": "Verbindingsprobleem",
+    "error_network_desc": "We kunnen de server nu niet bereiken. Check je internetverbinding en probeer opnieuw.",
+    "error_unknown_desc": "Er ging iets mis. Probeer het opnieuw."
+  },
   "nav": {
     "overview": "Overzicht",
     "trends": "Trends",
