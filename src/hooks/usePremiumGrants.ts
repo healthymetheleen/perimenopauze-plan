@@ -27,7 +27,7 @@ export function usePremiumGrants() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as PremiumGrant[];
+      return ((data || []) as unknown as PremiumGrant[]);
     },
     enabled: !!user,
   });
@@ -44,18 +44,20 @@ export function useUserPremiumGrant() {
       const { data, error } = await supabase
         .from('premium_grants')
         .select('*')
-        .eq('user_id', user.id)
-        .eq('is_active', true)
+        .eq('user_id' as never, user.id as never)
+        .eq('is_active' as never, true as never)
         .maybeSingle();
 
       if (error) throw error;
       
+      const typedData = data as unknown as PremiumGrant | null;
+      
       // Check if grant has expired
-      if (data?.expires_at && new Date(data.expires_at) < new Date()) {
+      if (typedData?.expires_at && new Date(typedData.expires_at) < new Date()) {
         return null;
       }
       
-      return data as PremiumGrant | null;
+      return typedData;
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000,
@@ -83,7 +85,7 @@ export function useCreatePremiumGrant() {
           granted_by: user.id,
           reason: input.reason || null,
           expires_at: input.expires_at || null,
-        })
+        } as never)
         .select()
         .single();
 
@@ -112,8 +114,8 @@ export function useTogglePremiumGrant() {
     mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
       const { error } = await supabase
         .from('premium_grants')
-        .update({ is_active })
-        .eq('id', id);
+        .update({ is_active } as never)
+        .eq('id' as never, id as never);
 
       if (error) throw error;
     },
@@ -137,7 +139,7 @@ export function useDeletePremiumGrant() {
       const { error } = await supabase
         .from('premium_grants')
         .delete()
-        .eq('id', id);
+        .eq('id' as never, id as never);
 
       if (error) throw error;
     },

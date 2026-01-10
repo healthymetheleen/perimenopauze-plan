@@ -27,11 +27,11 @@ export function useSleepSessions(days: number = 7) {
       const { data, error } = await supabase
         .from('sleep_sessions')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id as never)
         .gte('sleep_start', startDate.toISOString())
         .order('sleep_start', { ascending: false });
       if (error) throw error;
-      return data as SleepSession[];
+      return (data as unknown as SleepSession[]) || [];
     },
     enabled: !!user,
   });
@@ -48,13 +48,13 @@ export function useActiveSleepSession() {
       const { data, error } = await supabase
         .from('sleep_sessions')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id as never)
         .is('sleep_end', null)
         .order('sleep_start', { ascending: false })
         .limit(1)
         .maybeSingle();
       if (error) throw error;
-      return data as SleepSession | null;
+      return (data as unknown as SleepSession) || null;
     },
     enabled: !!user,
     refetchInterval: 60000, // Refetch every minute to update duration
@@ -74,7 +74,7 @@ export function useStartSleep() {
         .insert({
           owner_id: user.id,
           sleep_start: new Date().toISOString(),
-        })
+        } as never)
         .select()
         .single();
       if (error) throw error;
@@ -120,7 +120,7 @@ export function useAddManualSleep() {
           sleep_end: endTime.toISOString(),
           duration_minutes: durationMinutes,
           quality_score: qualityScore,
-        })
+        } as never)
         .select()
         .single();
       if (error) throw error;
@@ -145,12 +145,13 @@ export function useEndSleep() {
       const { data: session, error: fetchError } = await supabase
         .from('sleep_sessions')
         .select('sleep_start')
-        .eq('id', sessionId)
+        .eq('id' as never, sessionId as never)
         .single();
       
       if (fetchError) throw fetchError;
       
-      const startTime = new Date(session.sleep_start);
+      const typedSession = session as unknown as { sleep_start: string };
+      const startTime = new Date(typedSession.sleep_start);
       const durationMinutes = Math.round((endTime.getTime() - startTime.getTime()) / 60000);
       
       const { data, error } = await supabase
@@ -159,8 +160,8 @@ export function useEndSleep() {
           sleep_end: endTime.toISOString(),
           duration_minutes: durationMinutes,
           quality_score: qualityScore,
-        })
-        .eq('id', sessionId)
+        } as never)
+        .eq('id' as never, sessionId as never)
         .select()
         .single();
       if (error) throw error;
@@ -182,7 +183,7 @@ export function useDeleteSleep() {
       const { error } = await supabase
         .from('sleep_sessions')
         .delete()
-        .eq('id', sessionId);
+        .eq('id' as never, sessionId as never);
       if (error) throw error;
     },
     onSuccess: () => {

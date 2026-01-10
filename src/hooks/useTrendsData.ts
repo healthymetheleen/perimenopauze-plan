@@ -93,32 +93,32 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
         supabase
           .from('v_daily_scores')
           .select('*')
-          .eq('owner_id', user.id)
+          .eq('owner_id' as never, user.id as never)
           .gte('day_date', startDate)
           .order('day_date', { ascending: true }),
         supabase
           .from('meals')
           .select('*, diary_days!inner(day_date)')
-          .eq('owner_id', user.id)
+          .eq('owner_id' as never, user.id as never)
           .gte('diary_days.day_date', startDate),
         supabase
           .from('cycle_symptom_logs')
           .select('*')
-          .eq('owner_id', user.id)
+          .eq('owner_id' as never, user.id as never)
           .gte('log_date', startDate),
         supabase
           .from('cycles')
           .select('*')
-          .eq('owner_id', user.id)
+          .eq('owner_id' as never, user.id as never)
           .order('start_date', { ascending: false })
           .limit(1),
       ]);
 
       return {
-        scores: scoresRes.data || [],
-        meals: mealsRes.data || [],
-        symptoms: symptomsRes.data || [],
-        latestCycle: cyclesRes.data?.[0] || null,
+        scores: (scoresRes.data || []) as unknown as Record<string, unknown>[],
+        meals: (mealsRes.data || []) as unknown as Record<string, unknown>[],
+        symptoms: (symptomsRes.data || []) as unknown as Record<string, unknown>[],
+        latestCycle: ((cyclesRes.data as unknown as Record<string, unknown>[])?.[0] || null) as Record<string, unknown> | null,
       };
     },
     enabled: !!user,
@@ -131,7 +131,7 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
   if (query.data) {
     const { scores, meals, symptoms, latestCycle } = query.data;
     
-    const cycleStartDate = latestCycle ? parseISO(latestCycle.start_date) : today;
+    const cycleStartDate = latestCycle ? parseISO(latestCycle.start_date as string) : today;
     const avgCycleLength = preferences?.avg_cycle_length || 28;
     const periodLength = preferences?.avg_period_length || 5;
     const lutealLength = preferences?.luteal_phase_length || 13;
@@ -141,7 +141,7 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
       const dateStr = format(date, 'yyyy-MM-dd');
       
       const dayScore = scores.find(s => s.day_date === dateStr);
-      const dayMeals = meals.filter((m: any) => m.diary_days?.day_date === dateStr);
+      const dayMeals = meals.filter((m: Record<string, unknown>) => (m.diary_days as Record<string, unknown>)?.day_date === dateStr);
       const daySymptoms = symptoms.find(s => s.log_date === dateStr);
       const daySleep = sleepSessions?.find(s => {
         const sleepDate = format(parseISO(s.sleep_start), 'yyyy-MM-dd');
@@ -150,14 +150,14 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
       
       // Calculate eating window
       const mealTimes = dayMeals
-        .filter((m: any) => m.time_local)
-        .map((m: any) => m.time_local)
+        .filter((m: Record<string, unknown>) => m.time_local)
+        .map((m: Record<string, unknown>) => m.time_local as string)
         .sort();
       
       const firstMeal = mealTimes[0] || null;
       const lastMeal = mealTimes[mealTimes.length - 1] || null;
       
-      let eatingWindowMin = null;
+      let eatingWindowMin: number | null = null;
       if (firstMeal && lastMeal) {
         const [fh, fm] = firstMeal.split(':').map(Number);
         const [lh, lm] = lastMeal.split(':').map(Number);
@@ -172,29 +172,29 @@ export function useTrendsData(period: TrendPeriod, showSeasonOverlay: boolean = 
       trendDays.push({
         date: dateStr,
         dayOfWeek: format(date, 'EEE'),
-        score: dayScore?.day_score ?? null,
-        mealsCount: dayScore?.meals_count || dayMeals.length,
-        kcalTotal: dayScore?.kcal_total || dayMeals.reduce((sum: number, m: any) => sum + (m.kcal || 0), 0),
-        proteinG: dayScore?.protein_g || dayMeals.reduce((sum: number, m: any) => sum + (m.protein_g || 0), 0),
-        carbsG: dayScore?.carbs_g || 0,
-        fiberG: dayScore?.fiber_g || dayMeals.reduce((sum: number, m: any) => sum + (m.fiber_g || 0), 0),
-        fatG: dayMeals.reduce((sum: number, m: any) => sum + (m.fat_g || 0), 0),
+        score: (dayScore?.day_score as number) ?? null,
+        mealsCount: (dayScore?.meals_count as number) || dayMeals.length,
+        kcalTotal: (dayScore?.kcal_total as number) || dayMeals.reduce((sum: number, m: Record<string, unknown>) => sum + ((m.kcal as number) || 0), 0),
+        proteinG: (dayScore?.protein_g as number) || dayMeals.reduce((sum: number, m: Record<string, unknown>) => sum + ((m.protein_g as number) || 0), 0),
+        carbsG: (dayScore?.carbs_g as number) || 0,
+        fiberG: (dayScore?.fiber_g as number) || dayMeals.reduce((sum: number, m: Record<string, unknown>) => sum + ((m.fiber_g as number) || 0), 0),
+        fatG: dayMeals.reduce((sum: number, m: Record<string, unknown>) => sum + ((m.fat_g as number) || 0), 0),
         season,
         sleepDurationMin: daySleep?.duration_minutes || null,
         sleepQuality: daySleep?.quality_score || null,
         lastMealTime: lastMeal,
         firstMealTime: firstMeal,
         eatingWindowMin,
-        upfDays: dayMeals.filter((m: any) => m.ultra_processed_level && m.ultra_processed_level >= 3).length > 0 ? 1 : 0,
-        energy: daySymptoms?.energy || null,
-        mood: daySymptoms?.mood || null,
-        cravings: daySymptoms?.cravings || null,
-        headache: daySymptoms?.headache || false,
-        anxiety: daySymptoms?.anxiety || false,
-        irritability: daySymptoms?.irritability || false,
-        bloating: daySymptoms?.bloating || false,
-        breastTender: daySymptoms?.breast_tender || false,
-        hotFlashes: daySymptoms?.hot_flashes || false,
+        upfDays: dayMeals.filter((m: Record<string, unknown>) => m.ultra_processed_level && (m.ultra_processed_level as number) >= 3).length > 0 ? 1 : 0,
+        energy: (daySymptoms?.energy as number) || null,
+        mood: (daySymptoms?.mood as number) || null,
+        cravings: (daySymptoms?.cravings as string) || null,
+        headache: (daySymptoms?.headache as boolean) || false,
+        anxiety: (daySymptoms?.anxiety as boolean) || false,
+        irritability: (daySymptoms?.irritability as boolean) || false,
+        bloating: (daySymptoms?.bloating as boolean) || false,
+        breastTender: (daySymptoms?.breast_tender as boolean) || false,
+        hotFlashes: (daySymptoms?.hot_flashes as boolean) || false,
       });
     }
   }

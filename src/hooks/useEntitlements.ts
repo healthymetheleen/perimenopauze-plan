@@ -39,14 +39,14 @@ export function useEntitlements() {
       
       // Fetch subscription, entitlements, and premium grant in parallel
       const [subResult, entResult, grantResult] = await Promise.all([
-        supabase.from('subscriptions').select('plan, status, created_at, trial_ends_at').eq('owner_id', user.id).maybeSingle(),
-        supabase.from('entitlements').select('*').eq('owner_id', user.id).maybeSingle(),
-        supabase.from('premium_grants').select('id, is_active, expires_at').eq('user_id', user.id).eq('is_active', true).maybeSingle(),
+        supabase.from('subscriptions').select('plan, status, created_at, trial_ends_at').eq('owner_id' as never, user.id as never).maybeSingle(),
+        supabase.from('entitlements').select('*').eq('owner_id' as never, user.id as never).maybeSingle(),
+        supabase.from('premium_grants').select('id, is_active, expires_at').eq('user_id' as never, user.id as never).eq('is_active' as never, true as never).maybeSingle(),
       ]);
       
-      const sub = subResult.data;
-      const ent = entResult.data;
-      const grant = grantResult.data;
+      const sub = subResult.data as unknown as { plan: string; status: string; created_at: string; trial_ends_at: string | null } | null;
+      const ent = entResult.data as unknown as { can_use_trends: boolean; can_use_patterns: boolean } | null;
+      const grant = grantResult.data as unknown as { id: string; is_active: boolean; expires_at: string | null } | null;
       
       // Check if user has active premium grant (not expired)
       const hasPremiumGrant = grant && grant.is_active && 
