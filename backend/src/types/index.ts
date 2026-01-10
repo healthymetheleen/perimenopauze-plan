@@ -10,6 +10,7 @@ export interface User {
   updated_at: Date;
   email_verified: boolean;
   is_premium: boolean;
+  is_admin: boolean;
 }
 
 export interface UserProfile {
@@ -29,6 +30,7 @@ export interface JWTPayload {
   userId: string;
   email: string;
   is_premium: boolean;
+  is_admin?: boolean;
 }
 
 export interface AuthRequest extends Request {

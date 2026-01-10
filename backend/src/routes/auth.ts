@@ -42,9 +42,9 @@ router.post('/signup', async (req, res: Response<ApiResponse>) => {
 
     // Create user
     const result = await query<User>(
-      `INSERT INTO users (email, password_hash, full_name, email_verified, is_premium)
-       VALUES ($1, $2, $3, false, false)
-       RETURNING id, email, full_name, created_at, is_premium`,
+      `INSERT INTO users (email, password_hash, full_name, email_verified, is_premium, is_admin)
+       VALUES ($1, $2, $3, false, false, false)
+       RETURNING id, email, full_name, created_at, is_premium, is_admin`,
       [email, password_hash, full_name || null]
     );
 
@@ -61,13 +61,15 @@ router.post('/signup', async (req, res: Response<ApiResponse>) => {
     const token = generateToken({
       userId: user.id,
       email: user.email,
-      is_premium: user.is_premium
+      is_premium: user.is_premium,
+      is_admin: user.is_admin || false
     });
 
     const refreshToken = generateRefreshToken({
       userId: user.id,
       email: user.email,
-      is_premium: user.is_premium
+      is_premium: user.is_premium,
+      is_admin: user.is_admin || false
     });
 
     return res.status(201).json({
@@ -77,7 +79,8 @@ router.post('/signup', async (req, res: Response<ApiResponse>) => {
           id: user.id,
           email: user.email,
           full_name: user.full_name,
-          is_premium: user.is_premium
+          is_premium: user.is_premium,
+          is_admin: user.is_admin || false
         },
         token,
         refreshToken
@@ -107,7 +110,7 @@ router.post('/login', async (req, res: Response<ApiResponse>) => {
 
     // Find user
     const result = await query<User>(
-      'SELECT id, email, password_hash, full_name, is_premium FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, full_name, is_premium, is_admin FROM users WHERE email = $1',
       [email]
     );
 
@@ -134,13 +137,15 @@ router.post('/login', async (req, res: Response<ApiResponse>) => {
     const token = generateToken({
       userId: user.id,
       email: user.email,
-      is_premium: user.is_premium
+      is_premium: user.is_premium,
+      is_admin: user.is_admin || false
     });
 
     const refreshToken = generateRefreshToken({
       userId: user.id,
       email: user.email,
-      is_premium: user.is_premium
+      is_premium: user.is_premium,
+      is_admin: user.is_admin || false
     });
 
     return res.json({
@@ -150,7 +155,8 @@ router.post('/login', async (req, res: Response<ApiResponse>) => {
           id: user.id,
           email: user.email,
           full_name: user.full_name,
-          is_premium: user.is_premium
+          is_premium: user.is_premium,
+          is_admin: user.is_admin || false
         },
         token,
         refreshToken
@@ -176,7 +182,7 @@ router.post('/login', async (req, res: Response<ApiResponse>) => {
 router.get('/me', authenticateToken, async (req: AuthRequest, res: Response<ApiResponse>) => {
   try {
     const result = await query<User & { profile: any }>(
-      `SELECT u.id, u.email, u.full_name, u.is_premium, u.created_at,
+      `SELECT u.id, u.email, u.full_name, u.is_premium, u.is_admin, u.created_at,
               json_build_object(
                 'date_of_birth', p.date_of_birth,
                 'height', p.height,
@@ -206,6 +212,7 @@ router.get('/me', authenticateToken, async (req: AuthRequest, res: Response<ApiR
         email: user.email,
         full_name: user.full_name,
         is_premium: user.is_premium,
+        is_admin: user.is_admin || false,
         created_at: user.created_at,
         profile: user.profile
       }

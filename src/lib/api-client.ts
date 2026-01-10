@@ -329,6 +329,68 @@ export const recipes = {
   },
 };
 
+// ============================================
+// ADMIN API
+// ============================================
+
+export const admin = {
+  // Get dashboard stats
+  getStats: async () => {
+    return apiFetch('/api/admin/stats');
+  },
+
+  // List all users
+  getUsers: async (page = 1, limit = 50, search = '') => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+      search,
+    });
+    return apiFetch(`/api/admin/users?${params}`);
+  },
+
+  // Get user details
+  getUser: async (userId: string) => {
+    return apiFetch(`/api/admin/users/${userId}`);
+  },
+
+  // Update user
+  updateUser: async (userId: string, data: { is_admin?: boolean; is_premium?: boolean; email_verified?: boolean }) => {
+    return apiFetch(`/api/admin/users/${userId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // Delete user
+  deleteUser: async (userId: string) => {
+    return apiFetch(`/api/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get all recipes
+  getRecipes: async () => {
+    return apiFetch('/api/admin/recipes');
+  },
+
+  // Delete recipe
+  deleteRecipe: async (recipeId: string) => {
+    return apiFetch(`/api/admin/recipes/${recipeId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // Get admin logs
+  getLogs: async (page = 1, limit = 50) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+    return apiFetch(`/api/admin/logs?${params}`);
+  },
+};
+
 // Export single API client
 export const api = {
   auth,
@@ -336,6 +398,7 @@ export const api = {
   cycle,
   profile,
   recipes,
+  admin,
 };
 
 export default api;

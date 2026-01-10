@@ -1,30 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/lib/auth';
+import { useAuth } from '@/lib/auth-new';
 
+/**
+ * Hook to check if current user is admin
+ * Returns the is_admin flag from the user object
+ */
 export function useIsAdmin() {
   const { user } = useAuth();
 
-  return useQuery({
-    queryKey: ['user-is-admin', user?.id],
-    queryFn: async (): Promise<boolean> => {
-      if (!user) return false;
-
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error checking admin role:', error);
-        return false;
-      }
-
-      return !!data;
-    },
-    enabled: !!user,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
-  });
+  return {
+    data: user?.is_admin || false,
+    isLoading: false,
+    error: null
+  };
 }

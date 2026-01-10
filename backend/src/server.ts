@@ -9,6 +9,7 @@ import profileRoutes from './routes/profile.js';
 import recipeRoutes from './routes/recipes.js';
 import aiChatRoutes from './routes/ai-chat.js';
 import paymentsRoutes from './routes/payments.js';
+import adminRoutes from './routes/admin.js';
 import pool from './config/database.js';
 
 // Load environment variables
@@ -46,6 +47,7 @@ app.use('/api/profile', profileRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/ai-chat', aiChatRoutes);
 app.use('/api/payments', paymentsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 handler
 app.use((req, res) => {

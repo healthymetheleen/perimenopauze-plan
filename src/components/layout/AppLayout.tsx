@@ -20,6 +20,7 @@ import {
   BookOpen,
   ShoppingBag,
   Bot,
+  Shield,
 } from 'lucide-react';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
@@ -58,7 +59,7 @@ const baseNavItems: NavItem[] = [
   { href: '/community', labelKey: 'nav.community', icon: <Users className="h-5 w-5" /> },
   { href: '/voeding-beheer', labelKey: 'nav.nutrition_goals', icon: <Settings className="h-5 w-5" />, adminOnly: true },
   { href: '/ai-instellingen', labelKey: 'nav.ai_settings', icon: <Bot className="h-5 w-5" />, adminOnly: true },
-  { href: '/admin', labelKey: 'nav.admin', icon: <BarChart3 className="h-5 w-5" />, adminOnly: true },
+  { href: '/admin', labelKey: 'nav.admin', icon: <Shield className="h-5 w-5" />, adminOnly: true },
   { href: '/account', labelKey: 'nav.account', icon: <User className="h-5 w-5" /> },
   { href: '/settings', labelKey: 'nav.settings', icon: <Settings className="h-5 w-5" /> },
 ];

@@ -33,6 +33,7 @@ const MeditationPage = lazy(() => import("./pages/Meditation"));
 const CommunityPage = lazy(() => import("./pages/Community"));
 const CommunityPostPage = lazy(() => import("./pages/CommunityPost"));
 const ContentAdminPage = lazy(() => import("./pages/ContentAdmin"));
+const AdminDashboard = lazy(() => import("./pages/Admin"));
 const InstallPage = lazy(() => import("./pages/Install"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const Terms = lazy(() => import("./pages/Terms"));
@@ -276,7 +277,7 @@ function AppRoutes() {
       } />
       <Route path="/admin" element={
         <ProtectedRoute>
-          <AdminDashboardPage />
+          <AdminDashboard />
         </ProtectedRoute>
       } />
       <Route path="/producten" element={
