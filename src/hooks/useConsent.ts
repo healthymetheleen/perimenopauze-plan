@@ -32,13 +32,13 @@ export function useConsent() {
       const { data, error } = await supabase
         .from('user_consents')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .maybeSingle();
       if (error) {
         console.error('Error fetching consent:', error);
         return null;
       }
-      return data;
+      return data as unknown as UserConsent | null;
     },
     enabled: !!user,
   });
@@ -71,7 +71,7 @@ export function useConsent() {
           terms_version: TERMS_VERSION,
           accepted_at: existingConsent?.accepted_at || new Date().toISOString(),
           updated_at: new Date().toISOString(),
-        },
+        } as never,
         { onConflict: 'owner_id' }
       );
       if (error) throw error;

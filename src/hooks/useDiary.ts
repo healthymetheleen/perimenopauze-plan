@@ -63,12 +63,12 @@ export function useDiaryDay(date: string) {
       const { data, error } = await supabase
         .from('diary_days')
         .select('*')
-        .eq('owner_id', user.id)
-        .eq('day_date', date)
+        .eq('owner_id' as never, user.id)
+        .eq('day_date' as never, date)
         .maybeSingle();
       
       if (error) throw error;
-      return data;
+      return data as unknown as DiaryDay | null;
     },
     enabled: !!user,
   });
@@ -83,12 +83,12 @@ export function useDiaryDay(date: string) {
           owner_id: user.id,
           day_date: date,
           timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-        })
+        } as never)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as unknown as DiaryDay;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['diary-day', user?.id, date] });
@@ -109,14 +109,14 @@ export function useMeals(dayId: string | null) {
       const { data, error } = await supabase
         .from('meals')
         .select('*')
-        .eq('day_id', dayId)
-        .eq('owner_id', user.id)
+        .eq('day_id' as never, dayId)
+        .eq('owner_id' as never, user.id)
         .order('time_local', { ascending: true });
       
       if (error) throw error;
       
-      // Map data to match Meal interface with properly typed quality_flags
-      return (data || []).map(meal => ({
+      const mealsData = data as unknown as Meal[];
+      return (mealsData || []).map(meal => ({
         id: meal.id,
         day_id: meal.day_id,
         time_local: meal.time_local,
@@ -145,12 +145,12 @@ export function useDailyScores(days: number = 7) {
       const { data, error } = await supabase
         .from('v_daily_scores')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .gte('day_date', startDate)
         .order('day_date', { ascending: false });
       
       if (error) throw error;
-      return data || [];
+      return (data as unknown as DailyScore[]) || [];
     },
     enabled: !!user,
   });

@@ -27,7 +27,7 @@ export function useCoachingPreferences() {
       const { data, error } = await supabase
         .from('coaching_preferences')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .maybeSingle();
 
       if (error) {
@@ -35,7 +35,7 @@ export function useCoachingPreferences() {
         return null;
       }
 
-      return data as CoachingPreferences | null;
+      return data as unknown as CoachingPreferences | null;
     },
     enabled: !!user,
   });
@@ -55,14 +55,14 @@ export function useUpdateCoachingPreferences() {
         .upsert({
           owner_id: user.id,
           ...updates,
-        }, {
+        } as never, {
           onConflict: 'owner_id',
         })
         .select()
         .single();
 
       if (error) throw error;
-      return data;
+      return data as unknown as CoachingPreferences;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coaching-preferences'] });
