@@ -121,11 +121,11 @@ export function useRecipes(filters?: {
       let query = supabase
         .from('recipes')
         .select('*')
-        .eq('is_published', true)
+        .eq('is_published' as never, true as never)
         .order('created_at', { ascending: false });
 
       if (filters?.mealType) {
-        query = query.eq('meal_type', filters.mealType);
+        query = query.eq('meal_type' as never, filters.mealType as never);
       }
       if (filters?.season) {
         query = query.contains('seasons', [filters.season]);
@@ -159,7 +159,7 @@ export function useRecipe(id: string | null) {
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .eq('id', id)
+        .eq('id' as never, id as never)
         .single();
       if (error) throw error;
       return data as unknown as Recipe;
@@ -178,7 +178,7 @@ export function useMyRecipes() {
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id as never)
         .order('created_at', { ascending: false });
       if (error) throw error;
       return data as unknown as Recipe[];
@@ -201,7 +201,7 @@ export function useCreateRecipe() {
           ...recipe,
           owner_id: user.id,
           ingredients: (recipe.ingredients || []) as unknown as Json,
-        })
+        } as never)
         .select()
         .single();
       if (error) throw error;
@@ -226,8 +226,8 @@ export function useUpdateRecipe() {
       };
       const { data, error } = await supabase
         .from('recipes')
-        .update(updateData)
-        .eq('id', id)
+        .update(updateData as never)
+        .eq('id' as never, id as never)
         .select()
         .single();
       if (error) throw error;
@@ -250,7 +250,7 @@ export function useDeleteRecipe() {
       const { error } = await supabase
         .from('recipes')
         .delete()
-        .eq('id', id);
+        .eq('id' as never, id as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -270,9 +270,9 @@ export function useBulkPublishRecipes() {
       if (!user) throw new Error('Niet ingelogd');
       const { error } = await supabase
         .from('recipes')
-        .update({ is_published: true })
-        .in('id', ids)
-        .eq('owner_id', user.id);
+        .update({ is_published: true } as never)
+        .in('id' as never, ids as never)
+        .eq('owner_id' as never, user.id as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -290,7 +290,7 @@ export function useSeasonRecipes(currentSeason: string) {
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .eq('is_published', true)
+        .eq('is_published' as never, true as never)
         .contains('seasons', [currentSeason])
         .limit(6);
       if (error) throw error;
@@ -308,7 +308,7 @@ export function useCyclePhaseRecipes(cyclePhase: string) {
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .eq('is_published', true)
+        .eq('is_published' as never, true as never)
         .contains('cycle_phases', [cyclePhase])
         .limit(6);
       if (error) throw error;
@@ -330,9 +330,10 @@ export function useFavoriteIds() {
       const { data, error } = await supabase
         .from('recipe_favorites')
         .select('recipe_id')
-        .eq('owner_id', user.id);
+        .eq('owner_id' as never, user.id as never);
       if (error) throw error;
-      return data.map(f => f.recipe_id);
+      const typedData = data as unknown as { recipe_id: string }[];
+      return typedData.map(f => f.recipe_id);
     },
     enabled: !!user,
   });
@@ -348,17 +349,18 @@ export function useFavoriteRecipes() {
       const { data: favorites, error: favError } = await supabase
         .from('recipe_favorites')
         .select('recipe_id')
-        .eq('owner_id', user.id);
+        .eq('owner_id' as never, user.id as never);
       if (favError) throw favError;
       
-      if (favorites.length === 0) return [];
+      const typedFavorites = favorites as unknown as { recipe_id: string }[];
+      if (typedFavorites.length === 0) return [];
       
-      const recipeIds = favorites.map(f => f.recipe_id);
+      const recipeIds = typedFavorites.map(f => f.recipe_id);
       const { data, error } = await supabase
         .from('recipes')
         .select('*')
-        .in('id', recipeIds)
-        .eq('is_published', true);
+        .in('id' as never, recipeIds as never)
+        .eq('is_published' as never, true as never);
       if (error) throw error;
       return data as unknown as Recipe[];
     },
@@ -376,7 +378,7 @@ export function useAddFavorite() {
       if (!user) throw new Error('Niet ingelogd');
       const { error } = await supabase
         .from('recipe_favorites')
-        .insert({ owner_id: user.id, recipe_id: recipeId });
+        .insert({ owner_id: user.id, recipe_id: recipeId } as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -397,8 +399,8 @@ export function useRemoveFavorite() {
       const { error } = await supabase
         .from('recipe_favorites')
         .delete()
-        .eq('owner_id', user.id)
-        .eq('recipe_id', recipeId);
+        .eq('owner_id' as never, user.id as never)
+        .eq('recipe_id' as never, recipeId as never);
       if (error) throw error;
     },
     onSuccess: () => {

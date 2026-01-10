@@ -38,11 +38,11 @@ export function useProfile() {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user.id)
+        .eq('id' as never, user.id as never)
         .maybeSingle();
 
       if (error) throw error;
-      return data as UserProfile | null;
+      return (data as unknown as UserProfile) || null;
     },
     enabled: !!user,
   });
@@ -51,9 +51,9 @@ export function useProfile() {
     mutationFn: async (updates: ProfileUpdate): Promise<UserProfile> => {
       if (!user) throw new Error('Not authenticated');
 
-      const payload: TablesInsert<'profiles'> = {
+      const payload = {
         id: user.id,
-        ...(updates as Omit<TablesInsert<'profiles'>, 'id'>),
+        ...updates,
       };
 
       // Add consent timestamp if body data consent is being given
@@ -63,12 +63,12 @@ export function useProfile() {
 
       const { data, error } = await supabase
         .from('profiles')
-        .upsert(payload, { onConflict: 'id' })
+        .upsert(payload as never, { onConflict: 'id' })
         .select('*')
         .single();
 
       if (error) throw error;
-      return data as UserProfile;
+      return data as unknown as UserProfile;
     },
     onSuccess: (data) => {
       queryClient.setQueryData(['profile', user?.id], data);

@@ -109,11 +109,11 @@ export function usePerimenopauseTests() {
       const { data, error } = await supabase
         .from('perimenopause_tests')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id as never)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as TestResult[];
+      return ((data || []) as unknown as TestResult[]);
     },
     enabled: !!user,
   });
@@ -130,13 +130,13 @@ export function useLatestTest() {
       const { data, error } = await supabase
         .from('perimenopause_tests')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id as never)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) throw error;
-      return data as TestResult | null;
+      return (data as unknown as TestResult) || null;
     },
     enabled: !!user,
   });
@@ -170,12 +170,12 @@ export function useSaveTestResult() {
           total_score: totalScore,
           result_category: resultCategory,
           answers,
-        })
+        } as never)
         .select()
         .single();
 
       if (error) throw error;
-      return data as TestResult;
+      return data as unknown as TestResult;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['perimenopause-tests'] });
@@ -192,7 +192,7 @@ export function useDeleteTestResult() {
       const { error } = await supabase
         .from('perimenopause_tests')
         .delete()
-        .eq('id', testId);
+        .eq('id' as never, testId as never);
 
       if (error) throw error;
     },

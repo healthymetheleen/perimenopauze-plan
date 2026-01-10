@@ -90,14 +90,14 @@ export function useExercisesFromDb() {
       const { data, error } = await supabase
         .from('exercises')
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active' as never, true as never)
         .order('cycle_phase')
         .order('sort_order');
 
       if (error) throw error;
       
       // Add local images as fallback
-      return (data as DbExercise[]).map(exercise => ({
+      return ((data as unknown as DbExercise[]) || []).map(exercise => ({
         ...exercise,
         image_url: getExerciseImage(exercise.name, exercise.image_url),
       }));

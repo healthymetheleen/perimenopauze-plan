@@ -49,10 +49,12 @@ export function useNutritionSettings() {
       const { data, error } = await supabase
         .from('nutrition_settings')
         .select('*')
-        .eq('id', SETTINGS_ID)
+        .eq('id' as never, SETTINGS_ID as never)
         .single();
 
       if (error) throw error;
+      
+      const typedData = data as unknown as Record<string, unknown>;
       
       // Parse JSONB fields safely
       const parseJsonArray = (val: unknown): string[] => {
@@ -63,22 +65,29 @@ export function useNutritionSettings() {
       };
 
       return {
-        ...data,
-        target_protein_per_kg: data.target_protein_per_kg ?? 1.6,
-        target_sleep_hours: data.target_sleep_hours ?? 8.0,
-        target_eating_window_hours: data.target_eating_window_hours ?? 10,
-        coaching_style: data.coaching_style ?? 'empathisch',
-        coaching_tone: data.coaching_tone ?? 'vriendelijk',
-        coaching_context: data.coaching_context ?? null,
-        diet_vision: data.diet_vision ?? '',
-        app_philosophy: data.app_philosophy ?? '',
-        important_points: parseJsonArray(data.important_points),
-        less_important_points: parseJsonArray(data.less_important_points),
-        no_go_items: parseJsonArray(data.no_go_items),
-        prefer_ingredients: parseJsonArray(data.prefer_ingredients),
-        avoid_ingredients: parseJsonArray(data.avoid_ingredients),
-        supplement_recommendations: parseJsonArray(data.supplement_recommendations),
-        perimenopause_focus: parseJsonArray(data.perimenopause_focus),
+        id: typedData.id as string,
+        target_kcal: typedData.target_kcal as number,
+        target_protein_g: typedData.target_protein_g as number,
+        target_carbs_g: typedData.target_carbs_g as number,
+        target_fat_g: typedData.target_fat_g as number,
+        target_fiber_g: typedData.target_fiber_g as number,
+        target_protein_per_kg: (typedData.target_protein_per_kg as number) ?? 1.6,
+        target_sleep_hours: (typedData.target_sleep_hours as number) ?? 8.0,
+        target_eating_window_hours: (typedData.target_eating_window_hours as number) ?? 10,
+        coaching_style: (typedData.coaching_style as string) ?? 'empathisch',
+        coaching_tone: (typedData.coaching_tone as string) ?? 'vriendelijk',
+        coaching_context: (typedData.coaching_context as string | null) ?? null,
+        diet_vision: (typedData.diet_vision as string) ?? '',
+        app_philosophy: (typedData.app_philosophy as string) ?? '',
+        important_points: parseJsonArray(typedData.important_points),
+        less_important_points: parseJsonArray(typedData.less_important_points),
+        no_go_items: parseJsonArray(typedData.no_go_items),
+        prefer_ingredients: parseJsonArray(typedData.prefer_ingredients),
+        avoid_ingredients: parseJsonArray(typedData.avoid_ingredients),
+        supplement_recommendations: parseJsonArray(typedData.supplement_recommendations),
+        perimenopause_focus: parseJsonArray(typedData.perimenopause_focus),
+        created_at: typedData.created_at as string,
+        updated_at: typedData.updated_at as string,
       };
     },
     enabled: !!user,
@@ -95,8 +104,8 @@ export function useUpdateNutritionSettings() {
 
       const { error } = await supabase
         .from('nutrition_settings')
-        .update(settings)
-        .eq('id', SETTINGS_ID);
+        .update(settings as never)
+        .eq('id' as never, SETTINGS_ID as never);
 
       if (error) throw error;
     },

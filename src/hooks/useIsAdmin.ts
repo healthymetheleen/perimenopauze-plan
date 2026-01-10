@@ -13,8 +13,8 @@ export function useIsAdmin() {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .eq('role', 'admin')
+        .eq('user_id' as never, user.id as never)
+        .eq('role' as never, 'admin' as never)
         .maybeSingle();
 
       if (error) {

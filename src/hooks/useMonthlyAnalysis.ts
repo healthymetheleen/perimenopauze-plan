@@ -38,18 +38,18 @@ export function useSavedMonthlyAnalysis(monthDate?: Date) {
       const { data, error } = await supabase
         .from('ai_insights_cache')
         .select('insight_data, created_at')
-        .eq('owner_id', user.id)
-        .eq('insight_type', 'monthly-analysis')
-        .eq('insight_date', monthKey)
+        .eq('owner_id' as never, user.id as never)
+        .eq('insight_type' as never, 'monthly-analysis' as never)
+        .eq('insight_date' as never, monthKey as never)
         .maybeSingle();
 
       if (error) throw error;
       if (!data) return null;
 
-      const insightData = data.insight_data as Record<string, unknown>;
+      const typedData = data as unknown as { insight_data: Record<string, unknown>; created_at: string };
       return {
-        ...insightData,
-        generatedAt: data.created_at,
+        ...typedData.insight_data,
+        generatedAt: typedData.created_at,
       } as MonthlyAnalysis;
     },
     enabled: !!user,
@@ -69,8 +69,8 @@ export function useMonthlyAnalysisList() {
       const { data, error } = await supabase
         .from('ai_insights_cache')
         .select('id, insight_date, created_at')
-        .eq('owner_id', user.id)
-        .eq('insight_type', 'monthly-analysis')
+        .eq('owner_id' as never, user.id as never)
+        .eq('insight_type' as never, 'monthly-analysis' as never)
         .order('insight_date', { ascending: false })
         .limit(12);
 
@@ -123,9 +123,9 @@ export function useCanGenerateMonthlyAnalysis() {
       const { data } = await supabase
         .from('ai_insights_cache')
         .select('id')
-        .eq('owner_id', user.id)
-        .eq('insight_type', 'monthly-analysis')
-        .eq('insight_date', monthKey)
+        .eq('owner_id' as never, user.id as never)
+        .eq('insight_type' as never, 'monthly-analysis' as never)
+        .eq('insight_date' as never, monthKey as never)
         .maybeSingle();
 
       return !data; // Can generate if no analysis exists for this month
