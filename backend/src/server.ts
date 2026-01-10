@@ -7,6 +7,8 @@ import diaryRoutes from './routes/diary.js';
 import cycleRoutes from './routes/cycle.js';
 import profileRoutes from './routes/profile.js';
 import recipeRoutes from './routes/recipes.js';
+import aiChatRoutes from './routes/ai-chat.js';
+import paymentsRoutes from './routes/payments.js';
 import pool from './config/database.js';
 
 // Load environment variables
@@ -42,6 +44,8 @@ app.use('/api/diary', diaryRoutes);
 app.use('/api/cycle', cycleRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/recipes', recipeRoutes);
+app.use('/api/ai-chat', aiChatRoutes);
+app.use('/api/payments', paymentsRoutes);
 
 // 404 handler
 app.use((req, res) => {
