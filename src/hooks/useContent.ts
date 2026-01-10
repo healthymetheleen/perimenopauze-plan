@@ -45,16 +45,16 @@ export function useMeditations(category?: string) {
       let query = supabase
         .from('meditations')
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active' as never, true)
         .order('sort_order', { ascending: true });
       
       if (category) {
-        query = query.eq('category', category);
+        query = query.eq('category' as never, category);
       }
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as Meditation[];
+      return data as unknown as Meditation[];
     },
   });
 }
@@ -71,7 +71,7 @@ export function useAdminMeditations() {
         .order('sort_order', { ascending: true });
       
       if (error) throw error;
-      return data as Meditation[];
+      return data as unknown as Meditation[];
     },
   });
 }
@@ -84,16 +84,16 @@ export function useExercises(phase?: string) {
       let query = supabase
         .from('exercises')
         .select('*')
-        .eq('is_active', true)
+        .eq('is_active' as never, true)
         .order('sort_order', { ascending: true });
       
       if (phase) {
-        query = query.eq('cycle_phase', phase);
+        query = query.eq('cycle_phase' as never, phase);
       }
       
       const { data, error } = await query;
       if (error) throw error;
-      return data as Exercise[];
+      return data as unknown as Exercise[];
     },
   });
 }
@@ -110,7 +110,7 @@ export function useAdminExercises() {
         .order('sort_order', { ascending: true });
       
       if (error) throw error;
-      return data as Exercise[];
+      return data as unknown as Exercise[];
     },
   });
 }
@@ -123,12 +123,12 @@ export function useCreateMeditation() {
     mutationFn: async (meditation: MeditationInsert) => {
       const { data, error } = await supabase
         .from('meditations')
-        .insert(meditation)
+        .insert(meditation as never)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as unknown as Meditation;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meditations'] });
@@ -144,13 +144,13 @@ export function useUpdateMeditation() {
     mutationFn: async ({ id, ...meditation }: Partial<Meditation> & { id: string }) => {
       const { data, error } = await supabase
         .from('meditations')
-        .update(meditation)
-        .eq('id', id)
+        .update(meditation as never)
+        .eq('id' as never, id)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as unknown as Meditation;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['meditations'] });
@@ -167,7 +167,7 @@ export function useDeleteMeditation() {
       const { error } = await supabase
         .from('meditations')
         .delete()
-        .eq('id', id);
+        .eq('id' as never, id);
       
       if (error) throw error;
     },
@@ -186,12 +186,12 @@ export function useCreateExercise() {
     mutationFn: async (exercise: ExerciseInsert) => {
       const { data, error } = await supabase
         .from('exercises')
-        .insert(exercise)
+        .insert(exercise as never)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as unknown as Exercise;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
@@ -207,13 +207,13 @@ export function useUpdateExercise() {
     mutationFn: async ({ id, ...exercise }: Partial<Exercise> & { id: string }) => {
       const { data, error } = await supabase
         .from('exercises')
-        .update(exercise)
-        .eq('id', id)
+        .update(exercise as never)
+        .eq('id' as never, id)
         .select()
         .single();
       
       if (error) throw error;
-      return data;
+      return data as unknown as Exercise;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] });
@@ -230,7 +230,7 @@ export function useDeleteExercise() {
       const { error } = await supabase
         .from('exercises')
         .delete()
-        .eq('id', id);
+        .eq('id' as never, id);
       
       if (error) throw error;
     },

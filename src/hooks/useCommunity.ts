@@ -53,15 +53,17 @@ export function useCommunityPosts(category?: string, language?: string) {
         .order('created_at', { ascending: false });
 
       if (category && category !== 'alle') {
-        query = query.eq('category', category);
+        query = query.eq('category' as never, category);
       }
 
       if (language && language !== 'alle') {
-        query = query.eq('language', language);
+        query = query.eq('language' as never, language);
       }
 
       const { data: posts, error } = await query;
       if (error) throw error;
+
+      const postsData = posts as unknown as CommunityPost[];
 
       // Get user's likes if logged in
       let userLikes: string[] = [];
@@ -69,24 +71,25 @@ export function useCommunityPosts(category?: string, language?: string) {
         const { data: likes } = await supabase
           .from('community_likes')
           .select('post_id')
-          .eq('owner_id', user.id);
-        userLikes = likes?.map(l => l.post_id) || [];
+          .eq('owner_id' as never, user.id);
+        userLikes = (likes as unknown as { post_id: string }[])?.map(l => l.post_id) || [];
       }
 
       // Get author names for non-anonymous posts (owner_id is null for anonymous in the view)
-      const ownerIds = [...new Set(posts?.filter(p => p.owner_id).map(p => p.owner_id) || [])];
+      const ownerIds = [...new Set(postsData?.filter(p => p.owner_id).map(p => p.owner_id) || [])];
       let profiles: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('id, display_name')
-          .in('id', ownerIds);
+          .in('id' as never, ownerIds as never);
+        const profilesData = profileData as unknown as { id: string; display_name: string }[];
         profiles = Object.fromEntries(
-          profileData?.map(p => [p.id, p.display_name || 'Anoniem']) || []
+          profilesData?.map(p => [p.id, p.display_name || 'Anoniem']) || []
         );
       }
 
-      return (posts || []).map(post => ({
+      return (postsData || []).map(post => ({
         ...post,
         owner_id: post.owner_id || '', // Ensure owner_id is always defined for type safety
         author_name: !post.owner_id ? 'Anoniem' : (profiles[post.owner_id] || 'Gebruiker'),
@@ -106,11 +109,13 @@ export function useCommunityPost(postId: string) {
       const { data: post, error } = await supabase
         .from('v_community_posts')
         .select('*')
-        .eq('id', postId)
+        .eq('id' as never, postId)
         .single();
 
       if (error) throw error;
       if (!post) return null;
+
+      const postData = post as unknown as CommunityPost;
 
       // Check if user liked
       let hasLiked = false;
@@ -118,26 +123,27 @@ export function useCommunityPost(postId: string) {
         const { data: like } = await supabase
           .from('community_likes')
           .select('id')
-          .eq('post_id', postId)
-          .eq('owner_id', user.id)
+          .eq('post_id' as never, postId)
+          .eq('owner_id' as never, user.id)
           .maybeSingle();
         hasLiked = !!like;
       }
 
       // Get author name (owner_id is null for anonymous in the view)
       let authorName = 'Anoniem';
-      if (post.owner_id) {
+      if (postData.owner_id) {
         const { data: profile } = await supabase
           .from('profiles')
           .select('display_name')
-          .eq('id', post.owner_id)
+          .eq('id' as never, postData.owner_id)
           .single();
-        authorName = profile?.display_name || 'Gebruiker';
+        const profileData = profile as unknown as { display_name: string } | null;
+        authorName = profileData?.display_name || 'Gebruiker';
       }
 
       return {
-        ...post,
-        owner_id: post.owner_id || '', // Ensure owner_id is always defined for type safety
+        ...postData,
+        owner_id: postData.owner_id || '', // Ensure owner_id is always defined for type safety
         author_name: authorName,
         has_liked: hasLiked,
       };
@@ -154,25 +160,28 @@ export function usePostComments(postId: string) {
       const { data: comments, error } = await supabase
         .from('v_community_comments')
         .select('*')
-        .eq('post_id', postId)
+        .eq('post_id' as never, postId)
         .order('created_at', { ascending: true });
 
       if (error) throw error;
 
+      const commentsData = comments as unknown as CommunityComment[];
+
       // Get author names (owner_id is null for anonymous in the view)
-      const ownerIds = [...new Set(comments?.filter(c => c.owner_id).map(c => c.owner_id) || [])];
+      const ownerIds = [...new Set(commentsData?.filter(c => c.owner_id).map(c => c.owner_id) || [])];
       let profiles: Record<string, string> = {};
       if (ownerIds.length > 0) {
         const { data: profileData } = await supabase
           .from('profiles')
           .select('id, display_name')
-          .in('id', ownerIds);
+          .in('id' as never, ownerIds as never);
+        const profilesData = profileData as unknown as { id: string; display_name: string }[];
         profiles = Object.fromEntries(
-          profileData?.map(p => [p.id, p.display_name || 'Anoniem']) || []
+          profilesData?.map(p => [p.id, p.display_name || 'Anoniem']) || []
         );
       }
 
-      return (comments || []).map(comment => ({
+      return (commentsData || []).map(comment => ({
         ...comment,
         owner_id: comment.owner_id || '', // Ensure owner_id is always defined for type safety
         author_name: !comment.owner_id ? 'Anoniem' : (profiles[comment.owner_id] || 'Gebruiker'),
@@ -199,12 +208,12 @@ export function useCreatePost() {
           category: data.category,
           language: data.language,
           is_anonymous: data.is_anonymous,
-        })
+        } as never)
         .select()
         .single();
 
       if (error) throw error;
-      return post;
+      return post as unknown as CommunityPost;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['community-posts'] });
@@ -227,12 +236,12 @@ export function useCreateComment() {
           owner_id: user.id,
           content: data.content,
           is_anonymous: data.is_anonymous,
-        })
+        } as never)
         .select()
         .single();
 
       if (error) throw error;
-      return comment;
+      return comment as unknown as CommunityComment;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['community-comments', variables.post_id] });
@@ -254,23 +263,25 @@ export function useToggleLike() {
       const { data: existingLike } = await supabase
         .from('community_likes')
         .select('id')
-        .eq('post_id', postId)
-        .eq('owner_id', user.id)
+        .eq('post_id' as never, postId)
+        .eq('owner_id' as never, user.id)
         .maybeSingle();
 
-      if (existingLike) {
+      const likeData = existingLike as unknown as { id: string } | null;
+
+      if (likeData) {
         // Unlike
         const { error } = await supabase
           .from('community_likes')
           .delete()
-          .eq('id', existingLike.id);
+          .eq('id' as never, likeData.id);
         if (error) throw error;
         return { liked: false };
       } else {
         // Like
         const { error } = await supabase
           .from('community_likes')
-          .insert({ post_id: postId, owner_id: user.id });
+          .insert({ post_id: postId, owner_id: user.id } as never);
         if (error) throw error;
         return { liked: true };
       }
@@ -293,8 +304,8 @@ export function useDeletePost() {
       const { error } = await supabase
         .from('community_posts')
         .delete()
-        .eq('id', postId)
-        .eq('owner_id', user.id);
+        .eq('id' as never, postId)
+        .eq('owner_id' as never, user.id);
 
       if (error) throw error;
     },

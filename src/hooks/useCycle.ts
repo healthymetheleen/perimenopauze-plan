@@ -183,10 +183,10 @@ export function useCyclePreferences() {
       const { data, error } = await supabase
         .from('cycle_preferences')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .maybeSingle();
       if (error) throw error;
-      return data;
+      return data as unknown as CyclePreferences | null;
     },
     enabled: !!user,
   });
@@ -196,7 +196,7 @@ export function useCyclePreferences() {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase
         .from('cycle_preferences')
-        .upsert({ owner_id: user.id, ...prefs }, { onConflict: 'owner_id' });
+        .upsert({ owner_id: user.id, ...prefs } as never, { onConflict: 'owner_id' });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -217,11 +217,11 @@ export function useCycles(limit = 6) {
       const { data, error } = await supabase
         .from('cycles')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .order('start_date', { ascending: false })
         .limit(limit);
       if (error) throw error;
-      return data || [];
+      return (data as unknown as Cycle[]) || [];
     },
     enabled: !!user,
   });
@@ -238,11 +238,11 @@ export function useBleedingLogs(days = 90) {
       const { data, error } = await supabase
         .from('bleeding_logs')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .gte('log_date', startDate)
         .order('log_date', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data as unknown as BleedingLog[]) || [];
     },
     enabled: !!user,
   });
@@ -259,11 +259,11 @@ export function useCycleSymptomLogs(days = 90) {
       const { data, error } = await supabase
         .from('cycle_symptom_logs')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .gte('log_date', startDate)
         .order('log_date', { ascending: false });
       if (error) throw error;
-      return data || [];
+      return (data as unknown as CycleSymptomLog[]) || [];
     },
     enabled: !!user,
   });
@@ -295,7 +295,7 @@ export function useLatestPrediction() {
       const { data: stored } = await supabase
         .from('cycle_predictions')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .order('generated_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -309,17 +309,18 @@ export function useLatestPrediction() {
         );
         
         // Return calculated prediction merged with any stored AI tips
+        const storedData = stored as unknown as CyclePrediction | null;
         return {
-          id: stored?.id || 'calculated',
+          id: storedData?.id || 'calculated',
           owner_id: user.id,
           generated_at: new Date().toISOString(),
           ...calculated,
-          ai_tips: stored?.ai_tips || calculated.ai_tips,
+          ai_tips: storedData?.ai_tips || calculated.ai_tips,
           watchouts: calculated.watchouts,
         } as CyclePrediction;
       }
       
-      return stored;
+      return stored as unknown as CyclePrediction | null;
     },
     enabled: !!user,
     // Ensure stale data is refetched quickly after navigation
@@ -337,7 +338,7 @@ export function useLogBleeding() {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase
         .from('bleeding_logs')
-        .upsert({ owner_id: user.id, ...log }, { onConflict: 'owner_id,log_date' });
+        .upsert({ owner_id: user.id, ...log } as never, { onConflict: 'owner_id,log_date' });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -357,8 +358,8 @@ export function useDeleteBleeding() {
       const { error } = await supabase
         .from('bleeding_logs')
         .delete()
-        .eq('owner_id', user.id)
-        .eq('log_date', logDate);
+        .eq('owner_id' as never, user.id)
+        .eq('log_date' as never, logDate);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -379,7 +380,7 @@ export function useDeleteAllBleeding() {
       const { error } = await supabase
         .from('bleeding_logs')
         .delete()
-        .eq('owner_id', user.id);
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -399,7 +400,7 @@ export function useLogCycleSymptoms() {
       if (!user) throw new Error('Not authenticated');
       const { error } = await supabase
         .from('cycle_symptom_logs')
-        .upsert({ owner_id: user.id, ...log }, { onConflict: 'owner_id,log_date' });
+        .upsert({ owner_id: user.id, ...log } as never, { onConflict: 'owner_id,log_date' });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -420,14 +421,16 @@ export function useStartCycle() {
       const { data: lastCycle } = await supabase
         .from('cycles')
         .select('*')
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .is('end_date', null)
         .order('start_date', { ascending: false })
         .limit(1)
         .maybeSingle();
 
-      if (lastCycle) {
-        const cycleLength = differenceInDays(new Date(startDate), new Date(lastCycle.start_date));
+      const lastCycleData = lastCycle as unknown as Cycle | null;
+
+      if (lastCycleData) {
+        const cycleLength = differenceInDays(new Date(startDate), new Date(lastCycleData.start_date));
         
         // Only update previous cycle if the new start date creates a valid cycle (min 7 days)
         // If less than 7 days, we assume user is correcting the previous entry
@@ -438,29 +441,29 @@ export function useStartCycle() {
               end_date: format(subDays(new Date(startDate), 1), 'yyyy-MM-dd'),
               computed_cycle_length: cycleLength,
               is_anovulatory: cycleLength > 45,
-            })
-            .eq('id', lastCycle.id);
+            } as never)
+            .eq('id' as never, lastCycleData.id);
         } else {
           // If new date is too close to previous cycle start, delete the old one
           // This handles the case where user is correcting a mistake
           await supabase
             .from('cycles')
             .delete()
-            .eq('id', lastCycle.id);
+            .eq('id' as never, lastCycleData.id);
           
           // Also remove bleeding log for old date
           await supabase
             .from('bleeding_logs')
             .delete()
-            .eq('owner_id', user.id)
-            .eq('log_date', lastCycle.start_date);
+            .eq('owner_id' as never, user.id)
+            .eq('log_date' as never, lastCycleData.start_date);
         }
       }
 
       // Start new cycle
       const { error } = await supabase
         .from('cycles')
-        .insert({ owner_id: user.id, start_date: startDate });
+        .insert({ owner_id: user.id, start_date: startDate } as never);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -483,26 +486,27 @@ export function useDeleteCycle() {
       const { data: cycle } = await supabase
         .from('cycles')
         .select('start_date')
-        .eq('id', cycleId)
-        .eq('owner_id', user.id)
+        .eq('id' as never, cycleId)
+        .eq('owner_id' as never, user.id)
         .single();
       
-      if (!cycle) throw new Error('Cycle not found');
+      const cycleData = cycle as unknown as { start_date: string } | null;
+      if (!cycleData) throw new Error('Cycle not found');
       
       // Delete the cycle
       const { error } = await supabase
         .from('cycles')
         .delete()
-        .eq('id', cycleId)
-        .eq('owner_id', user.id);
+        .eq('id' as never, cycleId)
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
       
       // Also delete the bleeding log for that start date
       await supabase
         .from('bleeding_logs')
         .delete()
-        .eq('owner_id', user.id)
-        .eq('log_date', cycle.start_date);
+        .eq('owner_id' as never, user.id)
+        .eq('log_date' as never, cycleData.start_date);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['cycles'] });
@@ -523,22 +527,22 @@ export function useUpdateCycleStartDate() {
       // Update cycle start date
       const { error } = await supabase
         .from('cycles')
-        .update({ start_date: newStartDate })
-        .eq('id', cycleId)
-        .eq('owner_id', user.id);
+        .update({ start_date: newStartDate } as never)
+        .eq('id' as never, cycleId)
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
       
       // Update bleeding log from old date to new date
       await supabase
         .from('bleeding_logs')
         .delete()
-        .eq('owner_id', user.id)
-        .eq('log_date', oldStartDate);
+        .eq('owner_id' as never, user.id)
+        .eq('log_date' as never, oldStartDate);
       
       await supabase
         .from('bleeding_logs')
         .upsert(
-          { owner_id: user.id, log_date: newStartDate, intensity: 'normaal' },
+          { owner_id: user.id, log_date: newStartDate, intensity: 'normaal' } as never,
           { onConflict: 'owner_id,log_date' }
         );
     },
