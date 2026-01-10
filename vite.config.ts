@@ -55,6 +55,35 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff2}"],
+        // Exclude Supabase and external API URLs from service worker caching
+        navigateFallbackDenylist: [/^\/api\//, /supabase\.co/],
+        runtimeCaching: [
+          {
+            // Cache static assets
+            urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+              },
+              cacheableResponse: {
+                statuses: [0, 200],
+              },
+            },
+          },
+          {
+            // Never cache Supabase auth/API requests - always go to network
+            urlPattern: /^https:\/\/.*\.supabase\.co\/.*/i,
+            handler: 'NetworkOnly',
+          },
+          {
+            // Never cache other external APIs
+            urlPattern: /^https:\/\/api\.(mollie|resend)\.com\/.*/i,
+            handler: 'NetworkOnly',
+          },
+        ],
       },
     }),
     Sitemap({

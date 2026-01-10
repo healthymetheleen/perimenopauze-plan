@@ -1,5 +1,21 @@
 project_id = "rfvvpfvrxxodslzdqgll"
 
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[auth]
+enabled = true
+site_url = "https://www.perimenopauzeplan.nl"
+additional_redirect_urls = ["https://perimenopauzeplan.nl", "http://localhost:5173", "http://localhost:3000"]
+jwt_expiry = 3600
+enable_signup = true
+email_double_confirm_changes = true
+enable_anonymous_sign_ins = false
+
 [functions.analyze-meal]
 verify_jwt = false
 
