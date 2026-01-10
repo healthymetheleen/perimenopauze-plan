@@ -55,11 +55,11 @@ export function ContextDialog({ open, onOpenChange, dayId }: ContextDialogProps)
       const { data, error } = await supabase
         .from('daily_context')
         .select('*')
-        .eq('day_id', dayId)
-        .eq('owner_id', user.id)
+        .eq('day_id' as never, dayId)
+        .eq('owner_id' as never, user.id)
         .maybeSingle();
       if (error) throw error;
-      return data as DailyContext | null;
+      return data as unknown as DailyContext | null;
     },
     enabled: !!user && !!dayId && open,
   });
@@ -94,13 +94,13 @@ export function ContextDialog({ open, onOpenChange, dayId }: ContextDialogProps)
       if (existingContext?.id) {
         const { error } = await supabase
           .from('daily_context')
-          .update(contextData)
-          .eq('id', existingContext.id);
+          .update(contextData as never)
+          .eq('id' as never, existingContext.id);
         if (error) throw error;
       } else {
         const { error } = await supabase
           .from('daily_context')
-          .insert(contextData);
+          .insert(contextData as never);
         if (error) throw error;
       }
     },

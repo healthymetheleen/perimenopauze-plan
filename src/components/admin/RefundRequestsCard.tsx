@@ -93,7 +93,7 @@ export function RefundRequestsCard() {
         .order('created_at', { ascending: false });
       
       if (error) throw error;
-      return data as RefundRequest[];
+      return (data as unknown as RefundRequest[]) ?? [];
     },
   });
 

@@ -19,7 +19,7 @@ export function useAIUsage() {
       const { count, error } = await supabase
         .from('ai_usage')
         .select('*', { count: 'exact', head: true })
-        .eq('owner_id', user.id)
+        .eq('owner_id' as never, user.id)
         .gte('created_at', `${today}T00:00:00Z`);
       
       if (error) throw error;
@@ -48,7 +48,7 @@ export async function trackAIUsage(functionName: string): Promise<boolean> {
   const { count, error: countError } = await supabase
     .from('ai_usage')
     .select('*', { count: 'exact', head: true })
-    .eq('owner_id', userData.user.id)
+    .eq('owner_id' as never, userData.user.id)
     .gte('created_at', `${today}T00:00:00Z`);
 
   if (countError || (count || 0) >= DAILY_AI_LIMIT) {

@@ -169,27 +169,27 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
     const { data: existingDay } = await supabase
       .from('diary_days')
       .select('id')
-      .eq('owner_id', user.id)
-      .eq('day_date', date)
+      .eq('owner_id' as never, user.id)
+      .eq('day_date' as never, date)
       .maybeSingle();
     
-    if (existingDay) {
-      return existingDay.id;
+    if (existingDay && typeof existingDay === 'object' && 'id' in existingDay) {
+      return (existingDay as { id: string }).id;
     }
     
     // Create new day
     const { data: newDay, error } = await supabase
       .from('diary_days')
-      .insert([{
+      .insert({
         owner_id: user.id,
         day_date: date,
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
-      }])
+      } as never)
       .select('id')
       .single();
     
     if (error) throw error;
-    return newDay.id;
+    return (newDay as unknown as { id: string }).id;
   };
 
   const handleDateChange = async (newDate: string) => {
@@ -537,21 +537,19 @@ export function AddMealDialog({ open, onOpenChange, dayId: initialDayId, selecte
 
       const { error } = await supabase
         .from('meals')
-        .insert([
-          {
-            owner_id: user.id,
-            day_id: dayIdToUse,
-            time_local: time,
-            kcal: editableAnalysis.kcal,
-            protein_g: editableAnalysis.protein_g,
-            carbs_g: editableAnalysis.carbs_g,
-            fat_g: editableAnalysis.fat_g,
-            fiber_g: editableAnalysis.fiber_g,
-            ultra_processed_level: safeUltraProcessedLevel,
-            source: 'ai',
-            quality_flags: qualityFlags as unknown as Json,
-          },
-        ]);
+        .insert({
+          owner_id: user.id,
+          day_id: dayIdToUse,
+          time_local: time,
+          kcal: editableAnalysis.kcal,
+          protein_g: editableAnalysis.protein_g,
+          carbs_g: editableAnalysis.carbs_g,
+          fat_g: editableAnalysis.fat_g,
+          fiber_g: editableAnalysis.fiber_g,
+          ultra_processed_level: safeUltraProcessedLevel,
+          source: 'ai',
+          quality_flags: qualityFlags as unknown as Json,
+        } as never);
       
       if (error) {
         console.error('Error saving meal:', error);
