@@ -13,5 +13,18 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
-  }
+    detectSessionInUrl: true,
+    flowType: 'pkce',
+    // Disable navigator lock to prevent timeout issues with service workers/PWA
+    lock: {
+      type: 'tab',
+      acquireTimeout: 10000,
+      retryInterval: 100,
+    },
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web',
+    },
+  },
 });
