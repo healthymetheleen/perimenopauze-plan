@@ -3,6 +3,10 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import corsMiddleware from './middleware/cors.js';
 import authRoutes from './routes/auth.js';
+import diaryRoutes from './routes/diary.js';
+import cycleRoutes from './routes/cycle.js';
+import profileRoutes from './routes/profile.js';
+import recipeRoutes from './routes/recipes.js';
 import pool from './config/database.js';
 
 // Load environment variables
@@ -34,6 +38,10 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/diary', diaryRoutes);
+app.use('/api/cycle', cycleRoutes);
+app.use('/api/profile', profileRoutes);
+app.use('/api/recipes', recipeRoutes);
 
 // 404 handler
 app.use((req, res) => {
