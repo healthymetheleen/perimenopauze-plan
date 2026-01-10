@@ -28,6 +28,27 @@ if (import.meta.env.PROD) {
   });
 }
 
+// One-time cleanup of old auth tokens (for CORS fix migration)
+if (import.meta.env.PROD && !localStorage.getItem('auth-cleanup-2026-01-10')) {
+  console.log('Running one-time auth cleanup for CORS fix...');
+
+  // Clear old Supabase sessions that might be causing 522 errors
+  const oldTokenKeys = Object.keys(localStorage).filter(key =>
+    key.includes('supabase') || key.includes('sb-')
+  );
+  oldTokenKeys.forEach(key => localStorage.removeItem(key));
+
+  // Force service worker to update
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => registration.update());
+    });
+  }
+
+  // Mark cleanup as done
+  localStorage.setItem('auth-cleanup-2026-01-10', 'true');
+}
+
 createRoot(document.getElementById("root")!).render(<App />);
 
 // Defer service worker registration to improve LCP
