@@ -1820,5 +1820,34 @@
         "benefits": ["Opent heupen", "Verlicht menstruele klachten", "Diep ontspannend"]
       }
     }
+  },
+  "admin": {
+    "backendStatus": {
+      "title": "Backend Status",
+      "description": "Gezondheidscheck van database en services",
+      "database": "Database",
+      "auth": "Authenticatie",
+      "functions": "Backend Functies",
+      "healthy": "Gezond",
+      "degraded": "Vertraagd",
+      "issues": "Problemen",
+      "unknown": "Onbekend",
+      "checking": "Controleren...",
+      "timeoutMessage": "Verbinding timeout",
+      "slowResponse": "Trage respons",
+      "connectionFailed": "Verbinding mislukt",
+      "authCheckFailed": "Auth check mislukt",
+      "functionsUnreachable": "Functies onbereikbaar",
+      "runningCheck": "Health check uitvoeren...",
+      "couldNotFetch": "Kon status niet ophalen",
+      "unknownError": "Onbekende fout",
+      "retry": "Opnieuw proberen",
+      "lastChecked": "Laatst gecontroleerd",
+      "possibleSolutions": "Mogelijke oplossingen",
+      "tipDatabaseTimeout": "Database timeout: wacht 2-5 minuten en probeer opnieuw",
+      "tipSlowDatabase": "Trage database: overweeg instance upgrade",
+      "tipFunctionsUnreachable": "Functies onbereikbaar: controleer netwerkverbinding",
+      "tipContactSupport": "Bij aanhoudende problemen: neem contact op met support"
+    }
   }
 }
