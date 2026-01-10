@@ -59,10 +59,11 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
       const { data, error } = await supabase
         .from('symptoms')
         .select('symptom_code, severity_0_10')
-        .eq('day_id', dayId)
-        .eq('owner_id', user.id);
+        .eq('day_id' as never, dayId)
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
-      return data.map(s => ({ code: s.symptom_code, severity: s.severity_0_10 }));
+      const symptoms = (data || []) as unknown as { symptom_code: string; severity_0_10: number }[];
+      return symptoms.map(s => ({ code: s.symptom_code, severity: s.severity_0_10 }));
     },
     enabled: !!user && !!dayId && open,
   });
@@ -98,8 +99,8 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
       await supabase
         .from('symptoms')
         .delete()
-        .eq('day_id', dayId)
-        .eq('owner_id', user.id);
+        .eq('day_id' as never, dayId)
+        .eq('owner_id' as never, user.id);
 
       // Insert new symptoms
       if (selectedSymptoms.length > 0) {
@@ -111,7 +112,7 @@ export function SymptomsDialog({ open, onOpenChange, dayId }: SymptomsDialogProp
               day_id: dayId,
               symptom_code: s.code,
               severity_0_10: s.severity,
-            }))
+            })) as never[]
           );
         if (error) throw error;
       }

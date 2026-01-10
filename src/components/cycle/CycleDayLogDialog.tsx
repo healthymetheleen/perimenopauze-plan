@@ -79,10 +79,10 @@ export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symp
       const { data } = await supabase
         .from('bleeding_logs')
         .select('*')
-        .eq('owner_id', user.id)
-        .eq('log_date', date)
+        .eq('owner_id' as never, user.id)
+        .eq('log_date' as never, date)
         .maybeSingle();
-      return data as BleedingLog | null;
+      return data as unknown as BleedingLog | null;
     },
     enabled: !!user && open,
   });
@@ -94,10 +94,10 @@ export function CycleDayLogDialog({ open, onOpenChange, date, defaultTab = 'symp
       const { data } = await supabase
         .from('cycle_symptom_logs')
         .select('*')
-        .eq('owner_id', user.id)
-        .eq('log_date', date)
+        .eq('owner_id' as never, user.id)
+        .eq('log_date' as never, date)
         .maybeSingle();
-      return data as CycleSymptomLog | null;
+      return data as unknown as CycleSymptomLog | null;
     },
     enabled: !!user && open,
   });

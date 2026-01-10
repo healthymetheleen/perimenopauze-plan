@@ -66,9 +66,9 @@ export function MealCard({ meal }: MealCardProps) {
           carbs_g: editValues.carbs_g ? parseFloat(editValues.carbs_g) : null,
           fat_g: editValues.fat_g ? parseFloat(editValues.fat_g) : null,
           fiber_g: editValues.fiber_g ? parseFloat(editValues.fiber_g) : null,
-        })
-        .eq('id', meal.id)
-        .eq('owner_id', user.id);
+        } as never)
+        .eq('id' as never, meal.id)
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -88,8 +88,8 @@ export function MealCard({ meal }: MealCardProps) {
       const { error } = await supabase
         .from('meals')
         .delete()
-        .eq('id', meal.id)
-        .eq('owner_id', user.id);
+        .eq('id' as never, meal.id)
+        .eq('owner_id' as never, user.id);
       if (error) throw error;
     },
     onSuccess: () => {

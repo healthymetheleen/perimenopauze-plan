@@ -28,7 +28,7 @@ export function useAffiliateProducts() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return (data || []) as AffiliateProduct[];
+      return (data as unknown as AffiliateProduct[]) ?? [];
     },
   });
 }
@@ -44,12 +44,12 @@ export function useAffiliateProductsByCategory(category?: string) {
         .order('created_at', { ascending: false });
 
       if (category && category !== 'alle') {
-        query = query.eq('category', category);
+        query = query.eq('category' as never, category);
       }
 
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []) as AffiliateProduct[];
+      return (data as unknown as AffiliateProduct[]) ?? [];
     },
   });
 }
@@ -63,7 +63,8 @@ export function useCategories() {
         .select('category');
 
       if (error) throw error;
-      const categories = [...new Set((data || []).map(p => p.category))];
+      const products = (data as unknown as { category: string }[]) ?? [];
+      const categories = [...new Set(products.map(p => p.category))];
       return categories.sort();
     },
   });
@@ -98,7 +99,7 @@ export function useCreateProduct() {
           tags: input.tags || [],
           is_published: input.is_published ?? true,
           sort_order: input.sort_order ?? 0,
-        })
+        } as never)
         .select()
         .single();
 
@@ -123,8 +124,8 @@ export function useUpdateProduct() {
     mutationFn: async ({ id, ...input }: Partial<CreateProductInput> & { id: string }) => {
       const { error } = await supabase
         .from('affiliate_products')
-        .update(input)
-        .eq('id', id);
+        .update(input as never)
+        .eq('id' as never, id);
 
       if (error) throw error;
     },
@@ -147,7 +148,7 @@ export function useDeleteProduct() {
       const { error } = await supabase
         .from('affiliate_products')
         .delete()
-        .eq('id', id);
+        .eq('id' as never, id);
 
       if (error) throw error;
     },

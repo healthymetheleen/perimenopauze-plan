@@ -28,7 +28,7 @@ export function useAIPrompts() {
         .order('name', { ascending: true });
 
       if (error) throw error;
-      return (data || []) as AIPrompt[];
+      return (data as unknown as AIPrompt[]) ?? [];
     },
     enabled: !!user,
   });
@@ -41,8 +41,8 @@ export function useUpdateAIPrompt() {
     mutationFn: async ({ id, prompt_nl, prompt_en }: { id: string; prompt_nl: string; prompt_en: string }) => {
       const { error } = await supabase
         .from('ai_prompts')
-        .update({ prompt_nl, prompt_en })
-        .eq('id', id);
+        .update({ prompt_nl, prompt_en } as never)
+        .eq('id' as never, id);
 
       if (error) throw error;
     },

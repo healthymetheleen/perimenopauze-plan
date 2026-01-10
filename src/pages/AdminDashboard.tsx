@@ -16,6 +16,7 @@ import { BroadcastCard } from '@/components/admin/BroadcastCard';
 import { PremiumGrantsCard } from '@/components/admin/PremiumGrantsCard';
 import { ProductsAdminCard } from '@/components/admin/ProductsAdminCard';
 import { RefundRequestsCard } from '@/components/admin/RefundRequestsCard';
+import { BackendStatusPanel } from '@/components/admin/BackendStatusPanel';
 
 export default function AdminDashboard() {
   const { data: isAdmin, isLoading: checkingAdmin } = useIsAdmin();
@@ -255,6 +256,9 @@ export default function AdminDashboard() {
                 </div>
               </CardContent>
             </Card>
+
+            {/* Backend Status */}
+            <BackendStatusPanel />
 
             {/* Broadcast Email */}
             <BroadcastCard />
