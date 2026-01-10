@@ -21,7 +21,7 @@ import {
 import { useTranslation } from 'react-i18next';
 
 interface HealthCheckResult {
-  status: 'ok' | 'warning' | 'error';
+  status: 'ok' | 'warning' | 'error' | 'timeout';
   latency_ms: number;
   message?: string;
 }
@@ -34,6 +34,35 @@ interface BackendStatus {
   checked_at: string;
 }
 
+const REQUEST_TIMEOUT = 5000; // 5 seconds timeout
+
+async function fetchWithTimeout<T>(
+  promise: Promise<T>,
+  timeoutMs: number
+): Promise<{ result: T | null; timedOut: boolean }> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+  
+  try {
+    const result = await Promise.race([
+      promise,
+      new Promise<never>((_, reject) => {
+        controller.signal.addEventListener('abort', () => {
+          reject(new Error('Request timeout'));
+        });
+      }),
+    ]);
+    clearTimeout(timeoutId);
+    return { result, timedOut: false };
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error instanceof Error && error.message === 'Request timeout') {
+      return { result: null, timedOut: true };
+    }
+    throw error;
+  }
+}
+
 export function BackendStatusPanel() {
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
@@ -41,7 +70,6 @@ export function BackendStatusPanel() {
   const { data: status, isLoading, error, refetch, isFetching } = useQuery({
     queryKey: ['backend-health'],
     queryFn: async (): Promise<BackendStatus> => {
-      const startTime = Date.now();
       const results: BackendStatus = {
         database: { status: 'error', latency_ms: 0 },
         auth: { status: 'error', latency_ms: 0 },
@@ -50,43 +78,56 @@ export function BackendStatusPanel() {
         checked_at: new Date().toISOString(),
       };
 
-      // Check database connection (simple count query on public table)
+      // Check database connection with timeout (simple count query - no PII)
       try {
         const dbStart = Date.now();
-        const { error: dbError } = await supabase
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        
+        const dbPromise = supabase
           .from('affiliate_products')
           .select('id', { count: 'exact', head: true })
-          .limit(1);
+          .limit(1)
+          .abortSignal(controller.signal);
         
+        const { error: dbError } = await dbPromise;
+        clearTimeout(timeoutId);
         const dbLatency = Date.now() - dbStart;
         
         if (dbError) {
+          const isTimeout = dbError.message?.includes('abort') || dbError.code === 'PGRST301';
           results.database = { 
-            status: 'error', 
+            status: isTimeout ? 'timeout' : 'error', 
             latency_ms: dbLatency, 
-            message: dbError.code === 'PGRST301' ? 'Connection timeout' : dbError.message 
+            message: isTimeout ? t('admin.backendStatus.timeoutMessage', 'Connection timeout') : dbError.message 
           };
         } else if (dbLatency > 3000) {
-          results.database = { status: 'warning', latency_ms: dbLatency, message: 'Slow response' };
+          results.database = { status: 'warning', latency_ms: dbLatency, message: t('admin.backendStatus.slowResponse', 'Slow response') };
         } else {
           results.database = { status: 'ok', latency_ms: dbLatency };
         }
       } catch (e) {
+        const isAbort = e instanceof Error && e.name === 'AbortError';
         results.database = { 
-          status: 'error', 
-          latency_ms: Date.now() - startTime, 
-          message: e instanceof Error ? e.message : 'Connection failed' 
+          status: isAbort ? 'timeout' : 'error', 
+          latency_ms: REQUEST_TIMEOUT, 
+          message: isAbort ? t('admin.backendStatus.timeoutMessage', 'Connection timeout') : (e instanceof Error ? e.message : t('admin.backendStatus.connectionFailed', 'Connection failed'))
         };
       }
 
-      // Check auth service
+      // Check auth service with timeout
       try {
         const authStart = Date.now();
-        const { data: session } = await supabase.auth.getSession();
+        const { timedOut } = await fetchWithTimeout(
+          supabase.auth.getSession(),
+          REQUEST_TIMEOUT
+        );
         const authLatency = Date.now() - authStart;
         
-        if (authLatency > 2000) {
-          results.auth = { status: 'warning', latency_ms: authLatency, message: 'Slow response' };
+        if (timedOut) {
+          results.auth = { status: 'timeout', latency_ms: authLatency, message: t('admin.backendStatus.timeoutMessage', 'Connection timeout') };
+        } else if (authLatency > 2000) {
+          results.auth = { status: 'warning', latency_ms: authLatency, message: t('admin.backendStatus.slowResponse', 'Slow response') };
         } else {
           results.auth = { status: 'ok', latency_ms: authLatency };
         }
@@ -94,26 +135,29 @@ export function BackendStatusPanel() {
         results.auth = { 
           status: 'error', 
           latency_ms: 0, 
-          message: e instanceof Error ? e.message : 'Auth check failed' 
+          message: e instanceof Error ? e.message : t('admin.backendStatus.authCheckFailed', 'Auth check failed') 
         };
       }
 
-      // Check edge functions (ping a simple function if available)
+      // Check edge functions with timeout
       try {
         const fnStart = Date.now();
-        // Just check if we can reach the functions endpoint
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
+        
         const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/`, {
           method: 'HEAD',
           headers: {
             'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
         const fnLatency = Date.now() - fnStart;
         
         if (response.status === 404 || response.status === 200) {
-          // 404 is expected for root path, 200 means functions are available
           if (fnLatency > 2000) {
-            results.functions = { status: 'warning', latency_ms: fnLatency, message: 'Slow response' };
+            results.functions = { status: 'warning', latency_ms: fnLatency, message: t('admin.backendStatus.slowResponse', 'Slow response') };
           } else {
             results.functions = { status: 'ok', latency_ms: fnLatency };
           }
@@ -121,18 +165,22 @@ export function BackendStatusPanel() {
           results.functions = { status: 'warning', latency_ms: fnLatency, message: `Status ${response.status}` };
         }
       } catch (e) {
-        results.functions = { 
-          status: 'error', 
-          latency_ms: 0, 
-          message: e instanceof Error ? e.message : 'Functions unreachable' 
-        };
+        if (e instanceof Error && e.name === 'AbortError') {
+          results.functions = { status: 'timeout', latency_ms: REQUEST_TIMEOUT, message: t('admin.backendStatus.timeoutMessage', 'Connection timeout') };
+        } else {
+          results.functions = { 
+            status: 'error', 
+            latency_ms: 0, 
+            message: e instanceof Error ? e.message : t('admin.backendStatus.functionsUnreachable', 'Functions unreachable') 
+          };
+        }
       }
 
       // Calculate overall status
       const statuses = [results.database.status, results.auth.status, results.functions.status];
       if (statuses.every(s => s === 'ok')) {
         results.overall = 'healthy';
-      } else if (statuses.some(s => s === 'error')) {
+      } else if (statuses.some(s => s === 'error' || s === 'timeout')) {
         results.overall = 'down';
       } else {
         results.overall = 'degraded';
@@ -140,7 +188,7 @@ export function BackendStatusPanel() {
 
       return results;
     },
-    refetchInterval: 60000, // Check every minute
+    refetchInterval: 60000,
     staleTime: 30000,
     retry: 1,
     retryDelay: 1000,
@@ -152,6 +200,8 @@ export function BackendStatusPanel() {
         return <CheckCircle className="h-4 w-4 text-success" />;
       case 'warning':
         return <AlertTriangle className="h-4 w-4 text-warning" />;
+      case 'timeout':
+        return <Clock className="h-4 w-4 text-warning" />;
       case 'error':
         return <XCircle className="h-4 w-4 text-destructive" />;
     }
@@ -159,18 +209,18 @@ export function BackendStatusPanel() {
 
   const getOverallBadge = () => {
     if (isLoading || error) {
-      return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> Controleren...</Badge>;
+      return <Badge variant="secondary" className="gap-1"><Clock className="h-3 w-3" /> {t('admin.backendStatus.checking', 'Checking...')}</Badge>;
     }
     
     switch (status?.overall) {
       case 'healthy':
-        return <Badge variant="default" className="gap-1 bg-success text-success-foreground"><CheckCircle className="h-3 w-3" /> Gezond</Badge>;
+        return <Badge variant="default" className="gap-1 bg-success text-success-foreground"><CheckCircle className="h-3 w-3" /> {t('admin.backendStatus.healthy', 'Healthy')}</Badge>;
       case 'degraded':
-        return <Badge variant="default" className="gap-1 bg-warning text-warning-foreground"><AlertTriangle className="h-3 w-3" /> Vertraagd</Badge>;
+        return <Badge variant="default" className="gap-1 bg-warning text-warning-foreground"><AlertTriangle className="h-3 w-3" /> {t('admin.backendStatus.degraded', 'Degraded')}</Badge>;
       case 'down':
-        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> Problemen</Badge>;
+        return <Badge variant="destructive" className="gap-1"><XCircle className="h-3 w-3" /> {t('admin.backendStatus.issues', 'Issues')}</Badge>;
       default:
-        return <Badge variant="secondary">Onbekend</Badge>;
+        return <Badge variant="secondary">{t('admin.backendStatus.unknown', 'Unknown')}</Badge>;
     }
   };
 
@@ -190,10 +240,10 @@ export function BackendStatusPanel() {
               <div>
                 <CardTitle className="text-lg flex items-center gap-2">
                   <Server className="h-5 w-5 text-primary" />
-                  Backend Status
+                  {t('admin.backendStatus.title', 'Backend Status')}
                 </CardTitle>
                 <CardDescription>
-                  Health check van database en services
+                  {t('admin.backendStatus.description', 'Health check of database and services')}
                 </CardDescription>
               </div>
               <div className="flex items-center gap-2">
@@ -220,16 +270,16 @@ export function BackendStatusPanel() {
             {isLoading ? (
               <div className="flex items-center gap-2 text-muted-foreground py-4">
                 <Loader2 className="h-4 w-4 animate-spin" />
-                <span className="text-sm">Health check uitvoeren...</span>
+                <span className="text-sm">{t('admin.backendStatus.runningCheck', 'Running health check...')}</span>
               </div>
             ) : error ? (
               <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
                 <div className="flex items-start gap-2">
                   <XCircle className="h-5 w-5 text-destructive mt-0.5" />
                   <div>
-                    <p className="font-medium text-destructive">Kon status niet ophalen</p>
+                    <p className="font-medium text-destructive">{t('admin.backendStatus.couldNotFetch', 'Could not fetch status')}</p>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {error instanceof Error ? error.message : 'Onbekende fout'}
+                      {error instanceof Error ? error.message : t('admin.backendStatus.unknownError', 'Unknown error')}
                     </p>
                     <Button 
                       variant="outline" 
@@ -238,7 +288,7 @@ export function BackendStatusPanel() {
                       onClick={() => refetch()}
                     >
                       <RefreshCw className="h-4 w-4 mr-2" />
-                      Opnieuw proberen
+                      {t('admin.backendStatus.retry', 'Try again')}
                     </Button>
                   </div>
                 </div>
@@ -251,7 +301,7 @@ export function BackendStatusPanel() {
                     {getStatusIcon(status.database)}
                     <div className="flex items-center gap-2">
                       <Database className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Database</span>
+                      <span className="font-medium">{t('admin.backendStatus.database', 'Database')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
@@ -268,7 +318,7 @@ export function BackendStatusPanel() {
                     {getStatusIcon(status.auth)}
                     <div className="flex items-center gap-2">
                       <Zap className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Authenticatie</span>
+                      <span className="font-medium">{t('admin.backendStatus.auth', 'Authentication')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
@@ -285,7 +335,7 @@ export function BackendStatusPanel() {
                     {getStatusIcon(status.functions)}
                     <div className="flex items-center gap-2">
                       <Server className="h-4 w-4 text-muted-foreground" />
-                      <span className="font-medium">Edge Functions</span>
+                      <span className="font-medium">{t('admin.backendStatus.functions', 'Backend Functions')}</span>
                     </div>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
@@ -298,7 +348,7 @@ export function BackendStatusPanel() {
 
                 {/* Last checked */}
                 <p className="text-xs text-muted-foreground text-center pt-2">
-                  Laatst gecontroleerd: {new Date(status.checked_at).toLocaleTimeString('nl-NL')}
+                  {t('admin.backendStatus.lastChecked', 'Last checked')}: {new Date(status.checked_at).toLocaleTimeString()}
                 </p>
 
                 {/* Troubleshooting tips for degraded/down status */}
@@ -307,18 +357,18 @@ export function BackendStatusPanel() {
                     <div className="flex items-start gap-2">
                       <AlertTriangle className="h-4 w-4 text-primary mt-0.5" />
                       <div className="text-sm">
-                        <p className="font-medium text-primary">Mogelijke oplossingen:</p>
+                        <p className="font-medium text-primary">{t('admin.backendStatus.possibleSolutions', 'Possible solutions')}:</p>
                         <ul className="list-disc list-inside text-muted-foreground mt-1 space-y-1">
-                          {status.database.status !== 'ok' && (
-                            <li>Database timeout: wacht 2-5 minuten en probeer opnieuw</li>
+                          {(status.database.status === 'timeout' || status.database.status === 'error') && (
+                            <li>{t('admin.backendStatus.tipDatabaseTimeout', 'Database timeout: wait 2-5 minutes and try again')}</li>
                           )}
-                          {status.database.latency_ms > 3000 && (
-                            <li>Trage database: overweeg instance upgrade in Cloud Settings</li>
+                          {status.database.latency_ms > 3000 && status.database.status === 'warning' && (
+                            <li>{t('admin.backendStatus.tipSlowDatabase', 'Slow database: consider instance upgrade')}</li>
                           )}
-                          {status.functions.status !== 'ok' && (
-                            <li>Edge functions niet bereikbaar: controleer netwerkverbinding</li>
+                          {(status.functions.status === 'timeout' || status.functions.status === 'error') && (
+                            <li>{t('admin.backendStatus.tipFunctionsUnreachable', 'Functions unreachable: check network connection')}</li>
                           )}
-                          <li>Bij aanhoudende problemen: neem contact op met support</li>
+                          <li>{t('admin.backendStatus.tipContactSupport', 'For persistent issues: contact support')}</li>
                         </ul>
                       </div>
                     </div>

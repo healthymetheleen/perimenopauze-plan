@@ -1961,5 +1961,34 @@
         "benefits": ["Opens hips", "Relieves menstrual complaints", "Deeply relaxing"]
       }
     }
+  },
+  "admin": {
+    "backendStatus": {
+      "title": "Backend Status",
+      "description": "Health check of database and services",
+      "database": "Database",
+      "auth": "Authentication",
+      "functions": "Backend Functions",
+      "healthy": "Healthy",
+      "degraded": "Degraded",
+      "issues": "Issues",
+      "unknown": "Unknown",
+      "checking": "Checking...",
+      "timeoutMessage": "Connection timeout",
+      "slowResponse": "Slow response",
+      "connectionFailed": "Connection failed",
+      "authCheckFailed": "Auth check failed",
+      "functionsUnreachable": "Functions unreachable",
+      "runningCheck": "Running health check...",
+      "couldNotFetch": "Could not fetch status",
+      "unknownError": "Unknown error",
+      "retry": "Try again",
+      "lastChecked": "Last checked",
+      "possibleSolutions": "Possible solutions",
+      "tipDatabaseTimeout": "Database timeout: wait 2-5 minutes and try again",
+      "tipSlowDatabase": "Slow database: consider instance upgrade",
+      "tipFunctionsUnreachable": "Functions unreachable: check network connection",
+      "tipContactSupport": "For persistent issues: contact support"
+    }
   }
 }
