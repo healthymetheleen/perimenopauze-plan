@@ -21,6 +21,7 @@ import {
   useGenerateRecipeImage,
   mealTypes,
   seasons,
+  cyclePhases,
   dietTags,
   Ingredient,
 } from '@/hooks/useRecipes';
@@ -51,6 +52,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
   const [thumbnailUrl, setThumbnailUrl] = useState('');
   const [mealType, setMealType] = useState('ontbijt');
   const [selectedSeasons, setSelectedSeasons] = useState<string[]>([]);
+  const [selectedCyclePhases, setSelectedCyclePhases] = useState<string[]>([]);
   const [selectedDietTags, setSelectedDietTags] = useState<string[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([
     { name: '', amount: '', unit: '' },
@@ -74,6 +76,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       setImageUrl(existingRecipe.image_url || '');
       setThumbnailUrl(existingRecipe.thumbnail_url || '');
       setSelectedSeasons(existingRecipe.seasons);
+      setSelectedCyclePhases(existingRecipe.cycle_phases || []);
       setSelectedDietTags(existingRecipe.diet_tags);
       setIngredients(existingRecipe.ingredients.length > 0 
         ? existingRecipe.ingredients 
@@ -97,6 +100,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       setThumbnailUrl('');
       setMealType('ontbijt');
       setSelectedSeasons([]);
+      setSelectedCyclePhases([]);
       setSelectedDietTags([]);
       setIngredients([{ name: '', amount: '', unit: '' }]);
       setKcal('');
@@ -113,6 +117,14 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       prev.includes(season)
         ? prev.filter(s => s !== season)
         : [...prev, season]
+    );
+  };
+
+  const handleCyclePhaseToggle = (phase: string) => {
+    setSelectedCyclePhases(prev =>
+      prev.includes(phase)
+        ? prev.filter(p => p !== phase)
+        : [...prev, phase]
     );
   };
 
@@ -157,6 +169,7 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
       thumbnail_url: thumbnailUrl.trim() || null,
       meal_type: mealType,
       seasons: selectedSeasons,
+      cycle_phases: selectedCyclePhases,
       diet_tags: selectedDietTags,
       ingredients: validIngredients,
       kcal: kcal ? parseInt(kcal) : null,
@@ -314,7 +327,8 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
               </div>
 
               <div>
-                <Label className="mb-2 block">Seizoen/cyclusfase</Label>
+                <Label className="mb-2 block">Weerseizoen</Label>
+                <p className="text-xs text-muted-foreground mb-2">Wanneer zijn de ingrediënten in het seizoen?</p>
                 <div className="flex flex-wrap gap-2">
                   {seasons.map((season) => (
                     <label
@@ -326,6 +340,26 @@ export function RecipeFormDialog({ open, onOpenChange, recipeId }: RecipeFormDia
                         onCheckedChange={() => handleSeasonToggle(season.value)}
                       />
                       {season.label}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <Label className="mb-2 block">Cyclusfase</Label>
+                <p className="text-xs text-muted-foreground mb-2">Voor welke fase van de cyclus is dit recept geschikt?</p>
+                <div className="flex flex-wrap gap-2">
+                  {cyclePhases.map((phase) => (
+                    <label
+                      key={phase.value}
+                      className="flex items-center gap-2 text-sm cursor-pointer"
+                    >
+                      <Checkbox
+                        checked={selectedCyclePhases.includes(phase.value)}
+                        onCheckedChange={() => handleCyclePhaseToggle(phase.value)}
+                      />
+                      <span>{phase.label}</span>
+                      <span className="text-xs text-muted-foreground">({phase.description})</span>
                     </label>
                   ))}
                 </div>

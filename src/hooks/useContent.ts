@@ -258,3 +258,56 @@ export async function uploadContentImage(file: File, folder: string = 'meditatio
   
   return publicUrl;
 }
+
+// Audio upload constraints for optimal quality/size balance
+// Target: 64-128kbps MP3, max 50MB file size
+export const AUDIO_UPLOAD_CONFIG = {
+  maxSizeMB: 50,
+  acceptedFormats: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/m4a', 'audio/aac', 'audio/ogg'],
+  acceptString: '.mp3,.wav,.m4a,.aac,.ogg',
+};
+
+export async function uploadMeditationAudio(
+  file: File, 
+  onProgress?: (progress: number) => void
+): Promise<string> {
+  // Validate file size (max 50MB)
+  if (file.size > AUDIO_UPLOAD_CONFIG.maxSizeMB * 1024 * 1024) {
+    throw new Error(`Bestand is te groot. Maximaal ${AUDIO_UPLOAD_CONFIG.maxSizeMB}MB toegestaan.`);
+  }
+
+  // Validate file type
+  if (!AUDIO_UPLOAD_CONFIG.acceptedFormats.includes(file.type) && !file.name.match(/\.(mp3|wav|m4a|aac|ogg)$/i)) {
+    throw new Error('Ongeldig bestandstype. Gebruik MP3, WAV, M4A, AAC of OGG.');
+  }
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || 'mp3';
+  const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+
+  onProgress?.(10);
+
+  const { error } = await supabase.storage
+    .from('meditation-audio')
+    .upload(fileName, file, {
+      cacheControl: '31536000', // 1 year cache
+      upsert: false,
+    });
+
+  onProgress?.(90);
+
+  if (error) throw error;
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('meditation-audio')
+    .getPublicUrl(fileName);
+
+  onProgress?.(100);
+
+  return publicUrl;
+}
+
+export function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
