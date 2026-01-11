@@ -311,6 +311,178 @@ async function trackUsage(supabase: any, userId: string, functionName: string) {
   }
 }
 
+// Helper: Check if analysis has actual nutrient data
+function hasNutrientData(analysis: any): boolean {
+  if (!analysis) return false;
+  const totals = analysis.totals || analysis;
+  return (
+    (typeof totals.kcal === 'number' && totals.kcal > 0) ||
+    (typeof totals.protein_g === 'number' && totals.protein_g > 0) ||
+    (typeof totals.carbs_g === 'number' && totals.carbs_g > 0)
+  );
+}
+
+// Rough estimates for common foods when AI fails to provide data
+const commonFoodEstimates: Record<string, { kcal: number; protein_g: number; carbs_g: number; fat_g: number; fiber_g: number }> = {
+  'brood': { kcal: 85, protein_g: 3, carbs_g: 15, fat_g: 1, fiber_g: 2 },
+  'boterham': { kcal: 85, protein_g: 3, carbs_g: 15, fat_g: 1, fiber_g: 2 },
+  'volkoren': { kcal: 90, protein_g: 4, carbs_g: 14, fat_g: 1.5, fiber_g: 3 },
+  'kaas': { kcal: 80, protein_g: 5, carbs_g: 0, fat_g: 6, fiber_g: 0 },
+  'jam': { kcal: 40, protein_g: 0, carbs_g: 10, fat_g: 0, fiber_g: 0 },
+  'aardbei': { kcal: 40, protein_g: 0, carbs_g: 10, fat_g: 0, fiber_g: 0 },
+  'boter': { kcal: 75, protein_g: 0, carbs_g: 0, fat_g: 8, fiber_g: 0 },
+  'ei': { kcal: 90, protein_g: 7, carbs_g: 1, fat_g: 6, fiber_g: 0 },
+  'yoghurt': { kcal: 80, protein_g: 5, carbs_g: 6, fat_g: 4, fiber_g: 0 },
+  'havermout': { kcal: 150, protein_g: 5, carbs_g: 27, fat_g: 3, fiber_g: 4 },
+  'koffie': { kcal: 5, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 },
+  'thee': { kcal: 2, protein_g: 0, carbs_g: 0, fat_g: 0, fiber_g: 0 },
+  'melk': { kcal: 65, protein_g: 3, carbs_g: 5, fat_g: 4, fiber_g: 0 },
+  'rijst': { kcal: 200, protein_g: 4, carbs_g: 45, fat_g: 0, fiber_g: 1 },
+  'pasta': { kcal: 220, protein_g: 8, carbs_g: 43, fat_g: 1, fiber_g: 2 },
+  'kip': { kcal: 165, protein_g: 31, carbs_g: 0, fat_g: 4, fiber_g: 0 },
+  'salade': { kcal: 25, protein_g: 1, carbs_g: 4, fat_g: 0, fiber_g: 2 },
+  'appel': { kcal: 80, protein_g: 0, carbs_g: 21, fat_g: 0, fiber_g: 4 },
+  'banaan': { kcal: 105, protein_g: 1, carbs_g: 27, fat_g: 0, fiber_g: 3 },
+};
+
+// Generate a rough estimate based on description when AI fails
+function generateFallbackEstimate(description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+  const lowerDesc = description.toLowerCase();
+  let totalKcal = 0;
+  let totalProtein = 0;
+  let totalCarbs = 0;
+  let totalFat = 0;
+  let totalFiber = 0;
+  let matchedItems = 0;
+  
+  // Try to match known foods in the description
+  for (const [food, values] of Object.entries(commonFoodEstimates)) {
+    if (lowerDesc.includes(food)) {
+      totalKcal += values.kcal;
+      totalProtein += values.protein_g;
+      totalCarbs += values.carbs_g;
+      totalFat += values.fat_g;
+      totalFiber += values.fiber_g;
+      matchedItems++;
+    }
+  }
+  
+  // Default fallback for unknown meals
+  if (matchedItems === 0) {
+    // Assume a small snack/meal
+    totalKcal = 150;
+    totalProtein = 5;
+    totalCarbs = 20;
+    totalFat = 5;
+    totalFiber = 2;
+  }
+
+  const clarificationQuestions = {
+    nl: 'Kun je meer details geven over de portiegrootte en ingrediënten?',
+    en: 'Can you provide more details about portion size and ingredients?',
+  };
+  
+  return {
+    description: description || t.mealLabel,
+    items: [],
+    totals: { 
+      kcal: totalKcal, 
+      kcal_min: Math.round(totalKcal * 0.7),
+      kcal_max: Math.round(totalKcal * 1.3),
+      protein_g: totalProtein, 
+      carbs_g: totalCarbs, 
+      fat_g: totalFat, 
+      fiber_g: totalFiber 
+    },
+    kcal: totalKcal,
+    protein_g: totalProtein,
+    carbs_g: totalCarbs,
+    fat_g: totalFat,
+    fiber_g: totalFiber,
+    ultra_processed_level: 1,
+    confidence: 0.4,
+    missing_info: lang === 'nl' ? ['portie onbekend', 'exacte ingrediënten onbekend'] : ['portion unknown', 'exact ingredients unknown'],
+    clarification_question: clarificationQuestions[lang],
+    verification_questions: [{
+      question: t.fallbackQuestion,
+      options: [t.optionBreakfast, t.optionWarm, t.optionSnack, t.optionDrink],
+      affects: 'description'
+    }],
+    quality_flags: {
+      has_protein: totalProtein > 5,
+      has_fiber: totalFiber > 2,
+      has_vegetables: false,
+      is_ultra_processed: false,
+      is_late_meal: false
+    },
+    notes: t.fallbackNote
+  };
+}
+
+// Ensure analysis always has nutrient estimates
+function ensureNutrientEstimates(analysis: any, description: string, lang: SupportedLanguage, t: typeof translations.nl): any {
+  if (!analysis) {
+    return generateFallbackEstimate(description, lang, t);
+  }
+  
+  const totals = analysis.totals || {};
+  const hasValidKcal = typeof totals.kcal === 'number' && totals.kcal > 0;
+  const hasValidProtein = typeof totals.protein_g === 'number' && totals.protein_g >= 0;
+  
+  // If we already have valid data, just return with any missing fields filled
+  if (hasValidKcal) {
+    // Ensure all fields exist
+    analysis.totals = {
+      kcal: totals.kcal || 0,
+      kcal_min: totals.kcal_min || Math.round((totals.kcal || 0) * 0.8),
+      kcal_max: totals.kcal_max || Math.round((totals.kcal || 0) * 1.2),
+      protein_g: totals.protein_g ?? 0,
+      carbs_g: totals.carbs_g ?? 0,
+      fat_g: totals.fat_g ?? 0,
+      fiber_g: totals.fiber_g ?? 0,
+      alcohol_g: totals.alcohol_g ?? null,
+      caffeine_mg: totals.caffeine_mg ?? null,
+    };
+    
+    // Also set top-level fields
+    analysis.kcal = analysis.totals.kcal;
+    analysis.protein_g = analysis.totals.protein_g;
+    analysis.carbs_g = analysis.totals.carbs_g;
+    analysis.fat_g = analysis.totals.fat_g;
+    analysis.fiber_g = analysis.totals.fiber_g;
+    
+    // If confidence is still low, add a clarification question
+    const confidence = typeof analysis.confidence === 'number' ? analysis.confidence : 0.5;
+    if (confidence < 0.60 && !analysis.clarification_question) {
+      const clarificationQuestions = {
+        nl: 'De analyse is onzeker. Kun je meer details geven over portiegrootte of bereiding?',
+        en: 'The analysis is uncertain. Can you provide more details about portion size or preparation?',
+      };
+      analysis.clarification_question = clarificationQuestions[lang];
+    }
+    
+    return analysis;
+  }
+  
+  // No valid data, generate estimates
+  const fallback = generateFallbackEstimate(description, lang, t);
+  
+  return {
+    ...analysis,
+    totals: fallback.totals,
+    kcal: fallback.kcal,
+    protein_g: fallback.protein_g,
+    carbs_g: fallback.carbs_g,
+    fat_g: fallback.fat_g,
+    fiber_g: fallback.fiber_g,
+    confidence: Math.min(analysis.confidence || 0.3, 0.4), // Cap at 0.4 for estimated data
+    missing_info: [...(analysis.missing_info || []), ...(fallback.missing_info || [])],
+    clarification_question: analysis.clarification_question || fallback.clarification_question,
+    verification_questions: analysis.verification_questions || fallback.verification_questions,
+    notes: fallback.notes,
+  };
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -462,8 +634,10 @@ serve(async (req) => {
       }
       
       const confidenceNum = typeof analysis.confidence === 'number' ? analysis.confidence : 0.5;
-      if (imageBase64 && confidenceNum < 0.65 && !usedFallback) {
-        console.log(`Low confidence (${confidenceNum}) for photo analysis, escalating to gpt-4o for subject:`, aiSubjectId);
+      
+      // Escalate to gpt-4o for ANY low confidence (not just photos)
+      if (confidenceNum < 0.60 && !usedFallback) {
+        console.log(`Low confidence (${confidenceNum}) for analysis, escalating to gpt-4o for subject:`, aiSubjectId);
         usedFallback = true;
         
         const fallbackResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -496,9 +670,14 @@ serve(async (req) => {
             const jsonMatch = fallbackContent.match(/\{[\s\S]*\}/);
             if (jsonMatch) {
               const fallbackAnalysis = JSON.parse(jsonMatch[0]);
+              // Always use the fallback analysis if it has better values or our original was too low
               if (typeof fallbackAnalysis.confidence === 'number' && fallbackAnalysis.confidence > confidenceNum) {
                 analysis = fallbackAnalysis;
                 console.log(`Fallback improved confidence: ${confidenceNum} → ${fallbackAnalysis.confidence}`);
+              } else if (hasNutrientData(fallbackAnalysis) && !hasNutrientData(analysis)) {
+                // Use fallback if it has actual nutrient data and original doesn't
+                analysis = fallbackAnalysis;
+                console.log('Using fallback because original had no nutrient data');
               }
             }
           } catch {
@@ -506,6 +685,10 @@ serve(async (req) => {
           }
         }
       }
+      
+      // CRITICAL: Always ensure we have nutrient estimates - never return empty values
+      analysis = ensureNutrientEstimates(analysis, scrubbedDescription || '', lang, t);
+      
     } catch (parseError) {
       console.error('Failed to parse AI response for', aiSubjectId);
       
@@ -544,21 +727,11 @@ serve(async (req) => {
         }
       }
       
+      // Always provide estimates, never return empty values
       if (!analysis) {
-        analysis = {
-          description: description || t.mealLabel,
-          items: [],
-          totals: { kcal: null, protein_g: null, carbs_g: null, fat_g: null, fiber_g: null },
-          ultra_processed_level: null,
-          confidence: 0.3,
-          verification_questions: [{
-            question: t.fallbackQuestion,
-            options: [t.optionBreakfast, t.optionWarm, t.optionSnack, t.optionDrink],
-            affects: 'description'
-          }],
-          quality_flags: {},
-          notes: t.fallbackNote
-        };
+        analysis = generateFallbackEstimate(scrubbedDescription || '', lang, t);
+      } else {
+        analysis = ensureNutrientEstimates(analysis, scrubbedDescription || '', lang, t);
       }
     }
 
