@@ -16,8 +16,9 @@ import { LoadingState } from '@/components/ui/loading-state';
 import { sanitizeImageUrl } from '@/lib/sanitize';
 import { 
   Plus, Pencil, Trash2, Moon, Wind, Sun, Leaf, 
-  Dumbbell, Image, Upload, Sparkles, RefreshCw, Loader2
+  Dumbbell, Image, Upload, Sparkles, RefreshCw, Loader2, Music, Volume2
 } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
 import {
   useAdminMeditations,
   useAdminExercises,
@@ -28,6 +29,9 @@ import {
   useUpdateExercise,
   useDeleteExercise,
   uploadContentImage,
+  uploadMeditationAudio,
+  formatFileSize,
+  AUDIO_UPLOAD_CONFIG,
   type Meditation,
   type Exercise,
   type MeditationInsert,
@@ -87,6 +91,8 @@ function MeditationFormDialog({
   });
   
   const [uploading, setUploading] = useState(false);
+  const [uploadingAudio, setUploadingAudio] = useState(false);
+  const [audioUploadProgress, setAudioUploadProgress] = useState(0);
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -101,6 +107,32 @@ function MeditationFormDialog({
       toast({ title: 'Upload mislukt', variant: 'destructive' });
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleAudioUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    setUploadingAudio(true);
+    setAudioUploadProgress(0);
+    
+    try {
+      const url = await uploadMeditationAudio(file, setAudioUploadProgress);
+      setFormData(prev => ({ ...prev, audio_url: url }));
+      toast({ 
+        title: 'Audio geüpload!', 
+        description: `${formatFileSize(file.size)} - ${file.name}` 
+      });
+    } catch (error) {
+      toast({ 
+        title: 'Upload mislukt', 
+        description: error instanceof Error ? error.message : 'Onbekende fout',
+        variant: 'destructive' 
+      });
+    } finally {
+      setUploadingAudio(false);
+      setAudioUploadProgress(0);
     }
   };
 
@@ -216,12 +248,45 @@ function MeditationFormDialog({
         </div>
         
         <div className="space-y-2">
-          <Label>Audio URL (optioneel)</Label>
-          <Input 
-            value={formData.audio_url || ''} 
-            onChange={e => setFormData(p => ({ ...p, audio_url: e.target.value }))}
-            placeholder="https://..."
-          />
+          <Label className="flex items-center gap-2">
+            <Music className="h-4 w-4" />
+            Audio bestand
+          </Label>
+          <div className="flex gap-2">
+            <Input 
+              value={formData.audio_url || ''} 
+              onChange={e => setFormData(p => ({ ...p, audio_url: e.target.value }))}
+              placeholder="URL of upload een bestand"
+              className="flex-1"
+            />
+            <label className="cursor-pointer">
+              <input 
+                type="file" 
+                accept={AUDIO_UPLOAD_CONFIG.acceptString}
+                className="hidden" 
+                onChange={handleAudioUpload} 
+                disabled={uploadingAudio}
+              />
+              <Button variant="outline" size="icon" disabled={uploadingAudio} asChild>
+                <span>{uploadingAudio ? <Loader2 className="h-4 w-4 animate-spin" /> : <Upload className="h-4 w-4" />}</span>
+              </Button>
+            </label>
+          </div>
+          {uploadingAudio && (
+            <div className="space-y-1">
+              <Progress value={audioUploadProgress} className="h-2" />
+              <p className="text-xs text-muted-foreground">Uploaden... {audioUploadProgress}%</p>
+            </div>
+          )}
+          {formData.audio_url && !uploadingAudio && (
+            <div className="flex items-center gap-2 p-2 bg-muted rounded-lg">
+              <Volume2 className="h-4 w-4 text-primary" />
+              <audio controls src={formData.audio_url} className="h-8 flex-1" />
+            </div>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Max {AUDIO_UPLOAD_CONFIG.maxSizeMB}MB. Ondersteunde formaten: MP3, WAV, M4A, AAC, OGG
+          </p>
         </div>
         
         <div className="flex items-center justify-between">

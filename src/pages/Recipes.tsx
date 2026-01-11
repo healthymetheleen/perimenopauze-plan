@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -17,10 +17,11 @@ import { useShoppingList } from '@/hooks/useShoppingList';
 import { ShoppingListSheet } from '@/components/recipes/ShoppingListSheet';
 import { RecipeFilters } from '@/components/recipes/RecipeFilters';
 import { sanitizeImageUrl } from '@/lib/sanitize';
+import { getWeatherSeason, detectHemisphere, Hemisphere } from '@/lib/seasonUtils';
 import { Search, Clock, Users, ChefHat, Sparkles, Filter, ShoppingCart, Heart } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
-// Time categories will use translation keys
+// Time categories for filtering recipes by preparation time
 const timeCategories = [
   { value: 'supersnel', labelKey: 'recipes.time_superfast', maxMinutes: 15 },
   { value: 'snel', labelKey: 'recipes.time_fast', maxMinutes: 30 },
@@ -36,15 +37,6 @@ const seasonToCyclePhase: Record<string, string> = {
   herfst: 'luteaal',
 };
 
-// Get current calendar season based on month
-function getCurrentCalendarSeason(): string {
-  const month = new Date().getMonth(); // 0-11
-  if (month >= 2 && month <= 4) return 'lente';
-  if (month >= 5 && month <= 7) return 'zomer';
-  if (month >= 8 && month <= 10) return 'herfst';
-  return 'winter';
-}
-
 export default function RecipesPage() {
   const { t } = useTranslation();
   const { user } = useAuth();
@@ -55,6 +47,13 @@ export default function RecipesPage() {
   const [showFilters, setShowFilters] = useState(false);
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [showShoppingList, setShowShoppingList] = useState(false);
+  
+  // Hemisphere detection for weather season
+  const [hemisphere, setHemisphere] = useState<Hemisphere>('north');
+  
+  useEffect(() => {
+    detectHemisphere().then(setHemisphere);
+  }, []);
 
   // Persisted preferences
   const {
@@ -69,8 +68,8 @@ export default function RecipesPage() {
   const { data: prediction } = useLatestPrediction();
   const { data: preferences } = useCyclePreferences();
   
-  // Current season from calendar
-  const currentCalendarSeason = getCurrentCalendarSeason();
+  // Current weather season from calendar + hemisphere
+  const currentWeatherSeason = getWeatherSeason(hemisphere);
   
   // Current cycle phase from prediction
   const currentCycleSeason = prediction?.current_season || 'onbekend';
@@ -78,7 +77,7 @@ export default function RecipesPage() {
   const hasCycleData = preferences?.onboarding_completed && currentCyclePhase;
 
   // Compute effective filters based on toggles
-  const effectiveSeason = autoSeasonEnabled ? currentCalendarSeason : undefined;
+  const effectiveSeason = autoSeasonEnabled ? currentWeatherSeason : undefined;
   const effectiveCyclePhase = (autoCycleEnabled && hasCycleData) ? currentCyclePhase : undefined;
   
   // Combine saved allergy tags with selected diet tags
@@ -359,7 +358,7 @@ export default function RecipesPage() {
                   setAutoSeasonEnabled={setAutoSeasonEnabled}
                   autoCycleEnabled={autoCycleEnabled}
                   setAutoCycleEnabled={setAutoCycleEnabled}
-                  currentSeason={currentCalendarSeason}
+                  currentSeason={currentWeatherSeason}
                   currentCyclePhase={hasCycleData ? currentCyclePhase : ''}
                   mealType={mealType}
                   setMealType={setMealType}

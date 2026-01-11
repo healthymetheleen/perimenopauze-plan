@@ -10,6 +10,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { LoadingPage } from "@/components/ui/loading-state";
 import { CookieBanner } from "@/components/layout/CookieBanner";
 import { ShoppingListProvider } from "@/hooks/useShoppingList";
+import { AdminRoute } from "@/components/layout/AdminRoute";
 
 // Lazy loaded pages for code splitting
 const LandingPage = lazy(() => import("./pages/Landing"));
@@ -266,17 +267,23 @@ function AppRoutes() {
       } />
       <Route path="/voeding-beheer" element={
         <ProtectedRoute>
-          <NutritionAdminPage />
+          <AdminRoute>
+            <NutritionAdminPage />
+          </AdminRoute>
         </ProtectedRoute>
       } />
       <Route path="/ai-instellingen" element={
         <ProtectedRoute>
-          <AISettingsPage />
+          <AdminRoute>
+            <AISettingsPage />
+          </AdminRoute>
         </ProtectedRoute>
       } />
       <Route path="/admin" element={
         <ProtectedRoute>
-          <AdminDashboardPage />
+          <AdminRoute>
+            <AdminDashboardPage />
+          </AdminRoute>
         </ProtectedRoute>
       } />
       <Route path="/producten" element={
