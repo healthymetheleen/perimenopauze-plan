@@ -10,6 +10,8 @@ import recipeRoutes from './routes/recipes.js';
 import aiChatRoutes from './routes/ai-chat.js';
 import paymentsRoutes from './routes/payments.js';
 import adminRoutes from './routes/admin.js';
+import adminContentRoutes from './routes/admin-content.js';
+import adminBroadcastRoutes from './routes/admin-broadcast.js';
 import pool from './config/database.js';
 
 // Load environment variables
@@ -48,6 +50,8 @@ app.use('/api/recipes', recipeRoutes);
 app.use('/api/ai-chat', aiChatRoutes);
 app.use('/api/payments', paymentsRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/admin-content', adminContentRoutes);
+app.use('/api/admin-broadcast', adminBroadcastRoutes);
 
 // 404 handler
 app.use((req, res) => {
